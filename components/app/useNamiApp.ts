@@ -276,5 +276,16 @@ export function useNamiApp() {
     return { openHelp, openCheckin, activeCall, dueReminder, interaction };
   }, [data, voice, textSpeaking, busy]);
 
-  return { data, error, mutate, lang, switchLang, t, captions, voice, voiceError, startVoice, stopVoice, mouth, muted, toggleMute, sendText, command, derived, ack, busy };
+  const startStory = useCallback(
+    (mp: { id: string; caption: string; fromName: string }) => {
+      announce(
+        `Meera ji opened Memory Corner: ${mp.fromName} shared a photo (${mp.id}) with the note "${mp.caption}". Warmly invite her to tell the story behind it, one gentle question at a time. When she has told it, call draft_story_for_family with prompt_id ${mp.id}.`,
+        { en: `${mp.fromName} sent a photo: “${mp.caption}”. Tell me the story — what do you remember?`, hi: `${mp.fromName} ने एक फ़ोटो भेजी है: “${mp.caption}”। उस दिन के बारे में बताइए — आपको क्या याद है?` },
+      );
+      if (!rt.current?.connected) document.getElementById('composer')?.focus();
+    },
+    [announce],
+  );
+
+  return { data, error, mutate, startStory, lang, switchLang, t, captions, voice, voiceError, startVoice, stopVoice, mouth, muted, toggleMute, sendText, command, derived, ack, busy };
 }

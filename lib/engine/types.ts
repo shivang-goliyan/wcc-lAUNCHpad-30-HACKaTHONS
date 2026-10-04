@@ -217,7 +217,7 @@ export type Appointment = {
   failureReason: string | null;
 };
 
-export type PendingKind = 'permit_clinic_call' | 'approve_slot' | 'call_family' | 'not_taken_contact_helper';
+export type PendingKind = 'permit_clinic_call' | 'approve_slot' | 'call_family' | 'not_taken_contact_helper' | 'send_memory';
 
 export type PendingAction = {
   id: string;
@@ -234,6 +234,18 @@ export type PendingAction = {
 export type Memory = { id: string; kind: 'preference' | 'story'; text: string; sourceQuote: string; consentedAt: number; deletedAt: number | null };
 
 export type FamilyRequest = { id: string; contactId: string; reason: string; message: string | null; createdAt: number; state: 'sent' | 'seen' | 'done'; callId: string | null };
+
+export type MemoryPrompt = {
+  id: string;
+  fromContactId: string;
+  photoPath: string;
+  caption: string;
+  createdAt: number;
+  state: 'new' | 'story_drafted' | 'sent' | 'kept_private';
+  storyText: string | null;
+  storyQuote: string | null;
+  sentAt: number | null;
+};
 
 export type ContactNotice = { id: string; contactId: string; at: number; text: string; caseId: string | null };
 
@@ -258,6 +270,7 @@ export type HouseholdState = {
   pending: PendingAction[];
   memories: Memory[];
   familyRequests: FamilyRequest[];
+  memoryPrompts: MemoryPrompt[];
   notices: ContactNotice[];
   device: DeviceStatus;
   ui: { quietUntil: number | null };

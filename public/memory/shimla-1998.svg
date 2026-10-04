@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" role="img" aria-label="Illustrated postcard: a toy train winding through pine hills to Shimla, 1998">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6d9b8"/><stop offset="1" stop-color="#fbeedd"/></linearGradient>
+    <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f9e8f"/><stop offset="1" stop-color="#5f8072"/></linearGradient>
+    <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f7263"/><stop offset="1" stop-color="#365447"/></linearGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.10 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <rect width="480" height="340" rx="14" fill="#fffaf1"/>
+  <g transform="translate(16 16)">
+    <rect width="448" height="270" rx="8" fill="url(#sky)"/>
+    <circle cx="360" cy="70" r="26" fill="#f2b56b" opacity=".85"/>
+    <path d="M0 150 L70 90 L120 125 L190 60 L260 120 L320 80 L400 130 L448 100 L448 270 L0 270Z" fill="#c9d7cf"/>
+    <path d="M0 185 C60 150 110 170 170 150 S300 120 360 150 S430 160 448 150 L448 270 L0 270Z" fill="url(#hill1)"/>
+    <g fill="#2f4c40">
+      <path d="M40 190 l10 -32 l10 32z"/><path d="M58 196 l12 -40 l12 40z"/><path d="M380 172 l10 -30 l10 30z"/><path d="M400 178 l12 -38 l12 38z"/><path d="M300 168 l9 -26 l9 26z"/>
+    </g>
+    <path d="M0 230 C90 200 160 236 250 214 S390 196 448 214 L448 270 L0 270Z" fill="url(#hill2)"/>
+    <path d="M20 246 C120 222 220 252 300 232 S420 216 448 226" stroke="#6b4a35" stroke-width="4" fill="none" stroke-dasharray="2 6"/>
+    <g transform="translate(150 206) rotate(-6)">
+      <rect x="0" y="6" width="44" height="22" rx="4" fill="#b8463b"/><rect x="4" y="10" width="10" height="8" rx="2" fill="#fbeedd"/><rect x="18" y="10" width="10" height="8" rx="2" fill="#fbeedd"/><rect x="32" y="10" width="8" height="8" rx="2" fill="#fbeedd"/>
+      <rect x="48" y="6" width="44" height="22" rx="4" fill="#173d38"/><rect x="52" y="10" width="10" height="8" rx="2" fill="#fbeedd"/><rect x="66" y="10" width="10" height="8" rx="2" fill="#fbeedd"/><rect x="80" y="10" width="8" height="8" rx="2" fill="#fbeedd"/>
+      <rect x="96" y="0" width="36" height="28" rx="5" fill="#8a6046"/><rect x="118" y="-10" width="8" height="12" rx="2" fill="#4f3324"/>
+      <g fill="#33201a"><circle cx="10" cy="30" r="4"/><circle cx="34" cy="30" r="4"/><circle cx="58" cy="30" r="4"/><circle cx="82" cy="30" r="4"/><circle cx="106" cy="30" r="4"/><circle cx="124" cy="30" r="4"/></g>
+      <g fill="#fff" opacity=".8"><circle cx="128" cy="-18" r="6"/><circle cx="138" cy="-28" r="8"/><circle cx="152" cy="-36" r="10"/></g>
+    </g>
+    <rect width="448" height="270" rx="8" filter="url(#grain)" opacity=".6"/>
+  </g>
+  <text x="24" y="318" font-family="Georgia, serif" font-size="20" fill="#4a5552">Shimla · May 1998</text>
+  <text x="456" y="318" text-anchor="end" font-family="Georgia, serif" font-size="13" fill="#8a6046">illustration</text>
+</svg>

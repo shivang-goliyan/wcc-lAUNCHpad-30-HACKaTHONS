@@ -45,6 +45,8 @@ export type Command =
   | { type: 'memory.save'; text: string; consent: Confirmation }
   | { type: 'memory.delete'; memoryId?: string | null; text?: string | null }
   | { type: 'ui.quiet'; minutes: number }
+  | { type: 'memory.prompt.add'; contactId: string; photoPath: string; caption: string }
+  | { type: 'memory.story.draft'; promptId?: string | null; story: string; quote: string }
   | { type: 'notice.seen'; contactId: string };
 
 // ---------------------------------------------------------------- context
@@ -53,7 +55,9 @@ class Ctx {
   effects: Effect[] = [];
   events: EngineEvent[] = [];
   reply: ToolReply | null = null;
-  constructor(public s: HouseholdState, public now: number) {}
+  constructor(public s: HouseholdState, public now: number) {
+    s.memoryPrompts ??= []; // documents created before Memory Corner existed
+  }
 
   id(prefix: string) {
     this.s.seq += 1;
@@ -136,6 +140,12 @@ export function decide(state: HouseholdState, cmd: Command, now: number): Engine
       ctx.s.ui.quietUntil = now + Math.max(5, Math.min(240, cmd.minutes)) * MIN;
       ctx.ev('human', 'user', 'quiet_requested', 'ui', null, `Asked for quiet for ${cmd.minutes} min — respected, no follow-up`);
       ctx.reply = { ok: true, status: 'quiet', sayHint: 'Of course. I will stay quiet. Reminders will still appear on screen.' };
+      break;
+    case 'memory.prompt.add':
+      memoryPromptAdd(ctx, cmd);
+      break;
+    case 'memory.story.draft':
+      memoryStoryDraft(ctx, cmd);
       break;
     case 'notice.seen':
       break;
@@ -682,6 +692,8 @@ function pendingConfirm(ctx: Ctx, id: string | null, kind: PendingKind | undefin
       return approveSlot(ctx, p.relatedId!, conf);
     case 'call_family':
       return sendFamilyRequest(ctx, p);
+    case 'send_memory':
+      return memorySend(ctx, p);
     case 'not_taken_contact_helper': {
       const contact = ctx.contact((p.payload.contactId as string) ?? null);
       if (contact) {
@@ -699,6 +711,8 @@ function pendingDecline(ctx: Ctx, id: string | null, kind?: PendingKind) {
   if (p.relatedId) {
     const a = ctx.s.appointments.find((x) => x.id === p.relatedId);
     if (a && (a.state === 'draft' || a.state === 'awaiting_user_approval')) a.state = 'cancelled';
+    const mp = ctx.s.memoryPrompts.find((x) => x.id === p.relatedId);
+    if (mp && p.kind === 'send_memory') mp.state = 'kept_private';
   }
   ctx.ev('human', 'user', 'pending_declined', 'pending', p.id, `Declined: ${p.readback}`);
   ctx.reply = { ok: true, status: 'declined', sayHint: 'Okay, I will not do that.' };
@@ -981,4 +995,38 @@ function memoryDelete(ctx: Ctx, id: string | null, text: string | null) {
   m.sourceQuote = '';
   ctx.ev('human', 'user', 'memory_deleted', 'memory', m.id, 'Memory deleted at the user’s request');
   ctx.reply = { ok: true, status: 'deleted', sayHint: 'Done — I have forgotten it.' };
+}
+
+// ---------------------------------------------------------------- Memory Corner (connection, not replacement)
+
+function memoryPromptAdd(ctx: Ctx, cmd: Extract<Command, { type: 'memory.prompt.add' }>) {
+  const c = ctx.contact(cmd.contactId);
+  if (!c || !c.permissions.memories) throw new EngineReject('not_authorised', 'This contact cannot share memories');
+  const mp = { id: ctx.id('mp'), fromContactId: c.id, photoPath: cmd.photoPath, caption: cmd.caption.slice(0, 140), createdAt: ctx.now, state: 'new' as const, storyText: null, storyQuote: null, sentAt: null };
+  ctx.s.memoryPrompts.push(mp);
+  ctx.ev('external', `contact:${c.id}`, 'memory_photo_shared', 'memory_prompt', mp.id, `${c.name} shared a photo for Memory Corner: “${mp.caption}”`);
+  ctx.reply = { ok: true, status: 'shared', sayHint: '' };
+}
+
+function memoryStoryDraft(ctx: Ctx, cmd: Extract<Command, { type: 'memory.story.draft' }>) {
+  const mp = cmd.promptId ? ctx.s.memoryPrompts.find((x) => x.id === cmd.promptId) : [...ctx.s.memoryPrompts].reverse().find((x) => x.state === 'new' || x.state === 'story_drafted');
+  if (!mp) throw new EngineReject('no_photo', 'No memory photo is waiting', 'There is no photo from your family waiting right now.');
+  if (mp.state === 'sent') throw new EngineReject('already_sent', 'Already sent', 'That story was already sent.');
+  mp.state = 'story_drafted';
+  mp.storyText = cmd.story.slice(0, 600);
+  mp.storyQuote = cmd.quote.slice(0, 600);
+  const c = ctx.contact(mp.fromContactId);
+  const p = addPending(ctx, 'send_memory', mp.id, {}, `Shall I send this story to ${c?.name}? “${mp.storyText}”`, `क्या मैं यह कहानी ${c?.name} को भेज दूँ? “${mp.storyText}”`, 60);
+  ctx.ev('agent', 'nami', 'memory_story_drafted', 'memory_prompt', mp.id, `Story drafted from ${ctx.s.recipient.addressAs}'s own words — waiting for her OK before sending`);
+  ctx.reply = { ok: true, status: 'needs_confirmation', sayHint: p.readback, data: { pendingActionId: p.id } };
+}
+
+function memorySend(ctx: Ctx, p: PendingAction) {
+  const mp = ctx.s.memoryPrompts.find((x) => x.id === p.relatedId);
+  if (!mp || !mp.storyText) throw new EngineReject('no_story', 'Nothing to send');
+  mp.state = 'sent';
+  mp.sentAt = ctx.now;
+  ctx.s.notices.push({ id: ctx.id('ntc'), contactId: mp.fromContactId, at: ctx.now, text: `${ctx.s.recipient.addressAs} told a story about your photo “${mp.caption}”: “${mp.storyText}”`, caseId: null });
+  ctx.ev('agent', 'engine', 'memory_story_sent', 'memory_prompt', mp.id, `Story sent to ${ctx.contact(mp.fromContactId)?.name} with ${ctx.s.recipient.addressAs}'s approval`);
+  ctx.reply = { ok: true, status: 'sent', sayHint: `Sent! ${ctx.contact(mp.fromContactId)?.name} will love it.` };
 }

@@ -29,6 +29,10 @@ export const TOOL_SCHEMAS = {
   request_help: { description: 'Open a help case IMMEDIATELY when she asks for help or says she is hurt, unwell, scared or in distress.', schema: z.object({ quote: z.string(), kind: z.enum(['explicit_help', 'distress']) }) },
   remember: { description: 'Save a personal memory ONLY after asking permission and hearing yes. consent_quote = her words of consent.', schema: z.object({ text: z.string(), consent_quote: z.string() }) },
   forget: { description: 'Delete something Nami remembers.', schema: z.object({ memory_id: z.string().nullable().optional(), text: z.string().nullable().optional() }) },
+  draft_story_for_family: {
+    description: "Memory Corner: after Meera tells the story behind a family photo, draft a warm 2–3 sentence summary IN HER WORDS (first person) and pass her exact words as quote. Nothing is sent until she confirms.",
+    schema: z.object({ prompt_id: z.string().nullable().optional(), story: z.string(), quote: z.string() }),
+  },
   snooze_conversation: { description: 'She asked for quiet ("not now", "leave me alone"). Go quiet.', schema: z.object({ minutes: z.number().int().min(5).max(240).nullable().optional() }) },
 } as const;
 
@@ -112,6 +116,9 @@ export async function executeTool(hh: string, name: string, rawArgs: unknown, ct
       break;
     case 'forget':
       cmd = { type: 'memory.delete', memoryId: a.memory_id ?? null, text: a.text ?? null };
+      break;
+    case 'draft_story_for_family':
+      cmd = { type: 'memory.story.draft', promptId: a.prompt_id ?? null, story: a.story, quote: a.quote };
       break;
     case 'snooze_conversation':
       cmd = { type: 'ui.quiet', minutes: a.minutes ?? 60 };

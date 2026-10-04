@@ -35,6 +35,7 @@ export async function appSnapshot(hh: string, opts: { origin?: string } = {}) {
     pending: s.pending.filter((p) => p.state === 'open' && p.expiresAt > now),
     memories: s.memories.filter((m) => !m.deletedAt),
     familyRequests: s.familyRequests.slice(-5),
+    memoryPrompts: (s.memoryPrompts ?? []).slice(-3).map((m) => ({ ...m, fromName: s.contacts.find((c) => c.id === m.fromContactId)?.name ?? '' })),
     device: s.device,
     ui: s.ui,
     consents: s.consents,
@@ -89,6 +90,8 @@ export async function careSnapshot(hh: string, contactId: string) {
       ? s.appointments.slice(-3).map((a) => ({ id: a.id, state: a.state, clinic: s.clinics.find((c) => c.id === a.clinicId)?.name, when: a.offeredSlot ? spokenEn(a.offeredSlot.startAt, tz) : null, failureReason: a.failureReason }))
       : [],
     familyRequests: s.familyRequests.filter((f) => f.contactId === contactId).slice(-3),
+    canShareMemories: contact.permissions.memories,
+    memoryPrompts: (s.memoryPrompts ?? []).filter((m) => m.fromContactId === contactId).slice(-3).map((m) => ({ id: m.id, caption: m.caption, photoPath: m.photoPath, state: m.state, story: m.state === 'sent' ? m.storyText : null, sentAt: m.sentAt ? time24(m.sentAt, tz) : null })),
   };
 }
 

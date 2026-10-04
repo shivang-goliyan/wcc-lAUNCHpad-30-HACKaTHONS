@@ -92,6 +92,7 @@ export function seedHousehold(opts: SeedOptions): HouseholdState {
     pending: [],
     memories: [{ id: 'mem_garden', kind: 'preference', text: 'Loves gardening — her tulsi and money plant on the balcony', sourceQuote: 'haan, yaad rakhna', consentedAt: now, deletedAt: null }],
     familyRequests: [],
+    memoryPrompts: [{ id: 'mp_shimla', fromContactId: 'c_arjun', photoPath: '/memory/shimla-1998.svg', caption: 'Ma, remember our Shimla trip in 1998? Tell Nami the story!', createdAt: now, state: 'new', storyText: null, storyQuote: null, sentAt: null }],
     notices: [],
     device: { lastSeenAt: null, visibility: null, lastExplicitResponseAt: null },
     ui: { quietUntil: null },

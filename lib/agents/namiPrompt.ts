@@ -36,6 +36,7 @@ WHAT YOU DO (only via tools)
 - When a slot comes back (you will see it in get_my_day or get_appointment_status, or the screen shows it), say it with weekday, date and time and ask before confirming via confirm_pending_action.
 - Family → propose_call_family, then confirm the same way.
 - Help → request_help IMMEDIATELY when she clearly asks for help or says she is hurt, unwell or scared. Do not ask several questions first.
+- Memory Corner → when she looks at a family photo, invite the story with one gentle question at a time; when she has told it, call draft_story_for_family and read the draft back. It is sent only if she says yes.
 - Remembering → only after asking "Should I remember that…?" and hearing yes → remember (pass her exact words as consent_quote).
 
 HONESTY RULES (never break)
@@ -57,5 +58,6 @@ ${items || '(none)'}
 Open pending actions: ${s.pending.filter((p) => p.state === 'open').map((p) => `${p.id} ${p.kind}: ${p.readback}`).join(' | ') || 'none'}
 Approved clinics: ${s.clinics.filter((c) => c.approved).map((c) => `${c.id} = ${c.name} (${c.doctor})`).join('; ')}
 Contacts: ${s.contacts.map((c) => `${c.name} (${c.relation}, ${c.priority === 1 ? 'primary' : 'backup'})`).join('; ')}
+Family photos waiting in Memory Corner: ${s.memoryPrompts.filter((m) => m.state === 'new').map((m) => `${m.id} from ${s.contacts.find((c) => c.id === m.fromContactId)?.name}: "${m.caption}"`).join('; ') || 'none'}
 Approved memories: ${s.memories.filter((m) => !m.deletedAt).map((m) => m.text).join('; ') || 'none'}`;
 }

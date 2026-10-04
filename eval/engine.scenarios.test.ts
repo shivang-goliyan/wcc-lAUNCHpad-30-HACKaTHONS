@@ -343,3 +343,15 @@ it('crisis safety net matches explicit phrases in en/hi/Hinglish only', () => {
   expect(crisisMatch('dawai gir gayi')).toBeNull();
   expect(crisisMatch('aaj mausam accha hai')).toBeNull();
 });
+
+describe('memory corner', () => {
+  it('story is drafted from her words and sent only after her approval; decline keeps it private', () => {
+    const h = setup();
+    const r = h.run({ type: 'memory.story.draft', story: 'In 1998 we rode the toy train to Shimla and Arjun would not stop waving at the tunnels.', quote: 'haan, toy train mein gaye the...' }, t('11:00'));
+    expect(r.reply?.status).toBe('needs_confirmation');
+    expect(h.s.notices.length).toBe(0);
+    h.run({ type: 'pending.confirm', kind: 'send_memory', confirmation: { source: 'voice', transcript: 'haan bhej do' } }, t('11:01'));
+    expect(h.s.memoryPrompts[0].state).toBe('sent');
+    expect(h.s.notices.some((n) => n.contactId === 'c_arjun' && n.text.includes('toy train'))).toBe(true);
+  });
+});

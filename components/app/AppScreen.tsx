@@ -147,6 +147,7 @@ export default function AppScreen() {
 
         <aside className="flex min-w-0 flex-col gap-4">
           <MyDay d={d} lang={lang} />
+          <MemoryCorner d={d} app={app} />
           <Appointments d={d} />
           <ActivityFeed d={d} t={t} />
           <DemoPanel d={d} app={app} />
@@ -256,7 +257,7 @@ function ApprovalCard({ p, lang, t, onAnswer }: { p: Snap['pending'][number]; la
       <div className="flex items-start gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sea-200 text-teal-900">{icon}</span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-teal-700">{p.kind === 'approve_slot' ? 'Approve this slot?' : p.kind === 'permit_clinic_call' ? 'May Nami call the clinic?' : 'Confirm'}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-teal-700">{p.kind === 'approve_slot' ? 'Approve this slot?' : p.kind === 'permit_clinic_call' ? 'May Nami call the clinic?' : p.kind === 'send_memory' ? 'Send this story?' : 'Confirm'}</p>
           <p className="mt-1 text-lg leading-snug text-ink-900">{lang === 'hi' ? p.readbackHi : p.readback}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => onAnswer(true)} className="flex min-h-14 items-center gap-2 rounded-full bg-teal-900 px-6 text-lg font-semibold text-ivory-50 hover:bg-teal-700">
@@ -600,6 +601,31 @@ function DemoPanel({ d, app }: { d: Snap; app: App }) {
       >
         <RotateCcw className="h-4 w-4" /> Reset demo household
       </button>
+    </section>
+  );
+}
+
+function MemoryCorner({ d, app }: { d: Snap; app: App }) {
+  const mp = [...(d.memoryPrompts ?? [])].reverse()[0];
+  if (!mp) return null;
+  const hi = app.lang === 'hi';
+  return (
+    <section className="overflow-hidden rounded-[20px] bg-card ring-1 ring-line">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={mp.photoPath} alt={mp.caption} className="aspect-[48/34] w-full object-cover" />
+      <div className="p-5">
+        <p className="text-xs font-bold uppercase tracking-wider text-cocoa-500">Memory Corner · from {mp.fromName}</p>
+        <p className="mt-1 font-display text-lg leading-snug text-teal-900">“{mp.caption}”</p>
+        {mp.state === 'new' && (
+          <button onClick={() => app.startStory(mp)} className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-cocoa-500 px-4 font-semibold text-white hover:bg-[#74503a]">
+            <HeartHandshake className="h-5 w-5" /> {hi ? 'नामी को कहानी सुनाइए' : 'Tell Nami the story'}
+          </button>
+        )}
+        {mp.state === 'story_drafted' && <p className="mt-2 text-sm text-warn-600">{hi ? 'कहानी तैयार है — भेजने से पहले आपकी अनुमति चाहिए।' : 'Story drafted — waiting for your OK before sending.'}</p>}
+        {mp.state === 'sent' && <p className="mt-2 text-sm font-semibold text-ok-600">✓ {hi ? `${mp.fromName} को भेज दी गई` : `Sent to ${mp.fromName}`}</p>}
+        {mp.state === 'kept_private' && <p className="mt-2 text-sm text-ink-600">{hi ? 'निजी रखी गई' : 'Kept private'}</p>}
+        <p className="mt-2 text-xs text-ink-600">{hi ? 'नामी कुछ भी आपकी हाँ के बिना नहीं भेजती।' : 'Nothing is sent without your yes. Nami never imitates family voices.'}</p>
+      </div>
     </section>
   );
 }
