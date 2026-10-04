@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Birds, LakeScene, NearWater, Rock } from './LakeScene';
+import { HeroBubble } from './HeroBubble';
 import { NamiSlot } from './NamiSlot';
 import { ScrollLink } from './ScrollLink';
 import { BTN_PRIMARY, BTN_SECONDARY } from './ui';
@@ -68,7 +69,7 @@ export function Hero() {
         className="absolute inset-0 -z-10"
         style={{
           background:
-            'radial-gradient(ellipse 62% 70% at 18% 42%, rgba(247,243,234,0.92) 0%, rgba(247,243,234,0.6) 45%, rgba(247,243,234,0) 75%)',
+            'radial-gradient(ellipse 60% 78% at 18% 48%, rgba(247,243,234,0.94) 0%, rgba(247,243,234,0.66) 48%, rgba(247,243,234,0) 78%)',
         }}
       />
       <NearWater className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[92px] lg:h-[112px]" />
@@ -112,6 +113,7 @@ export function Hero() {
 
         {/* Nami's rock. The slot is the exact box she sits in; RoamingNami takes it from here. */}
         <div className="relative ml-auto -mt-6 w-[min(50vw,200px)] self-end sm:mt-0 sm:w-[min(40vw,260px)] lg:mr-[2%] lg:w-[min(30vw,400px)]">
+          <HeroBubble />
           <NamiSlot id="hero" pose="greeting" hero className="relative z-10 mx-auto aspect-square w-[86%]" />
           <Rock className="relative -mt-[19%] w-full" />
         </div>
