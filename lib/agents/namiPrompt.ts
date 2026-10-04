@@ -1,12 +1,15 @@
 // Nami's system prompt (docs/AGENTS.md §2) with the per-session context block.
 import { loadHousehold, virtualNow } from '../db/repo';
 import { addDaysIso, dateIso, spokenDateEn, spokenEn } from '../engine/time';
+import type { HouseholdState } from '../engine/types';
 
 export async function namiInstructions(hh: string, mode: 'voice' | 'text') {
   const row = await loadHousehold(hh);
   if (!row) throw new Error('no household');
-  const s = row.state;
-  const now = virtualNow(row.clock_offset_ms);
+  return buildInstructions(row.state, virtualNow(row.clock_offset_ms), mode);
+}
+
+export function buildInstructions(s: HouseholdState, now: number, mode: 'voice' | 'text') {
   const tz = s.recipient.timezone;
   const today = dateIso(now, tz);
   const table = Array.from({ length: 14 }, (_, i) => {
