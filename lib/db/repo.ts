@@ -6,6 +6,7 @@ import { demoOffsetFor, seedHousehold, type SeedOptions } from '../seed';
 import type { ClinicScenario } from '../engine/types';
 import type { TransactionSql } from 'postgres';
 import { ensureSchema, sql } from './client';
+import { applyProfile, type OnboardProfile } from '../onboarding';
 
 export type HouseholdRow = {
   id: string;
@@ -18,13 +19,14 @@ export type HouseholdRow = {
 
 export const virtualNow = (offset: number | string, real = Date.now()) => real + Number(offset);
 
-export async function createHousehold(opts: { kind?: 'sandbox' | 'video'; scenario?: ClinicScenario; startAt?: string; phoneCallsEnabled?: boolean; phones?: SeedOptions['phones'] } = {}) {
+export async function createHousehold(opts: { kind?: 'sandbox' | 'video'; scenario?: ClinicScenario; startAt?: string; phoneCallsEnabled?: boolean; phones?: SeedOptions['phones']; profile?: OnboardProfile } = {}) {
   await ensureSchema();
   const id = `hh_${randomBytes(9).toString('base64url')}`;
   const real = Date.now();
   const offset = demoOffsetFor(real, opts.startAt ?? '08:55');
   const now = real + offset;
-  const state = { ...seedHousehold({ now, scenario: opts.scenario, phoneCallsEnabled: opts.phoneCallsEnabled, phones: opts.phones }), hid: id };
+  const seeded = seedHousehold({ now, scenario: opts.scenario, phoneCallsEnabled: opts.phoneCallsEnabled, phones: opts.phones });
+  const state = { ...(opts.profile ? applyProfile(seeded, opts.profile) : seeded), hid: id };
   const first = tick(state, now);
   const wake = nextWakeAt(first.state, now);
   const kind = opts.kind ?? 'sandbox';
@@ -34,11 +36,17 @@ export async function createHousehold(opts: { kind?: 'sandbox' | 'video'; scenar
       VALUES (${id}, ${kind}, ${tx.json(first.state as never)}, ${offset}, ${wake ? new Date(wake - offset) : null},
               ${kind === 'sandbox' ? new Date(real + 48 * 3600_000) : null})`;
     await insertEvents(tx, id, [
-      { at: now, category: 'state', actor: 'system', action: 'household_created', recordType: 'household', recordId: id, summary: `Demo household created for Meera Sharma (${kind}). Demo clock starts at ${opts.startAt ?? '08:55'} IST.` },
+      { at: now, category: 'state', actor: 'system', action: 'household_created', recordType: 'household', recordId: id, summary: createdSummary(state, kind, opts.startAt ?? '08:55', opts.profile) },
       ...first.events,
     ]);
   });
   return id;
+}
+
+function createdSummary(s: HouseholdState, kind: string, start: string, p?: OnboardProfile) {
+  if (!p) return `Demo household created for ${s.recipient.displayName} (${kind}). Demo clock starts at ${start} IST.`;
+  const by = p.setupBy === 'self' ? `${s.recipient.firstName} with Nami` : p.setupBy === 'together' ? `${s.recipient.firstName} and the family` : 'the family';
+  return `Household for ${s.recipient.displayName} set up by ${by}, with their yes (${kind}). Demo clock starts at ${start} IST.`;
 }
 
 type Tx = TransactionSql<Record<string, never>>;

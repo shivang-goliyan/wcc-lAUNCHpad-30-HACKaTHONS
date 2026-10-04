@@ -40,8 +40,11 @@ export function ScrapHero() {
           <ScrollLink to="family" className="hidden rounded-md px-2 py-1 hover:underline sm:inline">
             For families
           </ScrollLink>
-          <a href="/console" className="hidden rounded-md px-2 py-1 hover:underline md:inline">
+          <a href="/console" className="hidden rounded-md px-2 py-1 hover:underline lg:inline">
             How the agents work
+          </a>
+          <a href="/start" className="hidden rounded-md px-2 py-1 hover:underline md:inline">
+            Set up for your parent
           </a>
           <a href="/try" className="rounded-full bg-teal-900 px-4 py-2 text-ivory-50 transition hover:bg-teal-700">
             Try it
@@ -74,7 +77,12 @@ export function ScrapHero() {
               or see a day with Nami ↓
             </ScrollLink>
           </div>
-          <p className="mt-5 text-[13px] text-ink-600/90">No sign-up. The clinic in the demo is simulated, and labelled that way.</p>
+          <p className="mt-5 text-[13px] text-ink-600/90">
+            No sign-up. The clinic in the demo is simulated, and labelled that way.{' '}
+            <a href="/start" className="font-semibold text-teal-900 underline decoration-cocoa-300 underline-offset-2 hover:decoration-cocoa-500">
+              Or set Nami up for your own parent.
+            </a>
+          </p>
         </div>
 
         {/* the notes Nami keeps, and Nami herself, on the open page (never over the photos) */}
