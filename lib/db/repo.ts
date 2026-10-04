@@ -81,6 +81,9 @@ export async function runCommand(hh: string, cmd: Command | null, opts: { clockJ
       const target = opts.clockJumpTo === 'next' ? nextWakeAt(state, now) : opts.clockJumpTo;
       if (target && target > now) {
         events.push({ at: now, category: 'state', actor: 'system', action: 'demo_clock_skip', recordType: 'clock', recordId: null, summary: `⏩ Demo clock skipped ahead ${Math.round((target - now) / 60000)} min (labelled demo time)` });
+        // A page that was open just before the skip is still open: carry its heartbeat across the jump
+        // (heartbeats are virtual-time stamped; without this every skip would look like "page closed").
+        if (state.device.lastSeenAt && now - state.device.lastSeenAt < 45_000) state = { ...state, device: { ...state.device, lastSeenAt: target } };
         offset += target - now;
         now = target;
       }

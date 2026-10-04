@@ -21,7 +21,7 @@ async function main() {
   const base = tick(seedHousehold({ now: now - 600_000 }), now).state;
   const withPending = decide(base, { type: 'appointment.propose', clinicId: 'cl_mehta', dateFrom: '2026-10-06', dateTo: '2026-10-12', window: 'morning', reason: 'follow_up' }, now).state;
   const tools: Anthropic.Beta.BetaTool[] = toolJsonSchemas().map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool['input_schema'] }));
-  const results = [];
+  const results: Array<Case & { got: string | null; gotArgs: Record<string, unknown>; text: string; pass: boolean }> = [];
   for (const c of cases) {
     const system = buildInstructions(c.context === 'pending_permit' ? withPending : base, now, 'text');
     const res = await anthropic().beta.messages.create({

@@ -39,15 +39,10 @@ export default function AppScreen() {
   const { data, error, t, lang } = app;
   const [pose, setPose] = useState<PoseName>('greeting');
   const [look, setLook] = useState<{ x: number; y: number } | null>(null);
-  const greeted = useRef(false);
-
-  // one greeting wave, then follow the state
+  // one greeting wave on mount, then follow the real state
   useEffect(() => {
-    if (!greeted.current) {
-      greeted.current = true;
-      const id = setTimeout(() => setPose('idle'), 2200);
-      return () => clearTimeout(id);
-    }
+    const id = setTimeout(() => setPose('idle'), 2200);
+    return () => clearTimeout(id);
   }, []);
   const interaction = app.derived?.interaction ?? 'idle';
   const [ackPose, setAckPose] = useState(false);
@@ -425,6 +420,15 @@ const OUTCOME: Record<string, string> = {
   help_requested: 'Help requested',
 };
 
+const OUTCOME_HI: Record<string, string> = {
+  taken_reported: 'आपने बताया: ले ली',
+  done_reported: 'हो गया',
+  not_taken_reported: 'नहीं ली (आपने बताया)',
+  unacknowledged: 'जवाब नहीं मिला',
+  delivery_uncertain: 'पेज बंद था',
+  help_requested: 'मदद माँगी',
+};
+
 function MyDay({ d, lang }: { d: Snap; lang: string }) {
   return (
     <section id="my-day" className="rounded-[20px] bg-card p-5 ring-1 ring-line">
@@ -437,7 +441,7 @@ function MyDay({ d, lang }: { d: Snap; lang: string }) {
             <span className="w-12 shrink-0 font-semibold tabular-nums text-ink-600">{o.time}</span>
             <span className="min-w-0 flex-1 truncate">{lang === 'hi' ? o.labelHi : o.label}</span>
             <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold', o.state === 'awaiting_response' ? 'bg-[#fbf3e3] text-warn-600' : o.outcome === 'taken_reported' || o.outcome === 'done_reported' ? 'bg-[#e3f1ea] text-ok-600' : o.state === 'resolved' ? 'bg-ivory-100 text-ink-600' : 'text-ink-600')}>
-              {o.state === 'awaiting_response' ? 'Now' : o.outcome ? OUTCOME[o.outcome] ?? o.outcome : 'Later'}
+              {o.state === 'awaiting_response' ? (lang === 'hi' ? 'अभी' : 'Now') : o.outcome ? (lang === 'hi' ? OUTCOME_HI[o.outcome] : OUTCOME[o.outcome]) ?? o.outcome : lang === 'hi' ? 'बाद में' : 'Later'}
             </span>
           </li>
         ))}
@@ -560,6 +564,16 @@ function DemoPanel({ d, app }: { d: Snap; app: App }) {
           </p>
         </div>
       )}
+      <button
+        onClick={() => {
+          const d0 = new Date(d.clock.date + 'T00:00:00Z');
+          const iso = (n: number) => new Date(d0.getTime() + n * 86400000).toISOString().slice(0, 10);
+          void app.command({ type: 'appointment.propose', clinicId: clinic?.id ?? 'cl_mehta', dateFrom: iso(2), dateTo: iso(6), window: 'morning', reason: 'follow_up' });
+        }}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 font-semibold text-teal-900 ring-1 ring-line hover:bg-ivory-100"
+      >
+        <Stethoscope className="h-4 w-4" /> Try: “Book Dr. Mehta, a morning next week”
+      </button>
       <label className="mt-4 block text-sm font-semibold text-ink-900" htmlFor="scenario">Simulated clinic behaviour</label>
       <select
         id="scenario"
