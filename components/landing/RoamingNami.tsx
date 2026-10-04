@@ -50,6 +50,8 @@ type Slot = {
   id: string;
   pose: PoseName;
   path: boolean;
+  /** walk across instead of swimming */
+  walk: boolean;
   hero: boolean;
   say?: string;
   /** viewport x of the box (fixed for normal slots) */
@@ -106,6 +108,7 @@ function measure(): { slots: Slot[]; desktop: boolean } {
       id: el.dataset.namiSlot ?? '',
       pose: (el.dataset.pose as PoseName) ?? 'idle',
       path,
+      walk: path && el.dataset.walk === '1',
       hero: el.dataset.hero === '1',
       say: el.dataset.say || undefined,
       x,
@@ -143,6 +146,12 @@ function measure(): { slots: Slot[]; desktop: boolean } {
   return { slots: raw, desktop };
 }
 
+/** what she looks like while crossing a path slot */
+function travelPose(s: Slot): PoseName {
+  if (!s.walk) return 'swim';
+  return s.x1 >= s.x0 ? 'walk' : 'walk-left';
+}
+
 function pinned(s: Slot, scroll: number, p: number) {
   return { x: s.path ? lerp(s.x0, s.x1, ease(clamp(p, 0, 1))) : s.x, y: s.top - scroll, size: s.size };
 }
@@ -158,7 +167,7 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
     const q = pinned(a, scroll, p);
     // she only talks once she has settled in the middle of the hold
     const settled = Math.abs(p - 0.5) < 0.42;
-    return { ...q, opacity: 1, pose: a.path ? 'swim' : a.pose, heroHold: a.hero, say: !a.path && settled ? a.say : undefined };
+    return { ...q, opacity: 1, pose: a.path ? travelPose(a) : a.pose, heroHold: a.hero, say: !a.path && settled ? a.say : undefined };
   }
   const b = slots[i + 1];
   const t = clamp((scroll - holdEnd) / (b.f - b.h - holdEnd), 0, 1);
@@ -179,18 +188,18 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
       y: q.y + (q.size - sz) + (1 - vis) * 14,
       size: sz,
       opacity: vis,
-      pose: t < 0.5 ? (a.path ? 'swim' : a.pose) : b.path ? 'swim' : b.pose,
+      pose: t < 0.5 ? (a.path ? travelPose(a) : a.pose) : b.path ? travelPose(b) : b.pose,
       heroHold: false,
     };
   }
   const size = lerp(qa.size, qb.size, e);
   const cx = lerp(ca, cb, e);
   const by = lerp(qa.y + qa.size, qb.y + qb.size, e); // interpolate the baseline, keep feet steady
-  const pa: PoseName = a.path ? 'swim' : a.pose;
-  const pb: PoseName = b.path ? 'swim' : b.pose;
+  const pa: PoseName = a.path ? travelPose(a) : a.pose;
+  const pb: PoseName = b.path ? travelPose(b) : b.pose;
   let pose: PoseName = t < 0.5 ? pa : pb;
   // gliding into or out of the water: swim for the whole move, settle at the ends
-  if (solid && (a.path || b.path)) pose = t < 0.12 ? pa : t > 0.88 ? pb : 'swim';
+  if (solid && (a.path || b.path)) pose = t < 0.12 ? pa : t > 0.88 ? pb : (a.path ? travelPose(a) : travelPose(b));
   return { x: cx - size / 2, y: by - size, size, opacity: 1, pose, heroHold: false };
 }
 
@@ -225,6 +234,7 @@ export function RoamingNami() {
     pointer: null as { x: number; y: number } | null,
     say: undefined as string | undefined,
     pokeUntil: 0,
+    scrolledAt: 0,
     pokeText: '',
     pokes: 0,
   });
@@ -244,7 +254,9 @@ export function RoamingNami() {
     const now = performance.now();
     let p = f.pose;
     if (f.heroHold) p = now < r.greetUntil ? 'greeting' : 'idle';
-    if (now < r.fastUntil && !f.heroHold) p = 'swim';
+    if (now < r.fastUntil && !f.heroHold && p !== 'walk' && p !== 'walk-left') p = 'swim';
+    // no treadmill: when the page stops moving, so does she
+    if ((p === 'walk' || p === 'walk-left') && now - r.scrolledAt > 260) p = 'stand';
     const poked = now < r.pokeUntil && f.opacity > 0.9;
     if (poked && p !== 'swim') p = 'celebrate';
     if (p !== r.pose) {
@@ -311,10 +323,20 @@ export function RoamingNami() {
     };
   }, [ready, reduce]);
 
-  // scroll → position
+  // scroll → position; a settle check afterwards lets a walking Nami stop and stand
   useEffect(() => {
     if (reduce) return;
-    return scrollY.on('change', apply);
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    const unsub = scrollY.on('change', () => {
+      st.current.scrolledAt = performance.now();
+      apply();
+      clearTimeout(settle);
+      settle = setTimeout(apply, 300);
+    });
+    return () => {
+      unsub();
+      clearTimeout(settle);
+    };
   }, [scrollY, apply, reduce]);
 
   // fast scroll → swim, with a short tail so it doesn't flicker

@@ -291,6 +291,7 @@ export function MascotLab() {
               style={{ background: BG[bg] }}
             >
               <NamiImage
+                still
                 pose={p}
                 reducedMotion={reduced}
                 lookAt={follow ? look : null}

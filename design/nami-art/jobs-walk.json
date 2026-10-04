@@ -1,0 +1,8 @@
+[
+ {"name": "walk-ip-a", "first": "_full/walk.png", "frames": 49, "seed": 11,
+  "prompt": "3D animated cartoon otter mascot with a sea-green knitted scarf, seen from the side facing right, walking steadily on the spot like on a treadmill on a plain flat grey background. Her legs alternate step after step, arms swing gently, body bobs slightly, tail sways. She keeps facing right the whole time and never turns. Static camera, fixed framing, smooth Pixar-style walk cycle.",
+  "neg": "turning around, rotating, facing the camera, facing away, spinning, walking out of frame, camera movement, zoom, background change, blurry, deformed, extra limbs, text"},
+ {"name": "walk-ip-b", "first": "_full/walk.png", "frames": 49, "seed": 23, "cfg": 5.0,
+  "prompt": "Side-view walk cycle of a 3D cartoon otter mascot with a sea-green scarf, facing right, walking in place on a plain flat grey background. Steady rhythmic steps: left foot, right foot, left foot, right foot, arms swinging opposite to the legs, gentle up and down bob. Keeps the same side-facing direction for the entire clip. Static camera, smooth character animation.",
+  "neg": "turning around, rotating, facing the camera, facing away, spinning, walking out of frame, camera movement, zoom, background change, blurry, deformed, extra limbs, text"}
+]

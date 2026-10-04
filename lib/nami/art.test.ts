@@ -32,15 +32,27 @@ describe('nami art', () => {
   });
 
   it('routes through the shortest chain', () => {
+    const keys = ['idle~greeting', 'idle~calling', 'idle~stand', 'stand~walk', 'walk@loop'];
     const all = () => true;
-    expect(clipRoute('idle', 'greeting', all)).toEqual([{ key: 'idle~greeting', reverse: false }]);
-    expect(clipRoute('greeting', 'idle', all)).toEqual([{ key: 'idle~greeting', reverse: true }]);
-    expect(clipRoute('greeting', 'calling', all).map((s) => s.key)).toEqual(['idle~greeting', 'idle~calling']);
-    expect(clipRoute('idle', 'idle', all)).toEqual([]);
+    expect(clipRoute('idle', 'greeting', all, keys)).toEqual([{ key: 'idle~greeting', reverse: false }]);
+    expect(clipRoute('greeting', 'idle', all, keys)).toEqual([{ key: 'idle~greeting', reverse: true }]);
+    expect(clipRoute('greeting', 'calling', all, keys).map((s) => s.key)).toEqual(['idle~greeting', 'idle~calling']);
+    // sitting to walking goes through standing
+    expect(clipRoute('idle', 'walk', all, keys).map((s) => s.key)).toEqual(['idle~stand', 'stand~walk']);
+    expect(clipRoute('walk', 'idle', all, keys)).toEqual([
+      { key: 'stand~walk', reverse: true },
+      { key: 'idle~stand', reverse: true },
+    ]);
+    expect(clipRoute('idle', 'idle', all, keys)).toEqual([]);
   });
 
   it('skips clips that are not loaded', () => {
-    expect(clipRoute('idle', 'greeting', () => false)).toEqual([]);
+    expect(clipRoute('idle', 'greeting', () => false, ['idle~greeting'])).toEqual([]);
+    expect(clipRoute('idle', 'walk', (k) => k !== 'stand~walk', ['idle~stand', 'stand~walk'])).toEqual([]);
+  });
+
+  it('every clip has its reversed copy', () => {
+    for (const [k, c] of Object.entries(NAMI_CLIPS)) if (k.includes('~')) expect(c.rev && existsSync(file(c.rev))).toBeTruthy();
   });
 
   it('silent and base mouths are real', () => {

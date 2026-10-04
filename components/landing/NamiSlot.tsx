@@ -12,7 +12,8 @@ import type { PoseName } from '@/lib/nami/poses';
  * so she only ever rests in space the layout kept free. With reduced motion
  * there is no roaming: each slot shows a static pose instead.
  *
- * `path` slots are wide strips on a water divider: she swims across them.
+ * `path` slots are wide strips she travels across: she swims on a water divider,
+ * or walks when `walk` is set (and stands still whenever the visitor stops scrolling).
  * The `hero` slot always server-renders a static Nami (hidden once roaming
  * starts) so the first paint already has her on the rock.
  */
@@ -20,6 +21,7 @@ export function NamiSlot({
   id,
   pose,
   path = false,
+  walk = false,
   hero = false,
   say,
   className,
@@ -27,6 +29,8 @@ export function NamiSlot({
   id: string;
   pose: PoseName;
   path?: boolean;
+  /** a path she walks along instead of swimming */
+  walk?: boolean;
   hero?: boolean;
   /** what she tells the visitor while she sits here */
   say?: string;
@@ -39,6 +43,7 @@ export function NamiSlot({
       data-nami-slot={id}
       data-pose={pose}
       data-path={path ? '1' : undefined}
+      data-walk={path && walk ? '1' : undefined}
       data-hero={hero ? '1' : undefined}
       data-say={say}
       aria-hidden
@@ -47,7 +52,7 @@ export function NamiSlot({
       {showStatic ? (
         path ? (
           <div className="aspect-square h-full">
-            <NamiImage pose="swim" reducedMotion className="lp-swim-mask h-full w-full" />
+            <NamiImage pose={walk ? 'walk' : 'swim'} reducedMotion className={clsx('h-full w-full', !walk && 'lp-swim-mask')} />
           </div>
         ) : (
           <NamiImage pose={pose} reducedMotion className={clsx('h-full w-full', hero && 'lp-static-hero')} />

@@ -33,7 +33,7 @@ export type RigPose =
   | "point-right";
 
 /** Painted-only poses; the SVG rig shows idle for these. */
-export type PoseName = RigPose | "walk" | "walk-left" | "celebrate" | "hop" | "heart";
+export type PoseName = RigPose | "stand" | "walk" | "walk-left" | "celebrate" | "hop" | "heart";
 
 export const POSE_NAMES: readonly PoseName[] = [
   "idle",
@@ -50,6 +50,7 @@ export const POSE_NAMES: readonly PoseName[] = [
   "peek",
   "point-left",
   "point-right",
+  "stand",
   "walk",
   "walk-left",
   "celebrate",

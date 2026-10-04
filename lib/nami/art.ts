@@ -1,4 +1,5 @@
 import type { MouthShape, PoseName } from "./poses";
+import { WAN_CLIPS } from "./clips";
 
 // Which overlays exist for each painted pose (files live in public/nami/).
 // Overlays are full-canvas images that are transparent except for the part
@@ -32,41 +33,28 @@ export const NAMI_ART: Record<PoseName, PoseArt> = {
   peek: { breathe: false },
   "point-left": {},
   "point-right": {},
+  stand: {},
   walk: { breathe: false },
   "walk-left": { breathe: false },
   celebrate: {},
-  hop: { alias: "celebrate" },
-  heart: { alias: "idle" },
+  hop: { breathe: false },
+  heart: {},
 };
 
 /**
- * Animation clips, as sprite sheets in a grid (row-major).
- *   "a~b"     plays from pose a to pose b (and backwards for b -> a)
+ * Animation clips: stacked-alpha MP4s (colour on top, alpha below) made from the
+ * Wan clips by design/nami-art/pack_clips.py.
+ *   "a~b"     plays from pose a to pose b; `rev` is the same clip backwards (b -> a)
  *   "p@loop"  loops while pose p is held; its first and last frames are the pose itself
  */
-export type Clip = { src: string; frames: number; cols: number; fps: number };
+export type Clip = { src: string; frames: number; cols: number; fps: number; rev?: string };
 
-// RIFE tween strips (idle -> pose), a single row
-const strip = (pose: PoseName, frames: number): Clip => ({ src: `/nami/${pose}-tween.webp`, frames, cols: frames, fps: 30 });
-
-export const NAMI_CLIPS: Record<string, Clip> = {
-  "idle~greeting": strip("greeting", 5),
-  "idle~listening": strip("listening", 5),
-  "idle~thinking": strip("thinking", 4),
-  "idle~speaking": strip("speaking", 5),
-  "idle~reminder": strip("reminder", 4),
-  "idle~acknowledged": strip("acknowledged", 4),
-  "idle~calling": strip("calling", 5),
-  "idle~help": strip("help", 5),
-  "idle~quiet": strip("quiet", 5),
-  "idle~point-left": strip("point-left", 5),
-  "idle~point-right": strip("point-right", 5),
-};
+export const NAMI_CLIPS: Record<string, Clip> = WAN_CLIPS;
 
 export const hasLoop = (pose: PoseName) => `${pose}@loop` in NAMI_CLIPS;
 
 // bump when the art changes so the CDN never serves a stale pose
-export const NAMI_ART_VERSION = 2;
+export const NAMI_ART_VERSION = 3;
 
 export function namiSrc(pose: PoseName, part?: string) {
   const p = NAMI_ART[pose].alias ?? pose;
@@ -81,14 +69,19 @@ export type ClipStep = { key: string; reverse: boolean };
  * Shortest chain of clips from one pose to another (at most 3 hops), using only
  * clips that are loaded. Empty when there is no path; the caller crossfades.
  */
-export function clipRoute(from: PoseName, to: PoseName, ready: (key: string) => boolean): ClipStep[] {
+export function clipRoute(
+  from: PoseName,
+  to: PoseName,
+  ready: (key: string) => boolean,
+  keys: string[] = Object.keys(NAMI_CLIPS),
+): ClipStep[] {
   if (from === to) return [];
   const edges = new Map<string, { to: string; step: ClipStep }[]>();
   const add = (a: string, b: string, step: ClipStep) => {
     if (!edges.has(a)) edges.set(a, []);
     edges.get(a)!.push({ to: b, step });
   };
-  for (const key of Object.keys(NAMI_CLIPS)) {
+  for (const key of keys) {
     if (!key.includes("~") || !ready(key)) continue;
     const [a, b] = key.split("~");
     add(a, b, { key, reverse: false });

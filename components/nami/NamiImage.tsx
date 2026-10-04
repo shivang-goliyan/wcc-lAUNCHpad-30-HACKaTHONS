@@ -1,39 +1,29 @@
 "use client";
 
 /**
- * Nami from the painted pose art (docs/DECISIONS.md D18). Same props as NamiSvg,
- * so screens can swap renderers without touching care logic.
+ * Nami from the painted pose art (docs/DECISIONS.md D18–D19). Same props as
+ * NamiSvg, so screens can swap renderers without touching care logic.
  *
- * Every pose is a separate aligned image on one square canvas. Motion comes from
- * clips (lib/nami/art.ts): a pose change plays the shortest chain of transition
- * clips, then the pose's loop if it has one. Without clips she still breathes,
- * blinks and lip-syncs through overlays on the still pose, and leans toward lookAt.
+ * Every pose is an aligned still on one square canvas. Motion comes from clips
+ * (lib/nami/art.ts) played by ClipPlayer: a pose change plays the shortest chain
+ * of transition clips, then the pose's living loop if it has one. Whenever no
+ * clip is on screen the still shows, with breathing, blinks and lip-sync
+ * overlays, and she leans a little toward lookAt either way.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { isMotionValue, type MotionValue } from "motion/react";
 import { mouthForLevel, type PoseName } from "@/lib/nami/poses";
-import { NAMI_ART, NAMI_CLIPS, clipRoute, clipSrc, namiSrc, type ClipStep } from "@/lib/nami/art";
+import { NAMI_ART, NAMI_CLIPS, clipRoute, clipSrc, namiSrc } from "@/lib/nami/art";
+import { ClipPlayer, type ClipRef } from "./clipPlayer";
 import type { NamiSvgProps } from "./NamiSvg";
 
 const FADE_MS = 120;
 
-const clipMs = (key: string) => (NAMI_CLIPS[key].frames / NAMI_CLIPS[key].fps) * 1000;
-
-/** which sheet cell to show now, or null when nothing is playing */
-function sheetFrame(steps: ClipStep[], startedAt: number, now: number): { key: string; i: number } | null {
-  let t = Math.max(0, now - startedAt);
-  for (const st of steps) {
-    const c = NAMI_CLIPS[st.key];
-    const ms = clipMs(st.key);
-    if (t < ms) {
-      const i = Math.min(c.frames - 1, Math.floor((t / 1000) * c.fps));
-      return { key: st.key, i: st.reverse ? c.frames - 1 - i : i };
-    }
-    t -= ms;
-  }
-  return null;
-}
+type Props = NamiSvgProps & {
+  /** stills only, no clip player (galleries, thumbnails) */
+  still?: boolean;
+};
 
 export function NamiImage({
   pose = "idle",
@@ -41,20 +31,23 @@ export function NamiImage({
   lookAt = null,
   blink = "auto",
   reducedMotion = false,
+  still = false,
   className,
   style,
   title,
-}: NamiSvgProps) {
+}: Props) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const blinkRef = useRef<HTMLImageElement>(null);
   const waveRef = useRef<HTMLImageElement>(null);
   const mouthRefs = useRef<Record<string, HTMLImageElement | null>>({});
   const baseRef = useRef<HTMLDivElement>(null);
-  const clipRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // poses we've shown at least once stay mounted, so going back never flashes
   const [seen, setSeen] = useState<PoseName[]>([pose]);
   if (!seen.includes(pose)) setSeen([...seen, pose]);
+
+  const animated = !reducedMotion && !still;
 
   const rt = useRef({
     pose,
@@ -71,15 +64,16 @@ export function NamiImage({
     gy: 0,
     t0: 0,
     raf: 0,
-    steps: [] as ClipStep[],
-    stepsAt: -1,
-    loopAt: 0,
-    ready: new Set<string>(),
     running: false,
+    player: null as ClipPlayer | null,
+    ready: new Set<string>(),
+    loopPaused: false,
+    /** keep this still on screen until the new clip has drawn its first frame */
+    holdPose: null as PoseName | null,
     paint: (() => {}) as (now: number) => void,
   });
 
-  // the per-frame painter: only touches styles, never React state
+  // the per-frame painter: only touches styles and the canvas, never React state
   useEffect(() => {
     const r = rt.current;
     r.t0 = performance.now();
@@ -87,40 +81,36 @@ export function NamiImage({
       const art = NAMI_ART[r.pose];
       const live = !r.reduced;
       const t = (now - r.t0) / 1000;
+      const pl = r.player;
 
-      // a pose change in progress, else the pose's loop (paused while she talks over the still pose)
-      let cell: { key: string; i: number } | null = null;
-      if (live && r.stepsAt >= 0) {
-        cell = sheetFrame(r.steps, r.stepsAt, now);
-        if (!cell) {
-          r.stepsAt = -1;
-          r.loopAt = now;
+      // talking over a looping pose: pause the loop so the mouth overlays sit on the still
+      const talking = r.level >= 0.08 && !!art.mouths;
+      if (pl) {
+        if (talking && pl.looping) {
+          pl.stop();
+          r.loopPaused = true;
+        } else if (!talking && r.loopPaused) {
+          r.loopPaused = false;
+          const l = loopOf(r.pose, r.ready);
+          if (l) pl.play([], l);
+        }
+        pl.draw();
+      }
+      const clipOn = !!pl?.showing;
+      if (canvasRef.current) canvasRef.current.style.visibility = clipOn ? "visible" : "hidden";
+      if (baseRef.current) {
+        baseRef.current.style.visibility = clipOn ? "hidden" : "visible";
+        // until the clip draws, show the pose we're leaving, never the one we're heading to
+        if (clipOn || !pl?.pending) r.holdPose = null;
+        const show = r.holdPose ?? r.pose;
+        for (const img of baseRef.current.querySelectorAll<HTMLImageElement>("img[data-p]")) {
+          const on = img.dataset.p === show ? "1" : "0";
+          if (img.style.opacity !== on) {
+            if (r.holdPose) img.style.transition = "none";
+            img.style.opacity = on;
+          }
         }
       }
-      const loopKey = `${r.pose}@loop`;
-      const talking = r.level >= 0.08 && !!art.mouths;
-      if (live && !cell && !talking && r.ready.has(loopKey)) {
-        const c = NAMI_CLIPS[loopKey];
-        cell = { key: loopKey, i: Math.floor((Math.max(0, now - r.loopAt) / 1000) * c.fps) % c.frames };
-      }
-      const cl = clipRef.current;
-      if (cl) {
-        if (cell) {
-          const c = NAMI_CLIPS[cell.key];
-          const rows = Math.ceil(c.frames / c.cols);
-          const url = `url("${clipSrc(c)}")`;
-          if (cl.style.backgroundImage !== url) {
-            cl.style.backgroundImage = url;
-            cl.style.backgroundSize = `${c.cols * 100}% ${rows * 100}%`;
-          }
-          const col = cell.i % c.cols;
-          const row = Math.floor(cell.i / c.cols);
-          cl.style.backgroundPosition = `${c.cols > 1 ? (col / (c.cols - 1)) * 100 : 0}% ${rows > 1 ? (row / (rows - 1)) * 100 : 0}%`;
-          cl.style.visibility = "visible";
-        } else cl.style.visibility = "hidden";
-      }
-      const step = cell;
-      if (baseRef.current) baseRef.current.style.visibility = step ? "hidden" : "visible";
 
       let blinkOn = false;
       if (live && r.blinkOn && r.blinkAt >= 0) {
@@ -136,12 +126,12 @@ export function NamiImage({
         else if (p > 0) nod = Math.abs(Math.sin(p * Math.PI * 2)) * (1 - p * 0.4);
       }
 
-      // wave: swap the two greeting frames a few times, then hold the first
+      // wave without clips: swap the two greeting frames a few times
       let waveB = false;
       if (live && r.waveAt >= 0 && art.wave) {
         const dt = now - r.waveAt;
         if (dt > 1500) r.waveAt = -1;
-        else waveB = Math.floor(dt / 250) % 2 === 1;
+        else if (dt > 0) waveB = Math.floor(dt / 250) % 2 === 1;
       }
 
       // ease the lean toward the gaze target
@@ -149,23 +139,26 @@ export function NamiImage({
       r.gx += ((live ? r.lx : 0) - r.gx) * k;
       r.gy += ((live ? r.ly : 0) - r.gy) * k;
 
-      const breath = live && art.breathe !== false ? 0.5 - 0.5 * Math.cos((t / 5) * Math.PI * 2) : 0;
+      // clips carry their own breathing; the still gets a gentle one
+      const breath = live && !clipOn && art.breathe !== false ? 0.5 - 0.5 * Math.cos((t / 5) * Math.PI * 2) : 0;
       const talk = live ? r.level : 0;
       const body = bodyRef.current;
       if (body) {
         const sy = 1 + breath * 0.012 + talk * 0.006;
         const sx = 1 + breath * 0.005;
-        const rot = r.gx * 1.6 + nod * 1.2;
-        body.style.transform = `translate(${r.gx * 1.2}%, ${r.gy * 0.8 + nod * 1.4}%) rotate(${rot}deg) scale(${sx}, ${sy})`;
+        const n = clipOn ? 0 : nod;
+        body.style.transform = `translate(${r.gx * 1.2}%, ${r.gy * 0.8 + n * 1.4}%) rotate(${r.gx * 1.6 + n * 1.2}deg) scale(${sx}, ${sy})`;
       }
 
-      if (step) waveB = false;
+      if (clipOn) {
+        waveB = false;
+        blinkOn = false;
+      }
       if (waveRef.current) waveRef.current.style.opacity = waveB ? "1" : "0";
       if (blinkRef.current) blinkRef.current.style.opacity = blinkOn && !waveB ? "1" : "0";
 
-      if (step) blinkOn = false;
       let shape: string | null = r.level >= 0.08 ? mouthForLevel(r.level, "closed-smile", Math.floor(now / 140) % 2 === 1) : (art.silent ?? null);
-      if (shape === art.base) shape = null;
+      if (shape === art.base || clipOn) shape = null;
       for (const [m, el] of Object.entries(mouthRefs.current)) {
         if (!el) continue;
         const on = !blinkOn && !waveB && shape !== null && (art.mouths?.includes(m as never) ?? false) && pickMouth(shape, art.mouths ?? []) === m;
@@ -174,6 +167,43 @@ export function NamiImage({
     };
     r.paint(performance.now());
   }, []);
+
+  // the clip player lives as long as this Nami animates
+  useEffect(() => {
+    if (!animated || !canvasRef.current) return;
+    const r = rt.current;
+    const pl = new ClipPlayer(canvasRef.current);
+    if (!pl.ok) return;
+    r.player = pl;
+    // fetch clips in idle time, ones touching this pose first; a clip that isn't ready is skipped
+    const keys = Object.keys(NAMI_CLIPS).sort((a, b) => Number(b.includes(r.pose)) - Number(a.includes(r.pose)));
+    let cancelled = false;
+    const go = async () => {
+      for (const key of keys) {
+        if (cancelled) return;
+        const c = NAMI_CLIPS[key];
+        try {
+          await pl.preload(clipSrc(c));
+          if (c.rev) await pl.preload(clipSrc({ ...c, src: c.rev }));
+          if (cancelled) return;
+          r.ready.add(key);
+          // the current pose's loop just arrived: start it
+          if (key === `${r.pose}@loop` && !pl.showing && !r.loopPaused) pl.play([], loopOf(r.pose, r.ready));
+        } catch {
+          // a missing clip just means a crossfade instead
+        }
+      }
+    };
+    const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
+    const id = ric ? ric(() => void go()) : window.setTimeout(() => void go(), 300);
+    return () => {
+      cancelled = true;
+      if (!ric) clearTimeout(id);
+      r.player = null;
+      r.ready.clear();
+      pl.dispose();
+    };
+  }, [animated]);
 
   // idle loop: ~30 fps unless something quick is happening; stops when hidden
   useEffect(() => {
@@ -199,7 +229,8 @@ export function NamiImage({
       let last = 0;
       const tick = (now: number) => {
         if (!r.running) return;
-        const busy = r.stepsAt >= 0 || r.ready.has(`${r.pose}@loop`) || r.blinkAt >= 0 || r.nodAt >= 0 || r.waveAt >= 0 || r.level > 0 || Math.abs(r.gx - r.lx) + Math.abs(r.gy - r.ly) > 0.01;
+        const busy =
+          !!r.player?.showing || r.blinkAt >= 0 || r.nodAt >= 0 || r.waveAt >= 0 || r.level > 0 || Math.abs(r.gx - r.lx) + Math.abs(r.gy - r.ly) > 0.01;
         if (busy || now - last >= 32) {
           last = now;
           r.paint(now);
@@ -221,51 +252,37 @@ export function NamiImage({
     };
   }, [reducedMotion]);
 
-  // layout effect: the tween has to cover the new pose before the browser paints it
+  // layout effect: start the clip before the browser paints the new still
   useLayoutEffect(() => {
     const r = rt.current;
     const prev = r.pose;
     r.pose = pose;
     if (!reducedMotion && prev !== pose) {
       const now = performance.now();
-      let steps = clipRoute(prev, pose, (k) => r.ready.has(k));
+      const pl = r.player;
+      let steps = pl ? clipRoute(prev, pose, (k) => r.ready.has(k)) : [];
       // help must never wait on a flourish: only a direct clip, else straight there
       if (pose === "help" && steps.length > 1) steps = [];
-      r.steps = steps;
-      r.stepsAt = steps.length ? now : -1;
-      r.loopAt = now;
-      const settle = steps.reduce((ms, st) => ms + clipMs(st.key), 0);
-      if (pose === "acknowledged") r.nodAt = now + settle;
-      if (pose === "greeting") r.waveAt = now + settle;
+      r.loopPaused = false;
+      if (pl) {
+        const seq = steps.map((st) => {
+          const c = NAMI_CLIPS[st.key];
+          return { src: clipSrc(st.reverse && c.rev ? { ...c, src: c.rev } : c), fps: c.fps };
+        });
+        const loop = loopOf(pose, r.ready);
+        if (seq.length || loop) {
+          // a still on screen now stays until the clip's first frame replaces it
+          if (!pl.showing) r.holdPose = prev;
+          pl.play(seq, loop);
+        } else pl.stop();
+      }
+      // without clips, the code adds the nod and the wave
+      const settle = steps.reduce((ms, st) => ms + (NAMI_CLIPS[st.key].frames / NAMI_CLIPS[st.key].fps) * 1000, 0);
+      if (pose === "acknowledged" && !steps.length) r.nodAt = now + settle;
+      if (pose === "greeting" && !loopOf("greeting", r.ready)) r.waveAt = now + settle;
     }
     r.paint(performance.now());
   }, [pose, reducedMotion]);
-
-  // fetch clip sheets in idle time, this pose's loop first; a clip that isn't loaded is skipped
-  useEffect(() => {
-    if (reducedMotion) return;
-    const r = rt.current;
-    const todo = Object.keys(NAMI_CLIPS)
-      .filter((k) => !r.ready.has(k))
-      .sort((a) => (a === `${pose}@loop` ? -1 : 0));
-    if (!todo.length) return;
-    const go = () =>
-      todo.forEach((k) => {
-        const img = new Image();
-        img.onload = () => {
-          // decode before first use so the first frame never flashes empty
-          img.decode?.().catch(() => {}).finally(() => r.ready.add(k));
-        };
-        img.src = clipSrc(NAMI_CLIPS[k]);
-      });
-    const ric = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
-    const id = ric ? ric(go) : window.setTimeout(go, 800);
-    return () => {
-      if (!ric) clearTimeout(id);
-    };
-    // pose is only used to order the queue
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reducedMotion]);
 
   useEffect(() => {
     rt.current.blinkOn = blink === "auto";
@@ -305,19 +322,20 @@ export function NamiImage({
       data-pose={pose}
     >
       <div ref={bodyRef} style={{ position: "absolute", inset: 0, transformOrigin: "50% 92%", willChange: reducedMotion ? undefined : "transform" }}>
-        <div ref={clipRef} style={{ ...layer, visibility: "hidden", backgroundRepeat: "no-repeat" }} />
+        {animated && <canvas ref={canvasRef} width={384} height={384} style={{ ...layer, visibility: "hidden" }} />}
         <div ref={baseRef} style={{ position: "absolute", inset: 0 }}>
-        {seen.map((p) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={p}
-            src={namiSrc(p)}
-            alt=""
-            draggable={false}
-            decoding="async"
-            style={{ ...layer, opacity: p === pose ? 1 : 0, transition: reducedMotion ? undefined : `opacity ${FADE_MS}ms ease-out` }}
-          />
-        ))}
+          {seen.map((p) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={p}
+              data-p={p}
+              src={namiSrc(p)}
+              alt=""
+              draggable={false}
+              decoding="async"
+              style={{ ...layer, opacity: p === pose ? 1 : 0, transition: reducedMotion ? undefined : `opacity ${FADE_MS}ms ease-out` }}
+            />
+          ))}
         </div>
         {art.wave && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -343,6 +361,13 @@ export function NamiImage({
       </div>
     </div>
   );
+}
+
+/** the pose's loop, if it is loaded */
+function loopOf(pose: PoseName, ready: Set<string>): ClipRef | null {
+  const key = `${pose}@loop`;
+  const c = NAMI_CLIPS[key];
+  return c && ready.has(key) ? { src: clipSrc(c), fps: c.fps } : null;
 }
 
 // fall back to the nearest mouth we actually have art for
