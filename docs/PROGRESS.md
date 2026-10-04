@@ -195,6 +195,8 @@ These are plain code, with no LLM involved.
 
 ### Future tasks (after the hackathon)
 
+- **A great onboarding flow** (asked by the lead, 5 Oct). Research first: who signs up (usually the adult child, sometimes the parent, sometimes both together on one phone call), what each needs to set up (the parent's language and form of address, medicines and times, the clinic, the check-in time and quiet hours, who is asked first and second, and the parent's own consent), and how to make it feel like a conversation with Nami rather than a form. Must work for an older adult with low digital confidence, in Hindi or English, and must get the parent's explicit consent before anything about them is shared.
+
 - **"Hey Nami" wake word** (PRD F14, P2): invoke Nami hands-free the way "Hey Siri" works. Detection must run on the device, so no audio leaves it until the wake word fires, and the mic indicator must show when capture starts. Route: an open-source keyword model (openWakeWord, ONNX) running in the browser through onnxruntime-web, with a custom "Hey Nami" model trained on synthetic speech in English and Hindi accents. Picovoice Porcupine is the fallback (it needs an AccessKey). Not built for the demo; the Talk button and Space key stay the way in.
 
 ---

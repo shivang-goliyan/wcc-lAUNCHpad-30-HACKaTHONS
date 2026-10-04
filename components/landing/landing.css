@@ -158,3 +158,48 @@ html[data-nami-roam="on"] .lp-static-hero { visibility: hidden; }
   [data-seen="0"] .lp-line { transform: none; }
   [data-seen="0"] .lp-ring { stroke-dashoffset: var(--ring-full); }
 }
+
+/* ---------- scrapbook surfaces ---------- */
+
+/* warm paper with a faint grain; the grain is an inline SVG so there is no extra request */
+.sb-paper {
+  background-color: #f6efe2;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 252, 244, 0.9), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(233, 219, 196, 0.55), transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .28  0 0 0 0 .2  0 0 0 .07 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+
+/* a note pinned to the page: paper card, slight tilt, soft drop */
+.sb-note {
+  background: #fffaf0;
+  box-shadow: 0 1px 0 rgba(60, 40, 20, 0.06), 0 10px 24px rgba(70, 45, 20, 0.14);
+  transform: rotate(var(--tilt, -1.2deg));
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+}
+.sb-note:hover { transform: rotate(0deg) translateY(-3px); box-shadow: 0 2px 0 rgba(60, 40, 20, 0.06), 0 16px 32px rgba(70, 45, 20, 0.18); }
+.sb-yellow { background: #fbe9a6; }
+.sb-pink { background: #f7d9d2; }
+.sb-blue { background: #dbe7f0; }
+
+/* strip of washi tape on a note's top edge */
+.sb-tape::before {
+  content: '';
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 92px;
+  height: 22px;
+  translate: -50% 0;
+  rotate: var(--tape, 3deg);
+  background: rgba(196, 214, 201, 0.75);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.font-hand { font-family: var(--font-hand); }
+
+/* the red thread between two homes */
+@keyframes sb-draw { from { stroke-dashoffset: var(--len, 1200); } to { stroke-dashoffset: 0; } }
+[data-seen='1'] .sb-thread { animation: sb-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.sb-thread { stroke-dasharray: var(--len, 1200); stroke-dashoffset: var(--len, 1200); }
+@media (prefers-reduced-motion: reduce) { .sb-thread { stroke-dashoffset: 0; animation: none !important; } .sb-note:hover { transform: rotate(var(--tilt, -1.2deg)); } }

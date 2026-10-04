@@ -38,6 +38,7 @@
   --color-bad-600: var(--bad-600);
   --color-card: var(--card);
   --font-display: var(--font-display), var(--font-deva-display), Georgia, serif;
+  --font-hand: var(--font-hand), 'Comic Sans MS', cursive;
   --font-sans: var(--font-ui), var(--font-deva), system-ui, sans-serif;
   --radius-card: 20px;
   --shadow-soft: 0 8px 30px rgba(23, 61, 56, 0.1);
