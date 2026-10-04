@@ -1,7 +1,8 @@
 'use client';
 
+import { useReducedMotionSafe } from './useReducedMotionSafe';
 import { useEffect, useRef } from 'react';
-import { animate, useReducedMotion } from 'motion/react';
+import { animate } from 'motion/react';
 
 /** Counts up to `to` the first time it is on screen. Server HTML shows the final value. */
 export function CountUp({
@@ -18,7 +19,7 @@ export function CountUp({
   delay?: number;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const fmt = (v: number) => `${v.toFixed(decimals)}${suffix}`;
 
   useEffect(() => {

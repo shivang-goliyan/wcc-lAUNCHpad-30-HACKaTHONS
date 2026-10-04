@@ -1,5 +1,6 @@
 'use client';
 
+import { useReducedMotionSafe } from './useReducedMotionSafe';
 /**
  * RoamingNami (docs/DESIGN.md §1, §5): one fixed-position Nami that travels
  * down the landing page as you scroll.
@@ -24,7 +25,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue, useReducedMotion, useScroll, useVelocity } from 'motion/react';
+import { motion, useMotionValue, useScroll, useVelocity } from 'motion/react';
 import { clsx } from 'clsx';
 import { NamiSvg } from '@/components/nami/NamiSvg';
 import type { PoseName } from '@/lib/nami/poses';
@@ -179,7 +180,7 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
 }
 
 export function RoamingNami() {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const { scrollY } = useScroll();
   const velocity = useVelocity(scrollY);
 
@@ -237,7 +238,7 @@ export function RoamingNami() {
 
   // measure on mount, resize and any layout change
   useEffect(() => {
-    if (reduce !== false) return;
+    if (reduce) return;
     const r = st.current;
     const remeasure = () => {
       cancelAnimationFrame(r.raf);
@@ -267,7 +268,7 @@ export function RoamingNami() {
 
   // hide the server-rendered hero Nami once we are positioned
   useEffect(() => {
-    if (!ready || reduce !== false) return;
+    if (!ready || reduce) return;
     document.documentElement.dataset.namiRoam = 'on';
     return () => {
       delete document.documentElement.dataset.namiRoam;
@@ -276,13 +277,13 @@ export function RoamingNami() {
 
   // scroll → position
   useEffect(() => {
-    if (reduce !== false) return;
+    if (reduce) return;
     return scrollY.on('change', apply);
   }, [scrollY, apply, reduce]);
 
   // fast scroll → swim, with a short tail so it doesn't flicker
   useEffect(() => {
-    if (reduce !== false) return;
+    if (reduce) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const unsub = velocity.on('change', (v) => {
       const r = st.current;
@@ -301,7 +302,7 @@ export function RoamingNami() {
 
   // cursor tracking (hero only); skipped while the tab is hidden
   useEffect(() => {
-    if (reduce !== false) return;
+    if (reduce) return;
     let raf = 0;
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse' || document.hidden) return;
@@ -319,7 +320,7 @@ export function RoamingNami() {
     };
   }, [apply, reduce]);
 
-  if (reduce !== false || !ready) return null;
+  if (reduce || !ready) return null;
 
   return (
     <motion.div

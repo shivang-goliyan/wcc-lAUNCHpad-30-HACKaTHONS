@@ -1,7 +1,8 @@
 'use client';
 
+import { useReducedMotionSafe } from './useReducedMotionSafe';
 import { useEffect, useRef, useState } from 'react';
-import { useInView, useReducedMotion } from 'motion/react';
+import { useInView } from 'motion/react';
 import { clsx } from 'clsx';
 import { CalendarCheck2, Check, Clock3, Link2, UserCheck } from 'lucide-react';
 
@@ -10,7 +11,7 @@ const DELAYS = [2800, 3000, 4200];
 
 export function CaregiverPhone() {
   const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const inView = useInView(ref, { amount: 0.4 });
   const [step, setStep] = useState(0);
 

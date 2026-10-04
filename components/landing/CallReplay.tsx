@@ -1,7 +1,8 @@
 'use client';
 
+import { useReducedMotionSafe } from './useReducedMotionSafe';
 import { useEffect, useRef, useState } from 'react';
-import { useInView, useReducedMotion } from 'motion/react';
+import { useInView } from 'motion/react';
 import { clsx } from 'clsx';
 import { Check, CircleDashed, Phone, RotateCcw, ShieldCheck } from 'lucide-react';
 
@@ -33,7 +34,7 @@ const DELAYS = [700, 1500, 2300, 2000, 1600, 420, 420, 420, 420, 700, 1300, 1500
 
 export function CallReplay() {
   const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
   const inView = useInView(ref, { amount: 0.35 });
   const [step, setStep] = useState(LAST);
   const [run, setRun] = useState(0);

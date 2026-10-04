@@ -1,7 +1,7 @@
 'use client';
 
+import { useReducedMotionSafe } from './useReducedMotionSafe';
 import { clsx } from 'clsx';
-import { useReducedMotion } from 'motion/react';
 import { NamiSvg } from '@/components/nami/NamiSvg';
 import type { PoseName } from '@/lib/nami/poses';
 
@@ -29,8 +29,8 @@ export function NamiSlot({
   hero?: boolean;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-  const showStatic = hero || reduce === true;
+  const reduce = useReducedMotionSafe();
+  const showStatic = hero || reduce;
   return (
     <div
       data-nami-slot={id}
