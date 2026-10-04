@@ -25,7 +25,7 @@ const TERMINAL = ['resolved_user_responded', 'resolved_human_reported', 'cancell
 
 export function useNamiApp() {
   const { data, error, mutate } = useSWR<Snap>('/api/state', fetcher, { refreshInterval: 1500, revalidateOnFocus: true });
-  const [lang, setLang] = useState<UILang>('hi');
+  const [lang, setLang] = useState<UILang>('en');
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [voice, setVoice] = useState<VoiceState>('off');
   const [voiceError, setVoiceError] = useState<string | null>(null);
