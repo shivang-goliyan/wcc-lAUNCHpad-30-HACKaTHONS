@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       }
       messages.push({ role: 'user', content: results });
     }
-    return json({ ok: true, text: 'I have done what I can for now — please check the screen.', tools: toolLog });
+    return json({ ok: true, text: 'I have done what I can for now, please check the screen.', tools: toolLog });
   } catch (e) {
     return handleError(e);
   }
@@ -75,5 +75,5 @@ async function compatLoop(hh: string, system: string, b: z.infer<typeof Body>) {
       messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(reply) });
     }
   }
-  return { ok: true, text: 'I have done what I can for now — please check the screen.', tools: toolLog };
+  return { ok: true, text: 'I have done what I can for now, please check the screen.', tools: toolLog };
 }

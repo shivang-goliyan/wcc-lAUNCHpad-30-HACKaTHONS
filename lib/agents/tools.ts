@@ -88,7 +88,7 @@ export async function executeTool(hh: string, name: string, rawArgs: unknown, ct
       const row = await loadHousehold(hh);
       const ap = row?.state.appointments.at(-1);
       if (!ap) return { ok: true, status: 'none', sayHint: 'There is no appointment request yet.' };
-      return { ok: true, status: ap.state, sayHint: `The appointment request is ${ap.state.replace(/_/g, ' ')}${ap.offeredSlot ? ` for ${spokenEn(ap.offeredSlot.startAt, row!.state.recipient.timezone)}` : ''}${ap.failureReason ? ` — ${ap.failureReason}` : ''}.` };
+      return { ok: true, status: ap.state, sayHint: `The appointment request is ${ap.state.replace(/_/g, ' ')}${ap.offeredSlot ? ` for ${spokenEn(ap.offeredSlot.startAt, row!.state.recipient.timezone)}` : ''}${ap.failureReason ? `, ${ap.failureReason}` : ''}.` };
     }
     case 'record_reminder_response':
       cmd = { type: 'reminder.respond', occurrenceId: a.occurrence_id ?? null, response: a.response, snoozeMinutes: a.snooze_minutes ?? undefined, quote: a.quote, source: ctx.source };

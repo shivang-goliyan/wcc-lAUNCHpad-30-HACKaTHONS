@@ -55,6 +55,20 @@ export function useNamiApp() {
     }, 0);
     return () => clearTimeout(id);
   }, []);
+  // a household set up in Hindi opens in Hindi, unless someone already picked a language for it here
+  const hhLang = data?.ok ? data.recipient.language : undefined;
+  const hhKey = data?.ok ? data.recipient.displayName : '';
+  useEffect(() => {
+    if (hhLang !== 'hi') return;
+    const id = setTimeout(() => {
+      try {
+        if (localStorage.getItem(`nami_lang_for_${hhKey}`)) return;
+        localStorage.setItem(`nami_lang_for_${hhKey}`, '1');
+      } catch {}
+      setLang('hi');
+    }, 0);
+    return () => clearTimeout(id);
+  }, [hhLang, hhKey]);
   const switchLang = useCallback((l: UILang) => {
     setLang(l);
     try {
@@ -132,7 +146,7 @@ export function useNamiApp() {
     for (const o of data.occurrences) {
       if (o.state === 'awaiting_response' && mark(`occ:${o.id}:${o.notifyAt}`)) {
         chime();
-        announce(`App update (not spoken by Meera): the reminder "${o.label}" is due now. Gently remind her in her language and ask whether she has done it. Use record_reminder_response with occurrence_id ${o.id} when she answers.`, {
+        announce(`App update (not spoken by ${data.recipient.addressAs}): the reminder "${o.label}" is due now. Gently remind her in her language and ask whether she has done it. Use record_reminder_response with occurrence_id ${o.id} when she answers.`, {
           en: `${data.recipient.addressAs}, it's time for: ${o.label}. Have you done it?`,
           hi: `${data.recipient.addressAs}, ${o.labelHi} का समय हो गया है। क्या आपने ले ली?`,
         });
@@ -142,14 +156,14 @@ export function useNamiApp() {
     for (const c of data.cases) {
       if (c.type === 'checkin' && c.state === 'awaiting_response' && mark(`chk:${c.id}`)) {
         chime();
-        announce('App update: it is time for the agreed daily check-in. Warmly ask Meera ji to just say she is here. When she answers, call respond_to_checkin with her words.', {
-          en: `Good morning ${data.recipient.addressAs} — daily check-in. Just tell me you're here.`,
+        announce(`App update: it is time for the agreed daily check-in. Warmly ask ${data.recipient.addressAs} to just say they are here. When they answer, call respond_to_checkin with their words.`, {
+          en: `Good morning ${data.recipient.addressAs}, it's our daily check-in. Just tell me you're here.`,
           hi: `नमस्ते ${data.recipient.addressAs}, आज का चेक-इन है। बस बोल दीजिए "मैं हूँ"।`,
         });
       }
       if (c.state === 'owner_accepted' && mark(`own:${c.id}:${c.ownerContactId}`)) {
         const who = data.contacts.find((x) => x.id === c.ownerContactId)?.name ?? 'Your contact';
-        announce(`App update: ${who} has accepted and is following up with Meera ji. Tell her kindly. Do not say she is safe.`, {
+        announce(`App update: ${who} has accepted and is following up with ${data.recipient.addressAs}. Say it kindly. Do not say she is safe.`, {
           en: `${who} has seen it and is checking on you now.`,
           hi: `${who} ने देख लिया है और अभी आपसे संपर्क कर रहे हैं।`,
         });
@@ -158,13 +172,13 @@ export function useNamiApp() {
     for (const p of data.pending) {
       if (p.kind === 'approve_slot' && mark(`pa:${p.id}`)) {
         chime();
-        announce(`App update: the clinic call finished. ${p.readback} Ask Meera ji to confirm. If she clearly says yes, call confirm_pending_action with pending_action_id ${p.id} and her exact words.`, { en: p.readback, hi: p.readbackHi });
+        announce(`App update: the clinic call finished. ${p.readback} Ask ${data.recipient.addressAs} to confirm. If they clearly say yes, call confirm_pending_action with pending_action_id ${p.id} and their exact words.`, { en: p.readback, hi: p.readbackHi });
       }
     }
     for (const a of data.appointments) {
       if (a.state === 'confirmed' && mark(`apt:${a.id}`)) {
         setAck((n) => n + 1);
-        announce('App update: the clinic has confirmed the appointment. Tell Meera ji the confirmed time and any instructions, and that reminders are set.', {
+        announce(`App update: the clinic has confirmed the appointment. Tell ${data.recipient.addressAs} the confirmed time and any instructions, and that reminders are set.`, {
           en: 'The clinic has confirmed your appointment. I have set reminders.',
           hi: 'क्लिनिक ने अपॉइंटमेंट कन्फर्म कर दिया है। मैंने याद दिलाने के लिए रिमाइंडर लगा दिए हैं।',
         });
@@ -188,7 +202,7 @@ export function useNamiApp() {
       history.current.push({ role: 'user', text });
       void mutate();
       if (!r.ok) {
-        addCaption('system', r.error === 'llm_not_configured' ? 'Voice needs an AI key on the server — use the buttons meanwhile.' : 'Sorry, I could not answer that. Please try again or use the buttons.', true);
+        addCaption('system', r.error === 'llm_not_configured' ? 'Voice needs an AI key on the server, use the buttons meanwhile.' : 'Sorry, I could not answer that. Please try again or use the buttons.', true);
         return null;
       }
       history.current.push({ role: 'assistant', text: r.text });
@@ -243,7 +257,7 @@ export function useNamiApp() {
       onEnded: (reason) => {
         lipStop.current?.();
         setMouth(0);
-        if (reason === 'time_limit') addCaption('system', 'Voice time limit reached — you can keep typing to Nami.', true);
+        if (reason === 'time_limit') addCaption('system', 'Voice time limit reached, you can keep typing to Nami.', true);
       },
     });
     rt.current = v;
@@ -296,7 +310,7 @@ export function useNamiApp() {
       addCaption('meera', text, true);
       void post('/api/safety', { text }).then((r) => r?.matched && mutate());
       if (rt.current?.connected) {
-        rt.current.notify(`Meera typed: "${text}"`);
+        rt.current.notify(`They typed: "${text}"`);
         return;
       }
       setBusy(true);
@@ -308,7 +322,7 @@ export function useNamiApp() {
         addCaption('nami', r.text, true);
         sayLocal(r.text);
       } else {
-        addCaption('system', r.error === 'llm_not_configured' ? 'Text chat needs an API key on the server — use the buttons meanwhile.' : 'Sorry, something went wrong. Please use the buttons.', true);
+        addCaption('system', r.error === 'llm_not_configured' ? 'Text chat needs an API key on the server, use the buttons meanwhile.' : 'Sorry, something went wrong. Please use the buttons.', true);
       }
       void mutate();
     },
@@ -348,8 +362,8 @@ export function useNamiApp() {
   const startStory = useCallback(
     (mp: { id: string; caption: string; fromName: string }) => {
       announce(
-        `Meera ji opened Memory Corner: ${mp.fromName} shared a photo (${mp.id}) with the note "${mp.caption}". Warmly invite her to tell the story behind it, one gentle question at a time. When she has told it, call draft_story_for_family with prompt_id ${mp.id}.`,
-        { en: `${mp.fromName} sent a photo: “${mp.caption}”. Tell me the story — what do you remember?`, hi: `${mp.fromName} ने एक फ़ोटो भेजी है: “${mp.caption}”। उस दिन के बारे में बताइए — आपको क्या याद है?` },
+        `They opened Memory Corner: ${mp.fromName} shared a photo (${mp.id}) with the note "${mp.caption}". Warmly invite her to tell the story behind it, one gentle question at a time. When she has told it, call draft_story_for_family with prompt_id ${mp.id}.`,
+        { en: `${mp.fromName} sent a photo: “${mp.caption}”. Tell me the story. What do you remember?`, hi: `${mp.fromName} ने एक फ़ोटो भेजी है: “${mp.caption}”। उस दिन के बारे में बताइए, आपको क्या याद है?` },
       );
       if (!rt.current?.connected) document.getElementById('composer')?.focus();
     },

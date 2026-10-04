@@ -79,7 +79,7 @@ export function seedHousehold(opts: SeedOptions): HouseholdState {
       },
     ],
     schedules: [
-      { id: 'sch_bp', kind: 'medication', label: 'BP tablet (Amlodipine 5 mg) after breakfast', labelHi: 'BP की गोली (Amlodipine 5 mg) नाश्ते के बाद', instructions: 'As prescribed by Dr. Mehta — checked by Arjun', times: ['09:00'], onceAt: [], active: true, appointmentId: null },
+      { id: 'sch_bp', kind: 'medication', label: 'BP tablet (Amlodipine 5 mg) after breakfast', labelHi: 'BP की गोली (Amlodipine 5 mg) नाश्ते के बाद', instructions: 'As prescribed by Dr. Mehta, checked by Arjun', times: ['09:00'], onceAt: [], active: true, appointmentId: null },
       { id: 'sch_walk', kind: 'walk', label: 'Evening walk in the colony park', labelHi: 'कॉलोनी पार्क में शाम की सैर', instructions: '', times: ['17:30'], onceAt: [], active: true, appointmentId: null },
       { id: 'sch_water', kind: 'water', label: 'A glass of water', labelHi: 'एक गिलास पानी', instructions: '', times: ['11:30', '15:30'], onceAt: [], active: true, appointmentId: null },
     ],
@@ -90,7 +90,7 @@ export function seedHousehold(opts: SeedOptions): HouseholdState {
     attempts: [],
     appointments: [],
     pending: [],
-    memories: [{ id: 'mem_garden', kind: 'preference', text: 'Loves gardening — her tulsi and money plant on the balcony', sourceQuote: 'haan, yaad rakhna', consentedAt: now, deletedAt: null }],
+    memories: [{ id: 'mem_garden', kind: 'preference', text: 'Loves gardening, her tulsi and money plant on the balcony', sourceQuote: 'haan, yaad rakhna', consentedAt: now, deletedAt: null }],
     familyRequests: [],
     memoryPrompts: [{ id: 'mp_shimla', fromContactId: 'c_arjun', photoPath: '/memory/shimla-1998.svg', caption: 'Ma, remember our Shimla trip in 1998? Tell Nami the story!', createdAt: now, state: 'new', storyText: null, storyQuote: null, sentAt: null }],
     notices: [],

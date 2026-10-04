@@ -243,8 +243,8 @@ function Flow({ title, ids, defs, active }: { title: string; ids: NodeId[]; defs
 
 export function GraphLegend() {
   const items: Array<{ kind: NodeKind; text: string }> = [
-    { kind: 'llm', text: 'LLM — proposes' },
-    { kind: 'code', text: 'Code — disposes' },
+    { kind: 'llm', text: 'LLM proposes' },
+    { kind: 'code', text: 'Code disposes' },
     { kind: 'human', text: 'Human' },
     { kind: 'external', text: 'External' },
   ];

@@ -132,7 +132,7 @@ export default function AppScreen() {
               </div>
               <div className="relative flex items-end justify-center">
                 <motion.div layout className="w-[240px] sm:w-[280px]">
-                  <NamiImage pose={effectivePose} mouth={app.mouth} lookAt={look} reducedMotion={d.recipient.prefs.reducedMotion} title={`Nami — ${statusText}`} className="h-auto w-full drop-shadow-[0_18px_24px_rgba(23,61,56,.18)]" />
+                  <NamiImage pose={effectivePose} mouth={app.mouth} lookAt={look} reducedMotion={d.recipient.prefs.reducedMotion} title={`Nami, ${statusText}`} className="h-auto w-full drop-shadow-[0_18px_24px_rgba(23,61,56,.18)]" />
                 </motion.div>
               </div>
             </div>
@@ -173,7 +173,7 @@ function Header({ app, d }: { app: App; d: Snap }) {
         </Link>
         <span className="hidden text-ink-600 sm:inline">· {d.recipient.addressAs}, {d.recipient.city}</span>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 rounded-full border border-warn-600/30 bg-[#fbf3e3] py-1 pl-3 pr-1 text-sm" title="Labelled demo clock — time can be skipped to show what happens later">
+          <div className="flex items-center gap-2 rounded-full border border-warn-600/30 bg-[#fbf3e3] py-1 pl-3 pr-1 text-sm" title="Labelled demo clock, time can be skipped to show what happens later">
             <span className="font-semibold text-warn-600">{t.demoTime}</span>
             <span className="tabular-nums">{lang === 'hi' ? d.clock.spokenHi : d.clock.spokenEn}</span>
             <button onClick={async () => { await post('/api/demo/skip'); await app.mutate(); }} className="flex items-center gap-1 rounded-full bg-warn-600 px-3 py-1.5 font-semibold text-white hover:bg-[#9c6619]">
@@ -211,7 +211,7 @@ function Captions({ captions, lang, name }: { captions: App['captions']; lang: s
   if (!captions.length)
     return (
       <div className="rounded-2xl bg-card/80 p-5 text-xl leading-relaxed text-teal-900 ring-1 ring-line">
-        {lang === 'hi' ? `नमस्ते ${name}! मैं नामी हूँ — एक AI साथी। बात करने के लिए "नामी से बात करें" दबाइए।` : `Namaste ${name}! I'm Nami — an AI companion. Press “Talk to Nami” to start.`}
+        {lang === 'hi' ? `नमस्ते ${name}! मैं नामी हूँ, एक AI साथी। बात करने के लिए "नामी से बात करें" दबाइए।` : `Namaste ${name}! I'm Nami, an AI companion. Press “Talk to Nami” to start.`}
       </div>
     );
   return (
@@ -228,7 +228,7 @@ function Captions({ captions, lang, name }: { captions: App['captions']; lang: s
             c.who === 'system' && 'self-center bg-[#fbf3e3] text-sm text-warn-600',
           )}
         >
-          <span className="mb-0.5 block text-xs font-semibold uppercase tracking-wide opacity-60">{c.who === 'nami' ? 'Nami' : c.who === 'meera' ? 'Meera ji' : 'Note'}</span>
+          <span className="mb-0.5 block text-xs font-semibold uppercase tracking-wide opacity-60">{c.who === 'nami' ? 'Nami' : c.who === 'meera' ? 'You' : 'Note'}</span>
           {c.text}
         </motion.div>
       ))}
@@ -291,7 +291,7 @@ function ReminderCard({ o, lang, t, app }: { o: Snap['occurrences'][number]; lan
             {o.kind === 'medication' && <button onClick={() => r('not_taken')} className="min-h-14 rounded-full border-2 border-line px-5 text-lg font-semibold">{t.notTaken}</button>}
             <button onClick={() => r('snooze', { snoozeMinutes: 15 })} className="min-h-14 rounded-full border-2 border-line px-5 text-lg font-semibold">{t.later}</button>
           </div>
-          <p className="mt-2 text-xs text-ink-600">Nami records what you say — she cannot check whether a medicine was taken.</p>
+          <p className="mt-2 text-xs text-ink-600">Nami records what you say. She cannot check whether a medicine was taken.</p>
         </div>
       </div>
     </CardShell>
@@ -307,7 +307,7 @@ function CheckinCard({ t, app }: { t: App['t']; app: App }) {
         </span>
         <div className="flex-1">
           <p className="text-xs font-bold uppercase tracking-wider text-teal-700">Daily check-in</p>
-          <p className="mt-1 text-xl font-semibold">{app.lang === 'hi' ? 'नमस्ते! आज का चेक-इन — बस बता दीजिए आप यहाँ हैं।' : "Good morning! Daily check-in — just let me know you're here."}</p>
+          <p className="mt-1 text-xl font-semibold">{app.lang === 'hi' ? 'नमस्ते! आज का चेक-इन, बस बता दीजिए आप यहाँ हैं।' : "Good morning! Daily check-in, just let me know you're here."}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button onClick={() => app.command({ type: 'checkin.respond', source: 'button' })} className="min-h-14 rounded-full bg-teal-900 px-6 text-lg font-semibold text-ivory-50">{t.imHere}</button>
             <button onClick={() => app.command({ type: 'help.open', kind: 'explicit_help', source: 'button' })} className="min-h-14 rounded-full border-2 border-help-600/60 px-5 text-lg font-semibold text-help-600">{t.needHelp}</button>
@@ -322,9 +322,9 @@ function HelpBanner({ d, c, app }: { d: Snap; c: Snap['cases'][number]; app: App
   const name = (id: string | null) => d.contacts.find((x) => x.id === id)?.name ?? 'contact';
   const active = c.attempts.find((a) => a.state === 'active' && a.contactId);
   let line = '';
-  if (c.state === 'owner_accepted') line = `${name(c.ownerContactId)} accepted and is following up. Waiting for their report — nobody is marked “safe” automatically.`;
-  else if (c.state === 'unresolved') line = 'Nobody has accepted yet. Links stay open for a late reply — please call 112 if this is an emergency.';
-  else if (c.state === 'phone_fallback') line = 'Check-in not answered — trying the agreed phone fallback before contacting family.';
+  if (c.state === 'owner_accepted') line = `${name(c.ownerContactId)} accepted and is following up. Waiting for their report. Nobody is marked “safe” automatically.`;
+  else if (c.state === 'unresolved') line = 'Nobody has accepted yet. Links stay open for a late reply. Please call 112 if this is an emergency.';
+  else if (c.state === 'phone_fallback') line = 'Check-in not answered, trying the agreed phone fallback before contacting family.';
   else if (active) line = `Contacting ${name(active.contactId)}… waiting for an explicit “I'll check”.`;
   else line = 'Contacting your chosen person…';
   const help = c.type === 'help';
@@ -372,7 +372,7 @@ function Controls({ app }: { app: App }) {
       </button>
       {app.voiceError && (
         <p className="col-span-full rounded-xl bg-[#fbf3e3] px-4 py-2 text-sm text-warn-600">
-          {app.voiceError === 'voice_not_configured' ? 'Live voice is not configured on this server yet — type to Nami below; she will answer aloud.' : app.voiceError === 'rate_limited' || app.voiceError === 'daily_cap' ? 'Voice demo limit reached for now — type to Nami below.' : `Voice unavailable (${app.voiceError}) — type to Nami below.`}
+          {app.voiceError === 'voice_not_configured' ? 'Live voice is not configured on this server yet. Type to Nami below; she will answer aloud.' : app.voiceError === 'rate_limited' || app.voiceError === 'daily_cap' ? 'Voice demo limit reached for now, type to Nami below.' : `Voice unavailable (${app.voiceError}), type to Nami below.`}
         </p>
       )}
       <button onClick={app.toggleMute} className="col-span-full flex items-center justify-center gap-2 text-sm font-semibold text-ink-600 sm:col-span-1 sm:col-start-4">
@@ -384,7 +384,7 @@ function Controls({ app }: { app: App }) {
 
 function Composer({ app }: { app: App }) {
   const [v, setV] = useState('');
-  const examples = app.lang === 'hi' ? ['अगले हफ्ते डॉक्टर मेहता से सुबह का अपॉइंटमेंट बुक कर दो', 'आज का प्लान बताओ', 'हाँ, दवाई ले ली'] : ['Book a morning follow-up with Dr. Mehta next week', "What's my plan today?", 'Yes, I took my tablet'];
+  const examples = app.lang === 'hi' ? ['अगले हफ्ते डॉक्टर से सुबह का अपॉइंटमेंट बुक कर दो', 'आज का प्लान बताओ', 'हाँ, दवाई ले ली'] : ['Book a morning follow-up with my doctor next week', "What's my plan today?", 'Yes, I took my tablet'];
   return (
     <form
       onSubmit={(e) => {
@@ -418,7 +418,7 @@ const OUTCOME: Record<string, string> = {
   done_reported: 'Done',
   not_taken_reported: 'Not taken (you said)',
   unacknowledged: 'No response',
-  delivery_uncertain: 'Not delivered — page closed',
+  delivery_uncertain: 'Not delivered, page closed',
   help_requested: 'Help requested',
 };
 
@@ -456,8 +456,8 @@ function MyDay({ d, lang }: { d: Snap; lang: string }) {
 const APT_STATE: Record<string, { label: string; tone: string }> = {
   draft: { label: 'Waiting for your OK to call', tone: 'text-warn-600' },
   finding_availability: { label: 'Calling the clinic…', tone: 'text-warn-600' },
-  awaiting_user_approval: { label: 'Slot found — needs your approval', tone: 'text-warn-600' },
-  pending_clinic_confirmation: { label: 'Confirming with clinic — not booked yet', tone: 'text-warn-600' },
+  awaiting_user_approval: { label: 'Slot found, needs your approval', tone: 'text-warn-600' },
+  pending_clinic_confirmation: { label: 'Confirming with clinic, not booked yet', tone: 'text-warn-600' },
   confirmed: { label: 'Confirmed by the clinic', tone: 'text-ok-600' },
   failed_needs_help: { label: 'Not booked', tone: 'text-bad-600' },
   cancelled: { label: 'Cancelled', tone: 'text-ink-600' },
@@ -562,7 +562,7 @@ function DemoPanel({ d, app }: { d: Snap; app: App }) {
             <QRCodeSVG value={arjun.careUrl} size={104} fgColor="#173D38" />
           </a>
           <p className="text-sm text-ink-600">
-            <b className="text-ink-900">Be {arjun.name} (her son).</b> Scan with your phone to open the caregiver view — when a check-in is missed, you will be asked to accept follow-up.
+            <b className="text-ink-900">Be {arjun.name} (her son).</b> Scan with your phone to open the caregiver view. When a check-in is missed, you will be asked to accept follow-up.
           </p>
         </div>
       )}
@@ -574,7 +574,7 @@ function DemoPanel({ d, app }: { d: Snap; app: App }) {
         }}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 font-semibold text-teal-900 ring-1 ring-line hover:bg-ivory-100"
       >
-        <Stethoscope className="h-4 w-4" /> Try: “Book Dr. Mehta, a morning next week”
+        <Stethoscope className="h-4 w-4" /> Try: “Book {clinic?.doctor ?? 'the doctor'}, a morning next week”
       </button>
       <label className="mt-4 block text-sm font-semibold text-ink-900" htmlFor="scenario">Simulated clinic behaviour</label>
       <select
@@ -622,7 +622,7 @@ function MemoryCorner({ d, app }: { d: Snap; app: App }) {
             <HeartHandshake className="h-5 w-5" /> {hi ? 'नामी को कहानी सुनाइए' : 'Tell Nami the story'}
           </button>
         )}
-        {mp.state === 'story_drafted' && <p className="mt-2 text-sm text-warn-600">{hi ? 'कहानी तैयार है — भेजने से पहले आपकी अनुमति चाहिए।' : 'Story drafted — waiting for your OK before sending.'}</p>}
+        {mp.state === 'story_drafted' && <p className="mt-2 text-sm text-warn-600">{hi ? 'कहानी तैयार है, भेजने से पहले आपकी अनुमति चाहिए।' : 'Story drafted, waiting for your OK before sending.'}</p>}
         {mp.state === 'sent' && <p className="mt-2 text-sm font-semibold text-ok-600">✓ {hi ? `${mp.fromName} को भेज दी गई` : `Sent to ${mp.fromName}`}</p>}
         {mp.state === 'kept_private' && <p className="mt-2 text-sm text-ink-600">{hi ? 'निजी रखी गई' : 'Kept private'}</p>}
         <p className="mt-2 text-xs text-ink-600">{hi ? 'नामी कुछ भी आपकी हाँ के बिना नहीं भेजती।' : 'Nothing is sent without your yes. Nami never imitates family voices.'}</p>

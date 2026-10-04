@@ -49,7 +49,7 @@ const EXTRACTOR: Record<string, string> = {
   llm: 'LLM extractor · tool-forced JSON',
   scripted: 'Scripted extractor (simulated clinic)',
   none: 'No extractor available',
-  failed: 'Extractor failed — treated as no result',
+  failed: 'Extractor failed, treated as no result',
 };
 
 function speakerView(s: Turn['speaker'], call: ConsoleCall): { label: string; icon: LucideIcon } {

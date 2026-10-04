@@ -26,7 +26,7 @@ export function MemorySection({ token, data, onDone }: { token: string; data: Ca
                   <span className="font-semibold text-cocoa-500">{name} told the story ({m.sentAt}):</span> “{m.story}”
                 </p>
               ) : (
-                <p className="mt-1 text-ink-600">{m.state === 'kept_private' ? `${name} chose to keep this one private.` : `Waiting — ${name} decides whether to share her story.`}</p>
+                <p className="mt-1 text-ink-600">{m.state === 'kept_private' ? `${name} chose to keep this one private.` : `Waiting, ${name} decides whether to share her story.`}</p>
               )}
             </div>
           </li>
@@ -44,7 +44,7 @@ export function MemorySection({ token, data, onDone }: { token: string; data: Ca
           const r = await fetch(`/api/care/${encodeURIComponent(token)}/memory`, { method: 'POST', body: fd });
           const j = await r.json().catch(() => ({}));
           setBusy(false);
-          setMsg(j.ok ? `Shared. Nami will invite ${name} to tell the story — nothing comes back without her OK.` : `Could not share: ${j.error ?? 'error'}`);
+          setMsg(j.ok ? `Shared. Nami will invite ${name} to tell the story, nothing comes back without her OK.` : `Could not share: ${j.error ?? 'error'}`);
           if (j.ok) {
             setFile(null);
             setCaption('');

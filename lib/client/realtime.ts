@@ -65,7 +65,7 @@ export class RealtimeVoice {
     dc.onmessage = (m) => this.onEvent(JSON.parse(m.data));
     dc.onopen = () => {
       this.set('listening');
-      if (greet) this.sendResponse("Greet Meera ji warmly in one short sentence in Hindi, say you are Nami, an AI companion, and ask whether she would like to hear today's plan.");
+      if (greet) this.sendResponse("Greet them warmly by the name in your instructions, in one short sentence in their language, say you are Nami, an AI companion, and ask whether they would like to hear today's plan.");
     };
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') this.disconnect('connection_lost');

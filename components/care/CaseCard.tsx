@@ -59,7 +59,7 @@ export function caseStateView(c: CareCase, me: string): StateView {
     case 'resolved_human_reported':
       return { tone: 'ok', icon: MessageSquareText, label: 'Human-reported' };
     case 'cancelled_mistake':
-      return { tone: 'neutral', icon: Undo2, label: 'Cancelled — pressed by mistake' };
+      return { tone: 'neutral', icon: Undo2, label: 'Cancelled, pressed by mistake' };
     default:
       return { tone: 'neutral', icon: Clock, label: c.state };
   }
@@ -69,7 +69,7 @@ const ATTEMPT_TEXT: Record<string, string> = {
   accepted: 'Accepted follow-up',
   declined: "Couldn't right now",
   no_answer: 'No answer',
-  voicemail: 'Voicemail — not counted as acceptance',
+  voicemail: 'Voicemail, not counted as acceptance',
   busy: 'Line busy',
   failed: "Couldn't be reached",
   timeout: 'No reply in time',
@@ -80,7 +80,7 @@ const ATTEMPT_TEXT: Record<string, string> = {
 };
 
 function attemptView(h: CareCase['history'][number]): { text: string; tone: Tone } {
-  if (h.state === 'active' && !h.outcome) return { text: 'Asked — waiting for a reply', tone: 'warn' };
+  if (h.state === 'active' && !h.outcome) return { text: 'Asked, waiting for a reply', tone: 'warn' };
   const text = (h.outcome && ATTEMPT_TEXT[h.outcome]) ?? 'Closed';
   const tone: Tone = h.outcome === 'accepted' ? 'ok' : h.outcome === 'superseded' || h.outcome === 'cancelled' ? 'neutral' : 'bad';
   return { text, tone };
@@ -315,7 +315,7 @@ export function CaseCard({
               </li>
             ))}
           </ul>
-          <p className="mt-2.5 text-[14px] leading-snug text-ink-600">These are facts only. Nami does not guess how she is — a person checks.</p>
+          <p className="mt-2.5 text-[14px] leading-snug text-ink-600">These are facts only. Nami does not guess how she is. A person checks.</p>
         </section>
 
         {/* ---------------- actions ---------------- */}
@@ -324,7 +324,7 @@ export function CaseCard({
             <>
               <p className="text-[17px] leading-snug text-ink-900">
                 {c.state === 'unresolved'
-                  ? 'Every agreed contact has been tried. You can still accept — a late acceptance still helps.'
+                  ? 'Every agreed contact has been tried. You can still accept. A late acceptance still helps.'
                   : c.isMyTurn
                     ? `Can you check on ${recipientName} now? Nobody else is marked as following up.`
                     : `Another family member has been asked. You can still offer to check.`}
@@ -346,7 +346,7 @@ export function CaseCard({
               <div className="flex items-start gap-3 rounded-2xl border border-ok-600/25 bg-ok-600/[.07] p-4">
                 <HeartHandshake className="mt-0.5 size-6 shrink-0 text-ok-600" aria-hidden />
                 <div>
-                  <p className="text-[18px] font-semibold text-ink-900">You are following up — please report back</p>
+                  <p className="text-[18px] font-semibold text-ink-900">You are following up, please report back</p>
                   <p className="mt-0.5 text-[15px] leading-snug text-ink-600">
                     Nothing is marked as resolved until you tell Nami what happened.
                   </p>
@@ -358,7 +358,7 @@ export function CaseCard({
                     key="spoke"
                     label="What happened? (optional)"
                     hint="Saved exactly as you write it, marked “human-reported” with your name and the time."
-                    placeholder="e.g. Called her — she was at the temple and forgot her phone."
+                    placeholder="e.g. Called her, she was at the temple and forgot her phone."
                     submitLabel="Send my report"
                     submitIcon={MessageSquareText}
                     variant="primary"
@@ -371,7 +371,7 @@ export function CaseCard({
                     key="snh"
                     label="What does she need? (optional)"
                     hint="The case stays open and Nami contacts the next agreed person."
-                    placeholder="e.g. Not answering the door — someone nearby should go."
+                    placeholder="e.g. Not answering the door, someone nearby should go."
                     submitLabel="Still needs help"
                     submitIcon={TriangleAlert}
                     variant="caution"

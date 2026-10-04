@@ -74,7 +74,7 @@ const OUTCOME: Record<string, { tone: Tone; icon: LucideIcon; text: string }> = 
   taken_reported: { tone: 'ok', icon: CircleCheck, text: 'Said she took it' },
   not_taken_reported: { tone: 'warn', icon: CircleSlash, text: 'Said she has not taken it' },
   unacknowledged: { tone: 'neutral', icon: CircleMinus, text: 'No response (not an emergency)' },
-  delivery_uncertain: { tone: 'warn', icon: WifiOff, text: 'Not delivered — Nami page wasn’t open' },
+  delivery_uncertain: { tone: 'warn', icon: WifiOff, text: 'Not delivered. Nami page wasn’t open' },
   help_requested: { tone: 'bad', icon: LifeBuoy, text: 'Asked for help instead' },
   done_reported: { tone: 'ok', icon: CircleCheck, text: 'Said it’s done' },
 };
@@ -112,9 +112,9 @@ export function RemindersSection({ reminders }: { reminders: CareSnapshot['remin
 /* ------------------------------------------------------------- appointments */
 
 const APPT: Record<string, { tone: Tone; icon: LucideIcon; text: string }> = {
-  draft: { tone: 'warn', icon: FilePen, text: 'Drafted — waiting for her permission to call' },
+  draft: { tone: 'warn', icon: FilePen, text: 'Drafted, waiting for her permission to call' },
   finding_availability: { tone: 'warn', icon: PhoneOutgoing, text: 'Nami is asking the clinic for a slot' },
-  awaiting_user_approval: { tone: 'warn', icon: Hourglass, text: 'Slot offered — waiting for her approval' },
+  awaiting_user_approval: { tone: 'warn', icon: Hourglass, text: 'Slot offered, waiting for her approval' },
   pending_clinic_confirmation: { tone: 'warn', icon: PhoneOutgoing, text: 'Waiting for the clinic to confirm' },
   confirmed: { tone: 'ok', icon: CalendarCheck, text: 'Confirmed by the clinic' },
   failed_needs_help: { tone: 'bad', icon: CalendarX, text: 'Not booked' },
@@ -193,7 +193,7 @@ function resolutionText(c: CareCase, me: string, recipientName: string) {
     case 'resolved_user_responded':
       return `${recipientName} responded herself${at ? ` at ${at}` : ''}`;
     case 'cancelled_mistake':
-      return `Cancelled${at ? ` at ${at}` : ''} — help was pressed by mistake`;
+      return `Cancelled${at ? ` at ${at}` : ''}, help was pressed by mistake`;
     default:
       return '';
   }

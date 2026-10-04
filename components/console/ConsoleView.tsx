@@ -139,7 +139,7 @@ export function ConsoleView() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/10 px-3.5 text-[14px] font-semibold ring-1 ring-white/15" title="Demo time — skipping fires real engine ticks">
+              <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/10 px-3.5 text-[14px] font-semibold ring-1 ring-white/15" title="Demo time, skipping fires real engine ticks">
                 <Clock className="size-4 text-sea-200" aria-hidden />
                 Demo time · {data.clock.spokenEn}
               </span>
@@ -169,7 +169,7 @@ export function ConsoleView() {
                 <span className="text-sea-500 italic">code disposes.</span>
               </p>
               <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-sea-200">
-                Nami, the Caller and the Extractor talk and suggest. Only the deterministic workflow engine changes care state — after the verifier’s checks pass and {recipientFirst} (or a family member) says yes.
+                Nami, the Caller and the Extractor talk and suggest. Only the deterministic workflow engine changes care state, after the verifier’s checks pass and {recipientFirst} (or a family member) says yes.
               </p>
             </div>
             <ol className="grid gap-2.5 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
@@ -215,7 +215,7 @@ export function ConsoleView() {
           aside={
             <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[13px] font-semibold ring-1 ${live ? 'bg-sea-200/70 text-teal-700 ring-sea-500/40' : 'bg-ivory-100 text-ink-600 ring-line'}`}>
               <span className={`size-2 rounded-full ${live ? 'animate-pulse bg-sea-500' : 'bg-ink-600/40'}`} aria-hidden />
-              {live ? 'Live' : 'Idle — last activity highlighted'}
+              {live ? 'Live' : 'Idle, last activity highlighted'}
             </span>
           }
         >
@@ -247,7 +247,7 @@ export function ConsoleView() {
             <GraphLegend />
             <p className="flex items-center gap-1.5 text-[13px] text-ink-600">
               <FlaskConical className="size-4" aria-hidden />
-              Judges use the simulated clinic — labelled wherever it appears.
+              Judges use the simulated clinic, labelled wherever it appears.
             </p>
           </div>
         </Card>
@@ -334,7 +334,7 @@ function ConsoleSkeleton({ offline }: { offline: boolean }) {
       <div className="mx-auto w-full max-w-[1280px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="h-[420px] animate-pulse rounded-[22px] bg-card" />
         <p className="text-center text-[15px] text-ink-600" role="status">
-          {offline ? 'Can’t reach the server — retrying…' : 'Loading the console…'}
+          {offline ? 'Can’t reach the server, retrying…' : 'Loading the console…'}
         </p>
       </div>
     </main>

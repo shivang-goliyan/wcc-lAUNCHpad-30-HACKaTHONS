@@ -99,7 +99,7 @@ export async function runSimCall(id: string) {
     await setState(id, 'ringing');
     await sleep(1500);
     if (b.scenario === 'voicemail') {
-      await appendTurn(id, { speaker: 'system', text: '(Simulated) Voicemail — nobody answered.', t: Date.now() });
+      await appendTurn(id, { speaker: 'system', text: '(Simulated) Voicemail, nobody answered.', t: Date.now() });
       return await finishCall(id, 'voicemail', { outcome: 'not_reached' }, 'scripted');
     }
     if (!llmAvailable()) {
@@ -210,7 +210,7 @@ export async function watchdog() {
   const stale = await db<CallRow[]>`SELECT * FROM call_sessions WHERE result_sent = false AND updated_at < now() - interval '3 minutes'`;
   for (const c of stale) {
     if (c.adapter === 'sim' && !running.has(c.id)) {
-      await appendTurn(c.id, { speaker: 'system', text: 'Call interrupted (service restarted) — marked failed, not confirmed.', t: Date.now() });
+      await appendTurn(c.id, { speaker: 'system', text: 'Call interrupted (service restarted), marked failed, not confirmed.', t: Date.now() });
       await finishCall(c.id, 'failed', {}, 'error');
     } else if (c.adapter === 'twilio' && c.provider_call_id) {
       const tw = await twilioClient()?.calls(c.provider_call_id).fetch().catch(() => null);
@@ -240,7 +240,7 @@ export async function twilioVoice(callId: string, answeredBy: string | null) {
     // Voicemail: leave no details.
     vr.say({ voice: VOICE(), language: 'hi-IN' }, 'Raynet se call tha. Kripya Nami link dekhiye. Dhanyavaad.');
     vr.hangup();
-    await appendTurn(callId, { speaker: 'system', text: `Voicemail detected (${answeredBy}) — no details left.`, t: Date.now() });
+    await appendTurn(callId, { speaker: 'system', text: `Voicemail detected (${answeredBy}), no details left.`, t: Date.now() });
     void finishCall(callId, 'voicemail', { voicemail: true, accepted: 'not_reached', outcome: 'not_reached' }, 'twilio');
     return vr.toString();
   }

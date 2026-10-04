@@ -31,12 +31,12 @@ function actionMessage(action: CareAction, status: string | undefined, at: strin
     case 'accept':
       return `Recorded${when}: you are following up. Please report back here.`;
     case 'decline':
-      return status === 'unresolved' ? `Recorded${when}. No other agreed contact is left — the case stays open.` : `Recorded${when}. Thank you for letting Nami know.`;
+      return status === 'unresolved' ? `Recorded${when}. No other agreed contact is left, the case stays open.` : `Recorded${when}. Thank you for letting Nami know.`;
     case 'spoke':
       return `Your report is saved as human-reported${when}.`;
     case 'still_needs_help':
       return status === 'unresolved'
-        ? `Recorded${when}. Nobody else is left to contact — the case stays open.`
+        ? `Recorded${when}. Nobody else is left to contact, the case stays open.`
         : `Recorded${when}. Nami is contacting the next agreed person.`;
   }
 }
@@ -66,7 +66,7 @@ export function CareView({ token }: { token: string }) {
         setLast({ caseId, message });
         return { ok: true, message };
       } catch {
-        return { ok: false, message: 'No connection. Nothing was recorded — please try again.' };
+        return { ok: false, message: 'No connection. Nothing was recorded, please try again.' };
       }
     },
     [token, mutate],
@@ -203,7 +203,7 @@ function CareSkeleton({ offline }: { offline: boolean }) {
         <div className="h-72 animate-pulse rounded-[24px] bg-card shadow-[0_14px_40px_rgba(23,61,56,.10)]" />
         <div className="h-40 animate-pulse rounded-[22px] bg-card/80" />
         <p className="text-center text-[15px] text-ink-600" role="status">
-          {offline ? 'Can’t reach Nami right now — retrying…' : 'Loading the latest from Nami…'}
+          {offline ? 'Can’t reach Nami right now, retrying…' : 'Loading the latest from Nami…'}
         </p>
       </div>
     </main>

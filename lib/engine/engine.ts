@@ -138,7 +138,7 @@ export function decide(state: HouseholdState, cmd: Command, now: number): Engine
       break;
     case 'ui.quiet':
       ctx.s.ui.quietUntil = now + Math.max(5, Math.min(240, cmd.minutes)) * MIN;
-      ctx.ev('human', 'user', 'quiet_requested', 'ui', null, `Asked for quiet for ${cmd.minutes} min — respected, no follow-up`);
+      ctx.ev('human', 'user', 'quiet_requested', 'ui', null, `Asked for quiet for ${cmd.minutes} min, respected, no follow-up`);
       ctx.reply = { ok: true, status: 'quiet', sayHint: 'Of course. I will stay quiet. Reminders will still appear on screen.' };
       break;
     case 'memory.prompt.add':
@@ -232,7 +232,7 @@ function tickOccurrences(ctx: Ctx) {
     if (o.state === 'scheduled' && o.notifyAt <= now) {
       o.state = 'awaiting_response';
       o.delivery = { attemptedAt: now, pageVisible: pageVisible(s, now), deviceLastSeen: s.device.lastSeenAt };
-      ctx.ev('state', 'engine', 'reminder_presented', 'occurrence', o.id, `Reminder shown: ${scheduleLabel(s, o)}${o.delivery.pageVisible ? '' : ' (Nami page not visible — delivery uncertain)'}`, {
+      ctx.ev('state', 'engine', 'reminder_presented', 'occurrence', o.id, `Reminder shown: ${scheduleLabel(s, o)}${o.delivery.pageVisible ? '' : ' (Nami page not visible, delivery uncertain)'}`, {
         rule: 'schedule',
       });
     }
@@ -240,7 +240,7 @@ function tickOccurrences(ctx: Ctx) {
       o.state = 'resolved';
       o.outcome = o.delivery.pageVisible ? 'unacknowledged' : 'delivery_uncertain';
       o.outcomeAt = now;
-      ctx.ev('state', 'engine', 'reminder_' + o.outcome, 'occurrence', o.id, `${scheduleLabel(s, o)}: ${o.outcome === 'unacknowledged' ? 'no response (not an emergency)' : 'delivery uncertain — page was not visible'}`);
+      ctx.ev('state', 'engine', 'reminder_' + o.outcome, 'occurrence', o.id, `${scheduleLabel(s, o)}: ${o.outcome === 'unacknowledged' ? 'no response (not an emergency)' : 'delivery uncertain, page was not visible'}`);
     }
   }
 }
@@ -280,14 +280,14 @@ function reminderRespond(ctx: Ctx, cmd: Extract<Command, { type: 'reminder.respo
   const oc = openCase(s, 'checkin');
   if (oc) userResponded(ctx, cmd.source, cmd.quote ?? null, false);
   if (o.outcome === 'taken_reported' || o.outcome === 'done_reported') {
-    ctx.reply = { ok: true, status: o.outcome, sayHint: 'Noted — you said you took it. Thank you.' };
+    ctx.reply = { ok: true, status: o.outcome, sayHint: 'Noted, you said you took it. Thank you.' };
   } else if (o.outcome === 'not_taken_reported') {
     const primary = escalationOrder(s, 'help')[0];
     const p = addPending(ctx, 'not_taken_contact_helper', o.id, { contactId: primary?.id ?? null }, `Should I let ${primary?.name ?? 'your contact'} know so they can help?`, `क्या मैं ${primary?.name ?? 'आपके परिवार'} को बता दूँ ताकि वे मदद कर सकें?`);
     ctx.reply = {
       ok: true,
       status: 'not_taken_reported',
-      sayHint: `Noted that you have not taken it. I can't give medicine advice — please follow Dr. Mehta's instructions. ${p.readback}`,
+      sayHint: `Noted that you have not taken it. I can't give medicine advice, please follow Dr. Mehta's instructions. ${p.readback}`,
       data: { pendingActionId: p.id },
     };
   } else {
@@ -314,7 +314,7 @@ function tickCheckins(ctx: Ctx) {
       const quiet = inQuietHours(due, tz, s.recipient.quietStart, s.recipient.quietEnd);
       const away = s.recipient.plannedAbsenceUntil !== null && s.recipient.plannedAbsenceUntil > now;
       if (quiet || away) {
-        ctx.ev('state', 'engine', 'checkin_skipped', 'policy', null, `Check-in ${t} skipped — ${quiet ? 'quiet hours' : 'planned absence'} (agreed policy)`);
+        ctx.ev('state', 'engine', 'checkin_skipped', 'policy', null, `Check-in ${t} skipped, ${quiet ? 'quiet hours' : 'planned absence'} (agreed policy)`);
         continue;
       }
       if (openCase(s, 'checkin') || openCase(s, 'help')) continue;
@@ -395,7 +395,7 @@ function tickCases(ctx: Ctx) {
         c.pageRetriesUsed += 1;
         c.state = 'retrying_page';
         c.timerAt = now + s.policy.retryWindowMin * MIN;
-        ctx.ev('state', 'engine', 'checkin_retry', 'case', c.id, `No response yet — asked again on screen (retry ${c.pageRetriesUsed}/${s.policy.pageRetries})`);
+        ctx.ev('state', 'engine', 'checkin_retry', 'case', c.id, `No response yet, asked again on screen (retry ${c.pageRetriesUsed}/${s.policy.pageRetries})`);
       } else if (s.policy.phoneFallback) {
         c.state = 'phone_fallback';
         c.timerAt = c.deadlineAt;
@@ -407,7 +407,7 @@ function tickCases(ctx: Ctx) {
         } else {
           closeAttempt(ctx, att, 'not_configured');
           c.evidence = { ...evidenceSnapshot(ctx, c), phoneFallback: 'not_configured' };
-          ctx.ev('state', 'engine', 'phone_fallback_unavailable', 'case', c.id, 'Phone fallback not configured in this sandbox — waiting until the agreed deadline');
+          ctx.ev('state', 'engine', 'phone_fallback_unavailable', 'case', c.id, 'Phone fallback not configured in this sandbox, waiting until the agreed deadline');
         }
       } else {
         c.timerAt = c.deadlineAt;
@@ -416,7 +416,7 @@ function tickCases(ctx: Ctx) {
     } else if (c.state === 'phone_fallback') {
       for (const a of activeAttempts(s, c.id)) closeAttempt(ctx, a, 'superseded');
       c.evidence = evidenceSnapshot(ctx, c);
-      ctx.ev('state', 'engine', 'deadline_reached', 'case', c.id, 'Check-in still unacknowledged at the agreed deadline — contacting family (facts only, no guesses)', {
+      ctx.ev('state', 'engine', 'deadline_reached', 'case', c.id, 'Check-in still unacknowledged at the agreed deadline, contacting family (facts only, no guesses)', {
         evidence: c.evidence,
       });
       c.timerAt = null;
@@ -478,7 +478,7 @@ function escalateNext(ctx: Ctx, c: Case) {
   if (c.step >= c.contactOrder.length) {
     c.state = 'unresolved';
     c.timerAt = null;
-    ctx.ev('state', 'engine', 'case_unresolved', 'case', c.id, 'Nobody has accepted follow-up yet. This is NOT resolved — links stay open for a late acceptance.');
+    ctx.ev('state', 'engine', 'case_unresolved', 'case', c.id, 'Nobody has accepted follow-up yet. This is NOT resolved, links stay open for a late acceptance.');
     return;
   }
   const contact = ctx.contact(c.contactOrder[c.step])!;
@@ -493,7 +493,7 @@ function escalateNext(ctx: Ctx, c: Case) {
     });
   }
   s.notices.push({ id: ctx.id('ntc'), contactId: contact.id, at: ctx.now, text: facts.en, caseId: c.id });
-  ctx.ev('agent', 'engine', 'contact_alerted', 'attempt', att.id, `Asked ${contact.name} (${contact.relation}) to accept follow-up via ${att.channels.join(' + ')} — waiting for an explicit yes`, {
+  ctx.ev('agent', 'engine', 'contact_alerted', 'attempt', att.id, `Asked ${contact.name} (${contact.relation}) to accept follow-up via ${att.channels.join(' + ')}, waiting for an explicit yes`, {
     rule: `escalation step ${c.step + 1}/${c.contactOrder.length}`,
     facts: facts.en,
   });
@@ -534,7 +534,7 @@ function helpOpen(ctx: Ctx, source: InputSource, quote: string | null, kind: 'ex
     openingQuote: quote,
   };
   s.cases.push(c);
-  ctx.ev('human', 'user', 'help_requested', 'case', c.id, `Get Help (${source}${kind === 'distress' ? ', distress words' : ''}) — contacting the agreed person immediately`, { quote });
+  ctx.ev('human', 'user', 'help_requested', 'case', c.id, `Get Help (${source}${kind === 'distress' ? ', distress words' : ''}), contacting the agreed person immediately`, { quote });
   escalateNext(ctx, c);
   const first = ctx.contact(c.contactOrder[0]);
   ctx.reply = {
@@ -574,7 +574,7 @@ function userResponded(ctx: Ctx, source: InputSource, quote: string | null, expl
   c.timerAt = null;
   c.resolution = { by: 'user', note: quote, at: now };
   for (const id of notify) s.notices.push({ id: ctx.id('ntc'), contactId: id, at: now, text: `${s.recipient.addressAs} responded herself at ${time24(now, tz)} (${source}).`, caseId: c.id });
-  ctx.ev('human', 'user', 'checkin_responded', 'case', c.id, `${s.recipient.addressAs} responded (${source})${notify.size ? ' — pending contact attempts cancelled and contacts informed' : ''}`, { quote });
+  ctx.ev('human', 'user', 'checkin_responded', 'case', c.id, `${s.recipient.addressAs} responded (${source})${notify.size ? ', pending contact attempts cancelled and contacts informed' : ''}`, { quote });
   if (explicit) ctx.reply = { ok: true, status: 'checkin_responded', sayHint: notify.size ? 'Thank you! I have told your family you responded.' : 'Thank you, noted.' };
 }
 
@@ -585,14 +585,14 @@ function contactAction(ctx: Ctx, cmd: Extract<Command, { type: 'case.contactActi
   const contact = ctx.contact(cmd.contactId);
   if (!contact || !c.contactOrder.includes(contact.id)) throw new EngineReject('not_authorised', 'Contact not part of this case');
   if (isTerminal(c)) {
-    ctx.ev('external', `contact:${contact.id}`, 'late_action_ignored', 'case', c.id, `${contact.name}'s “${cmd.action}” arrived after the case closed — no change`);
+    ctx.ev('external', `contact:${contact.id}`, 'late_action_ignored', 'case', c.id, `${contact.name}'s “${cmd.action}” arrived after the case closed, no change`);
     ctx.reply = { ok: true, status: c.state, sayHint: 'This case is already closed.' };
     return;
   }
   const att = activeAttempts(s, c.id).find((a) => a.contactId === contact.id);
   const who = `contact:${contact.id}`;
   const familyAsked = ['escalating', 'owner_accepted', 'unresolved'].includes(c.state);
-  if (!familyAsked) throw new EngineReject('not_yet_escalated', 'Family has not been asked yet — the agreed check-in steps are still running');
+  if (!familyAsked) throw new EngineReject('not_yet_escalated', 'Family has not been asked yet, the agreed check-in steps are still running');
   if ((cmd.action === 'spoke' || cmd.action === 'still_needs_help') && c.state === 'owner_accepted' && c.ownerContactId !== contact.id)
     throw new EngineReject('not_owner', `${ctx.contact(c.ownerContactId)?.name} is currently following up`);
   switch (cmd.action) {
@@ -610,12 +610,12 @@ function contactAction(ctx: Ctx, cmd: Extract<Command, { type: 'case.contactActi
       c.state = 'owner_accepted';
       c.ownerContactId = contact.id;
       c.timerAt = null;
-      ctx.ev('external', who, 'follow_up_accepted', 'case', c.id, `${contact.name} accepted follow-up (${cmd.source}). Wellbeing is NOT yet confirmed — awaiting their report.`, { quote: cmd.quote });
+      ctx.ev('external', who, 'follow_up_accepted', 'case', c.id, `${contact.name} accepted follow-up (${cmd.source}). Wellbeing is NOT yet confirmed, awaiting their report.`, { quote: cmd.quote });
       break;
     }
     case 'decline':
       if (att) closeAttempt(ctx, att, 'declined', cmd.quote ?? null);
-      ctx.ev('external', who, 'follow_up_declined', 'case', c.id, `${contact.name} cannot help right now — moving to the next agreed contact`);
+      ctx.ev('external', who, 'follow_up_declined', 'case', c.id, `${contact.name} cannot help right now, moving to the next agreed contact`);
       if (c.state === 'escalating' || c.state === 'unresolved') {
         if (c.contactOrder[c.step] === contact.id) escalateNext(ctx, c);
       }
@@ -632,7 +632,7 @@ function contactAction(ctx: Ctx, cmd: Extract<Command, { type: 'case.contactActi
       ctx.ev('external', who, 'human_reported_outcome', 'case', c.id, `Human-reported by ${contact.name}: “${cmd.note || 'spoke with her'}”`, { note: cmd.note });
       break;
     case 'still_needs_help':
-      ctx.ev('external', who, 'still_needs_help', 'case', c.id, `${contact.name} reports she still needs help — continuing to the next agreed contact`, { note: cmd.note });
+      ctx.ev('external', who, 'still_needs_help', 'case', c.id, `${contact.name} reports she still needs help, continuing to the next agreed contact`, { note: cmd.note });
       c.ownerContactId = null;
       c.state = 'escalating';
       if (c.contactOrder[c.step] !== contact.id) c.step = c.contactOrder.indexOf(contact.id);
@@ -662,7 +662,7 @@ function findPending(ctx: Ctx, id: string | null, kind?: PendingKind) {
 function verifyConfirmation(ctx: Ctx, conf: Confirmation) {
   if (conf.source === 'voice' || conf.source === 'text' || conf.source === 'phone') {
     const r = checkAffirmation(conf.transcript);
-    ctx.ev('agent', 'verifier', r.ok ? 'consent_verified' : 'consent_rejected', 'consent', null, r.ok ? `Consent verified from the user's own words: “${conf.transcript}”` : `Consent NOT accepted (${r.reason}) — user words: “${conf.transcript ?? ''}”`, {
+    ctx.ev('agent', 'verifier', r.ok ? 'consent_verified' : 'consent_rejected', 'consent', null, r.ok ? `Consent verified from the user's own words: “${conf.transcript}”` : `Consent NOT accepted (${r.reason}), user words: “${conf.transcript ?? ''}”`, {
       matched: r.matched,
     });
     if (!r.ok) throw new EngineReject('consent_not_verified', r.reason, 'I did not hear a clear yes. Please say yes, or press the Yes button.');
@@ -741,8 +741,8 @@ function appointmentPropose(ctx: Ctx, cmd: Extract<Command, { type: 'appointment
   const requestKey = [clinic.id, dateFrom, dateTo, cmd.window].join('|');
   const existing = s.appointments.find((a) => a.requestKey === requestKey && !['cancelled', 'failed_needs_help', 'confirmed'].includes(a.state));
   if (existing) {
-    ctx.ev('state', 'engine', 'duplicate_request', 'appointment', existing.id, 'Same appointment request already open — reusing it (no duplicate booking)');
-    ctx.reply = { ok: true, status: existing.state, sayHint: `I am already working on that request — it is ${existing.state.replace(/_/g, ' ')}.`, data: { requestId: existing.id } };
+    ctx.ev('state', 'engine', 'duplicate_request', 'appointment', existing.id, 'Same appointment request already open, reusing it (no duplicate booking)');
+    ctx.reply = { ok: true, status: existing.state, sayHint: `I am already working on that request, it is ${existing.state.replace(/_/g, ' ')}.`, data: { requestId: existing.id } };
     return;
   }
   const reasonLabel = { follow_up: 'follow-up', new_concern: 'a new concern', test_results: 'discuss test results', other: 'a consultation' }[cmd.reason];
@@ -772,7 +772,7 @@ function appointmentPropose(ctx: Ctx, cmd: Extract<Command, { type: 'appointment
   const readback = `Call ${clinic.name} to ask for an appointment (${reasonLabel}) between ${spokenDateEn(dateFrom)} and ${spokenDateEn(dateTo)}, ${winEn}. I will share only your ${disclosure.join(' and ')}. Shall I call?`;
   const readbackHi = `${clinic.nameHi} को कॉल करके ${spokenDateHi(dateFrom)} से ${spokenDateHi(dateTo)} के बीच ${winHi} का अपॉइंटमेंट पूछूँ? मैं सिर्फ़ आपका नाम और कारण बताऊँगी। कॉल करूँ?`;
   const p = addPending(ctx, 'permit_clinic_call', a.id, {}, readback, readbackHi);
-  ctx.ev('agent', 'nami', 'appointment_proposed', 'appointment', a.id, `Request drafted — waiting for permission to call ${clinic.name}`, { constraints: a.constraints });
+  ctx.ev('agent', 'nami', 'appointment_proposed', 'appointment', a.id, `Request drafted, waiting for permission to call ${clinic.name}`, { constraints: a.constraints });
   ctx.reply = { ok: true, status: 'needs_confirmation', sayHint: readback, data: { pendingActionId: p.id, requestId: a.id, readbackHi } };
 }
 
@@ -814,7 +814,7 @@ function startAvailability(ctx: Ctx, apptId: string) {
   a.callIds.push(callId);
   const clinic = ctx.s.clinics.find((c) => c.id === a.clinicId)!;
   ctx.ev('agent', 'caller', 'clinic_call_started', 'appointment', a.id, `Caller agent is calling ${clinic.name}${adapter === 'sim' ? ' (simulated clinic)' : ' (real phone call)'}`, { callId });
-  ctx.reply = { ok: true, status: 'finding_availability', sayHint: `Thank you. I am calling ${clinic.name} now — I will come back with the options before booking anything.`, data: { requestId: a.id, callId } };
+  ctx.reply = { ok: true, status: 'finding_availability', sayHint: `Thank you. I am calling ${clinic.name} now. I will come back with the options before booking anything.`, data: { requestId: a.id, callId } };
 }
 
 function approveSlot(ctx: Ctx, apptId: string, conf: Confirmation) {
@@ -826,7 +826,7 @@ function approveSlot(ctx: Ctx, apptId: string, conf: Confirmation) {
   const { adapter, to } = clinicAdapter(ctx, a.clinicId);
   const callId = startCall(ctx, 'clinic_confirm', a.id, { adapter, to, clinicId: a.clinicId, brief: clinicBrief(ctx, a, 'confirm') });
   a.callIds.push(callId);
-  ctx.ev('agent', 'caller', 'clinic_confirm_started', 'appointment', a.id, `Approved by user — calling the clinic to confirm ${spokenEn(a.offeredSlot.startAt, ctx.tz)}. Not booked until the clinic confirms.`);
+  ctx.ev('agent', 'caller', 'clinic_confirm_started', 'appointment', a.id, `Approved by user, calling the clinic to confirm ${spokenEn(a.offeredSlot.startAt, ctx.tz)}. Not booked until the clinic confirms.`);
   ctx.reply = { ok: true, status: 'pending_clinic_confirmation', sayHint: 'Thank you. I am confirming it with the clinic now. It is not booked until they confirm.' };
 }
 
@@ -871,7 +871,7 @@ function callResult(ctx: Ctx, cmd: Extract<Command, { type: 'call.result' }>) {
       return;
     }
     if (att.state !== 'active' || isTerminal(c)) {
-      ctx.ev('external', 'system', 'late_call_result', 'attempt', att.id, 'Call result arrived for a closed attempt — no change');
+      ctx.ev('external', 'system', 'late_call_result', 'attempt', att.id, 'Call result arrived for a closed attempt, no change');
       return;
     }
     if (cmd.status === 'completed' && !x.voicemail && x.accepted === 'yes' && x.quote && checkAffirmation(x.quote).ok) {
@@ -882,7 +882,7 @@ function callResult(ctx: Ctx, cmd: Extract<Command, { type: 'call.result' }>) {
     }
     const outcome: AttemptOutcome = x.voicemail || cmd.status === 'voicemail' ? 'voicemail' : cmd.status === 'completed' ? 'no_answer' : (cmd.status as AttemptOutcome);
     closeAttempt(ctx, att, outcome);
-    ctx.ev('external', 'system', 'contact_call_' + outcome, 'attempt', att.id, `Call to ${ctx.contact(att.contactId)?.name}: ${outcome.replace('_', ' ')} — not an acknowledgement`);
+    ctx.ev('external', 'system', 'contact_call_' + outcome, 'attempt', att.id, `Call to ${ctx.contact(att.contactId)?.name}: ${outcome.replace('_', ' ')}, not an acknowledgement`);
     if (c.state === 'escalating') escalateNext(ctx, c);
   }
 }
@@ -894,7 +894,7 @@ function clinicCallResult(ctx: Ctx, a: Appointment, callId: string, status: stri
   if (a.state === 'finding_availability') {
     if (failCall) {
       if (a.availabilityAttempts < 2) {
-        ctx.ev('external', 'system', 'clinic_call_failed', 'appointment', a.id, `Clinic call ${status.replace('_', ' ')} — retrying once`);
+        ctx.ev('external', 'system', 'clinic_call_failed', 'appointment', a.id, `Clinic call ${status.replace('_', ' ')}, retrying once`);
         return startAvailability(ctx, a.id);
       }
       a.state = 'failed_needs_help';
@@ -917,13 +917,13 @@ function clinicCallResult(ctx: Ctx, a: Appointment, callId: string, status: stri
     a.offeredSlot = v.offer;
     a.state = 'awaiting_user_approval';
     const p = addPending(ctx, 'approve_slot', a.id, {}, `${clinic.name} can see you on ${spokenEn(v.offer.startAt, tz)}. Shall I confirm it?`, `${clinic.nameHi} में ${spokenHi(v.offer.startAt, tz)} का समय मिला है। कन्फर्म कर दूँ?`, 30);
-    ctx.ev('agent', 'engine', 'awaiting_user_approval', 'appointment', a.id, `Slot found: ${spokenEn(v.offer.startAt, tz)} — waiting for ${s.recipient.addressAs}'s approval`, { pendingId: p.id });
+    ctx.ev('agent', 'engine', 'awaiting_user_approval', 'appointment', a.id, `Slot found: ${spokenEn(v.offer.startAt, tz)}, waiting for ${s.recipient.addressAs}'s approval`, { pendingId: p.id });
     return;
   }
   if (a.state === 'pending_clinic_confirmation') {
     if (failCall) {
       a.state = 'failed_needs_help';
-      a.failureReason = `Confirmation call ${status.replace('_', ' ')} — the appointment is NOT confirmed`;
+      a.failureReason = `Confirmation call ${status.replace('_', ' ')}, the appointment is NOT confirmed`;
       ctx.ev('state', 'engine', 'appointment_failed', 'appointment', a.id, a.failureReason);
       return;
     }
@@ -933,7 +933,7 @@ function clinicCallResult(ctx: Ctx, a: Appointment, callId: string, status: stri
     a.verification = v.checks.concat([{ check: 'clinic_said_confirmed', pass: x.confirmed === true && !!x.quote, detail: x.quote ? `“${x.quote}”` : 'No explicit confirmation heard' }]);
     if (!confirmed) {
       a.state = 'failed_needs_help';
-      a.failureReason = 'The clinic did not clearly confirm the approved slot — NOT booked';
+      a.failureReason = 'The clinic did not clearly confirm the approved slot. NOT booked';
       ctx.ev('agent', 'verifier', 'confirmation_rejected', 'appointment', a.id, a.failureReason, { checks: a.verification });
       return;
     }
@@ -952,8 +952,8 @@ function clinicCallResult(ctx: Ctx, a: Appointment, callId: string, status: stri
     s.schedules.push({
       id: ctx.id('sch'),
       kind: 'appointment',
-      label: `Appointment at ${clinic.name} — ${spokenEn(start, tz)}`,
-      labelHi: `${clinic.nameHi} — ${spokenHi(start, tz)}`,
+      label: `Appointment at ${clinic.name}, ${spokenEn(start, tz)}`,
+      labelHi: `${clinic.nameHi}, ${spokenHi(start, tz)}`,
       instructions: x.instructions ?? '',
       times: [],
       onceAt: [dayBefore, start - 60 * MIN].filter((t) => t > now),
@@ -1002,7 +1002,7 @@ function memoryDelete(ctx: Ctx, id: string | null, text: string | null) {
   m.text = '[deleted]';
   m.sourceQuote = '';
   ctx.ev('human', 'user', 'memory_deleted', 'memory', m.id, 'Memory deleted at the user’s request');
-  ctx.reply = { ok: true, status: 'deleted', sayHint: 'Done — I have forgotten it.' };
+  ctx.reply = { ok: true, status: 'deleted', sayHint: 'Done. I have forgotten it.' };
 }
 
 // ---------------------------------------------------------------- Memory Corner (connection, not replacement)
@@ -1025,7 +1025,7 @@ function memoryStoryDraft(ctx: Ctx, cmd: Extract<Command, { type: 'memory.story.
   mp.storyQuote = cmd.quote.slice(0, 600);
   const c = ctx.contact(mp.fromContactId);
   const p = addPending(ctx, 'send_memory', mp.id, {}, `Shall I send this story to ${c?.name}? “${mp.storyText}”`, `क्या मैं यह कहानी ${c?.name} को भेज दूँ? “${mp.storyText}”`, 60);
-  ctx.ev('agent', 'nami', 'memory_story_drafted', 'memory_prompt', mp.id, `Story drafted from ${ctx.s.recipient.addressAs}'s own words — waiting for her OK before sending`);
+  ctx.ev('agent', 'nami', 'memory_story_drafted', 'memory_prompt', mp.id, `Story drafted from ${ctx.s.recipient.addressAs}'s own words, waiting for her OK before sending`);
   ctx.reply = { ok: true, status: 'needs_confirmation', sayHint: p.readback, data: { pendingActionId: p.id } };
 }
 
