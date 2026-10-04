@@ -14,13 +14,16 @@
 
 ## The problem
 
-- **About 1 in 4 Indian elders have no child at home**: 5.7% live alone and 20.3% live only with a spouse or others (LASI Wave 1).
+- **India's 60+ population grows from 149 million (2022) to 347 million by 2050** (UNFPA India Ageing Report 2023).
+- **About 1 in 4 Indian elders have no child at home**: 5.7% live alone and 20.3% live only with a spouse or others (LASI Wave 1). 36% of older parents have at least one child who migrated (LASI analysis, n = 19,401).
 - **Depression is 8.3% when measured but 0.8% when diagnosed**, so most of the need is invisible (LASI).
-- **48%** have a limitation in instrumental daily tasks such as managing medicines and appointments (LASI).
+- **48%** have difficulty with at least one instrumental daily task, a list that explicitly includes *making phone calls* and *taking medicines* (LASI).
+- **41%** of elders on long-term medicines take them poorly, and forgetting is the top reason (Cureus 2026, Gujarat, n = 380).
+- Follow-up works when someone does it: missed hypertension visits fell from 66% to 22% with health-worker follow-up (BMJ Open Quality 2025, all ages).
 - **Only 41%** own a smartphone, and 13% use the internet (HelpAge India 2025, urban, n = 5,798).
 - Today, when Mummy doesn't pick up, the family's "system" is calling a neighbour.
 
-Our own interviews and survey results are in [`research/`](research/). Full sources: [`research/connection-research.md`](research/connection-research.md).
+Every number above is verified against its source, with the exact quote, year and sample size, in [`research/evidence-2026.md`](research/evidence-2026.md). Apps for Hindi check-ins and reminders already exist; what nobody does is the **follow-through**: phoning the clinic for her, and an escalation that only closes when a person accepts it.
 
 ## What Nami does
 
@@ -47,38 +50,46 @@ Our own interviews and survey results are in [`research/`](research/). Full sour
 ## Architecture
 
 ```
-Browser ──WebRTC──► Realtime voice model (gpt-realtime-2.1) — Nami's voice & tool calls
-   │  tool calls (zod-validated)                 ▲ short-lived key from /api/voice/session
+Browser ── mic ──► Deepgram Nova-3 (Hindi + English mixed; 60 s token from /api/stt/token)
+   │  her words ─► /api/safety: phrase net, then the Jev crisis classifier ─► help case if needed
+   │  her words ─► Nami (text agent, 13 zod-validated tools) ─► /api/tts (Fish Audio) ─► her voice + lip-sync
+   │               (OpenAI realtime voice is used instead when its key is set)
    ▼
 Next.js API ──► Workflow engine (pure TS state machines; the ONLY writer of care state)
    │                 │  transactional outbox (idempotency keys)
    │                 ▼
-   │           Worker ──► Caller agent (Claude) ⇄ Clinic: AI simulator (judges) | real phone (Twilio)
-   │                          └► Extractor (Claude, quoted facts) ─► Verifier (deterministic) ─► Engine
+   │           Worker ──► Caller agent ⇄ Clinic: AI simulator (judges) | real phone (Twilio)
+   │                          └► Extractor (quoted facts) ─► Verifier (deterministic) ─► Engine
    │           Worker ──► Family alert: caregiver link / QR, plus a Twilio call for allow-listed numbers
    ▼
 Postgres (household document locked FOR UPDATE per command; events; outbox; call transcripts)
 ```
 
+The text agents run on any OpenAI-compatible model or on Anthropic (`LLM_PROVIDER`); the public demo uses Gemini Flash-Lite, rotating across keys and failing over on rate limits or hung requests, with a scripted fallback so a booking never breaks.
+
 | Component | Where |
 |---|---|
 | Engine (reminders, check-in/help ladder, appointments, pending approvals) | [`lib/engine/engine.ts`](lib/engine/engine.ts) |
-| Verifiers | [`lib/verify/`](lib/verify) |
+| Verifiers (slot, consent, disclosure, crisis phrases, crisis classifier decision) | [`lib/verify/`](lib/verify) |
 | Agents and prompts | [`lib/agents/`](lib/agents); the source of truth is [`docs/AGENTS.md`](docs/AGENTS.md) |
 | Calls (sim runner, Twilio Say/Gather loop, outbox dispatcher, restart watchdog) | [`lib/calls/runtime.ts`](lib/calls/runtime.ts) |
-| Mascot (hand-built layered SVG rig, 14 poses, lip-sync to her own voice) | [`components/nami/`](components/nami) |
+| Voice loop (Deepgram listening, Fish speaking, browser fallbacks) | [`lib/client/cascade.ts`](lib/client/cascade.ts) |
+| Nami: painted to match the concept art; 30 Wan 2.2 motion clips (sit, stand, walk, wave, call, sleep…) played as stacked-alpha video through WebGL | [`components/nami/`](components/nami), pipeline in [`design/nami-art/`](design/nami-art) |
 
 ## Reliability and evaluation
 
 | Suite | What | Result |
 |---|---|---|
-| `pnpm test` | 28 engine and verifier tests: the 15 required acceptance checks (duplicate acks, restart recovery, voicemail ≠ acceptance, duplicate webhooks, user responds mid-escalation, nobody accepts → unresolved…) plus a 3-day randomised simulation with invariants | **28/28** |
-| `pnpm eval:intents` | 60 utterances (20 English, 20 Hindi, 20 Hinglish), including safety cases (dose questions, crisis words, an unapproved hospital) → does Nami pick the right tool? | *(run with keys)* |
-| `pnpm eval:calls` | Simulated clinic calls across 5 receptionist behaviours → **false confirmations** and **disclosure violations** | scripted: 0 / 0 *(LLM run pending)* |
+| `pnpm eval:engine` | 28 engine and verifier tests: the 15 required acceptance checks (duplicate acks, restart recovery, voicemail ≠ acceptance, duplicate webhooks, user responds mid-escalation, nobody accepts → unresolved…) plus a 3-day randomised simulation with invariants | **28/28** |
+| `pnpm eval:calls` | 30 simulated clinic calls, 6 per receptionist behaviour, with the live caller, clinic simulator and extractor | **0 false confirmations, 0 disclosure violations**; the right slot in 18/18 calls that had one; nothing booked in all 12 that didn't. When a clinic demanded her mobile number and date of birth, Nami refused and ended the call. |
+| `pnpm eval:intents` | 60 utterances (20 English, 20 Hindi, 20 Hinglish), including safety cases (dose questions, crisis words, an unapproved hospital): does Nami pick the right tool first? | **54/60** on Gemini Flash-Lite (en 17, hi 19, Hinglish 18; safety 10/12). The two safety misses are crisis lines answered kindly without the tool call; both are caught by the phrase net, which opens the help case regardless. |
+
+Numbers are written by the eval scripts and published to `/console` from those files; nobody types them.
 
 ## Responsible design
 
 - Nami says she is an AI.
+- Two crisis layers that don't depend on the chat model: a deterministic phrase net (English, Hindi, Hinglish), then a typed classifier (TypeSafe Jev, ~0.4 s) that catches paraphrases like "kya fayda hai ab jeene ka" and ignores "the medicine fell". Either one opens a help case with 112 and Tele-MANAS 14416 on screen.
 - There is no diagnosis, no dosing advice and no health score.
 - Every consequential action is two-phase (propose → confirm), and confirmation is checked against the user's own words.
 - The caregiver link is scoped to one contact and expires in 48 h. Contacts see only what Meera agreed to share; transcripts are never shared.
@@ -96,7 +107,7 @@ pnpm worker       # engine ticks + call dispatcher
 pnpm test         # engine acceptance tests
 ```
 
-**Deploy** (VM): `cp .env.example .env`, fill it in, then `docker compose up -d --build`. Caddy gives you HTTPS automatically.
+**Deploy** (VM): `scripts/deploy.sh user@host raynet.in` syncs the code, writes the VM's `.env` from your local keys (secrets generated on the VM), runs `docker compose up -d --build` behind Caddy (automatic HTTPS) and waits for the site to answer.
 
 Without API keys the app still runs. The simulated clinic switches to a scripted dialogue (labelled), and every action works through the buttons.
 
