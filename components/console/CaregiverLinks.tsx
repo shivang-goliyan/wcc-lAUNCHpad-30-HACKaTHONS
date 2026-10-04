@@ -13,7 +13,7 @@ export function CaregiverLinks({ contacts }: { contacts: ConsoleContact[] }) {
           <ContactLink key={c.id} c={c} />
         ))}
       </ul>
-      <p className="mt-3 text-[13px] leading-snug text-ink-600">Each link is signed, scoped to one person and one household, and expires after 24 hours. Scan with your phone to become the caregiver.</p>
+      <p className="mt-3 text-[13px] leading-snug text-ink-600">Each link is signed, scoped to one person and one household, and expires after 48 hours. Scan with your phone to become the caregiver.</p>
     </div>
   );
 }

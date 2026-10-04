@@ -14,7 +14,7 @@ export function InvalidLink() {
         </span>
         <h1 className="mt-4 font-display text-[28px] font-semibold leading-tight text-teal-900">This link is invalid or has expired</h1>
         <p className="mt-3 text-[17px] leading-relaxed text-ink-600">
-          Caregiver links are private to one person and last 24 hours. Ask for a fresh link, or scan the QR code on the Nami screen again.
+          Caregiver links are private to one person and last 48 hours. Ask for a fresh link, or scan the QR code on the Nami screen again.
         </p>
         <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-ivory-50 px-4 py-3 text-[15px] text-ink-600">
           <QrCode className="size-5 text-teal-700" aria-hidden />
