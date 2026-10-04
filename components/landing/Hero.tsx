@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Birds, NearWater, Rock } from './LakeScene';
-import { HeroBubble } from './HeroBubble';
+import { HeroBubble } from './HeroLife';
 import { NamiSlot } from './NamiSlot';
 import { ScrollLink } from './ScrollLink';
 import { BTN_PRIMARY, BTN_SECONDARY } from './ui';

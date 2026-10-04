@@ -14,8 +14,8 @@ import type { PoseName } from '@/lib/nami/poses';
  *
  * `path` slots are wide strips she travels across: she swims on a water divider,
  * or walks when `walk` is set (and stands still whenever the visitor stops scrolling).
- * The `hero` slot always server-renders a static Nami (hidden once roaming
- * starts) so the first paint already has her on the rock.
+ * There is only ever one Nami on screen: the roaming one. Slots stay empty
+ * unless motion is reduced.
  */
 export function NamiSlot({
   id,
@@ -37,7 +37,7 @@ export function NamiSlot({
   className?: string;
 }) {
   const reduce = useReducedMotionSafe();
-  const showStatic = hero || reduce;
+  const showStatic = reduce;
   return (
     <div
       data-nami-slot={id}
@@ -55,7 +55,7 @@ export function NamiSlot({
             <NamiImage pose={walk ? 'walk' : 'swim'} reducedMotion className={clsx('h-full w-full', !walk && 'lp-swim-mask')} />
           </div>
         ) : (
-          <NamiImage pose={pose} reducedMotion className={clsx('h-full w-full', hero && 'lp-static-hero')} />
+          <NamiImage pose={pose} reducedMotion className="h-full w-full" />
         )
       ) : null}
     </div>

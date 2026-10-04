@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
-import { HeroBubble } from './HeroBubble';
+import { CheerLink, DayNote, HeroBubble } from './HeroLife';
+import { HeroAmbient } from './HeroAmbient';
 import { NamiSlot } from './NamiSlot';
 import { ScrollLink } from './ScrollLink';
 
@@ -11,16 +12,19 @@ export function ScrapHero() {
   return (
     <section id="top" aria-labelledby="hero-title" className="sb-paper relative isolate overflow-hidden">
       {/* painted desk: letter, photo prints, chai, jasmine */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/scenes/hero-scrapbook.webp"
-        srcSet="/scenes/hero-scrapbook-sm.webp 960w, /scenes/hero-scrapbook.webp 1920w"
-        sizes="100vw"
-        alt=""
-        aria-hidden
-        fetchPriority="high"
-        className="absolute inset-x-0 bottom-0 -z-10 h-[46%] w-full object-cover object-[75%_30%] lg:top-0 lg:h-full lg:object-[60%_40%]"
-      />
+      {/* on phones only the lower right of the desk shows (chai, jasmine, pen), so the photos never sit behind Nami */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-[46%] overflow-hidden lg:top-0 lg:h-full">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/scenes/hero-scrapbook.webp"
+          srcSet="/scenes/hero-scrapbook-sm.webp 960w, /scenes/hero-scrapbook.webp 1920w"
+          sizes="100vw"
+          alt=""
+          fetchPriority="high"
+          className="h-full w-full origin-bottom-right scale-[1.7] object-cover object-[92%_100%] lg:scale-100 lg:object-center"
+        />
+      </div>
+      <HeroAmbient />
       {/* paper fades the painting under the headline, so text always reads */}
       <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-[46%] bg-[linear-gradient(180deg,#f6efe2_0%,rgba(246,239,226,0)_35%)] lg:hidden" />
 
@@ -59,13 +63,13 @@ export function ScrapHero() {
             with their OK, and when something&rsquo;s wrong, makes sure a real person in the family follows up.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
-            <a
+            <CheerLink
               href="/try"
               className="group inline-flex min-h-14 items-center gap-2 rounded-full bg-cocoa-500 px-7 text-[17px] font-semibold text-ivory-50 shadow-[0_12px_28px_rgba(140,80,50,0.28)] transition hover:-translate-y-0.5 hover:bg-[#7a4a32] active:translate-y-0"
             >
               Try the demo as Meera
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
-            </a>
+            </CheerLink>
             <ScrollLink to="day" className="font-hand text-[19px] text-teal-900 underline decoration-cocoa-300 decoration-2 underline-offset-4 hover:decoration-cocoa-500">
               or see a day with Nami ↓
             </ScrollLink>
@@ -73,30 +77,25 @@ export function ScrapHero() {
           <p className="mt-5 text-[13px] text-ink-600/90">No sign-up. The clinic in the demo is simulated, and labelled that way.</p>
         </div>
 
-        {/* the notes Nami keeps, and Nami herself */}
-        <div className="relative min-h-[420px] lg:min-h-[520px]">
-          <div className="sb-note sb-yellow sb-tape absolute top-2 left-[2%] hidden w-[200px] rounded-sm p-4 sm:left-[6%] sm:block" style={{ ['--tilt' as string]: '-4deg' }}>
+        {/* the notes Nami keeps, and Nami herself, on the open page (never over the photos) */}
+        <div className="relative min-h-[440px] lg:min-h-[540px]">
+          <div className="sb-note sb-yellow sb-tape sb-sway absolute bottom-[-1%] left-[1%] hidden w-[190px] rounded-sm p-4 sm:block" style={{ ['--tilt' as string]: '-4deg', ['--sway' as string]: '7s' }}>
             <p className="font-hand text-[19px] leading-snug text-ink-900">
               Ma, call me after your BP tablet.
-              <br />— Arjun ♥
+              <br />
+              Arjun ♥
             </p>
           </div>
-          <div className="sb-note sb-pink absolute right-[2%] bottom-[6%] w-[190px] rounded-sm p-4 sm:right-[4%]" style={{ ['--tilt' as string]: '3deg' }}>
+          <div className="sb-note sb-tape sb-sway absolute top-[30%] left-0 hidden w-[232px] rounded-sm p-4 sm:block" style={{ ['--tilt' as string]: '-2deg', ['--tape' as string]: '-4deg', ['--sway' as string]: '9s' }}>
+            <DayNote />
+          </div>
+          <div className="sb-note sb-pink sb-sway absolute bottom-[1%] left-[2%] w-[176px] rounded-sm p-4 sm:left-[27%] sm:bottom-[-4%]" style={{ ['--tilt' as string]: '3deg', ['--sway' as string]: '8s' }}>
             <p lang="hi" className="font-hand text-[20px] leading-snug text-ink-900">
               अपना ख्याल रखना, माँ।
             </p>
-            <p className="font-hand mt-1 text-[14px] text-ink-600">(take care of yourself, Ma) — Priya</p>
+            <p className="font-hand mt-1 text-[14px] text-ink-600">(take care of yourself, Ma) Priya</p>
           </div>
-          <div className="sb-note sb-tape absolute bottom-[10%] left-0 hidden w-[230px] rounded-sm p-4 sm:block" style={{ ['--tilt' as string]: '-2deg', ['--tape' as string]: '-4deg' }}>
-            <p className="font-hand text-[16px] font-bold text-teal-900">Meera ji&rsquo;s day</p>
-            <ul className="font-hand mt-1 space-y-0.5 text-[17px] text-ink-900">
-              <li>☐ BP tablet · 9:00</li>
-              <li>☐ water · 11:30</li>
-              <li>☐ Dr. Mehta · Tue 9:30</li>
-              <li>☐ evening walk · 5:30</li>
-            </ul>
-          </div>
-          <div className="absolute top-[14%] right-[6%] w-[min(62%,330px)]">
+          <div className="absolute right-0 bottom-[2%] w-[min(52%,280px)]">
             <HeroBubble />
             <NamiSlot id="hero" pose="greeting" hero className="relative z-10 aspect-square w-full" />
           </div>

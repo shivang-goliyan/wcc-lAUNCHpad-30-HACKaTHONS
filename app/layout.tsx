@@ -10,7 +10,7 @@ const devaDisplay = Tiro_Devanagari_Hindi({ variable: '--font-deva-display', sub
 const hand = Kalam({ variable: '--font-hand', subsets: ['latin', 'devanagari'], weight: ['400', '700'] });
 
 export const metadata: Metadata = {
-  title: 'Raynet — Nami, a gentle companion who gets things done',
+  title: 'Raynet · Nami keeps them company',
   description: 'Nami is an AI otter companion for older adults living apart from family. She talks in Hindi or English, phones the clinic with approval, and makes sure a real person follows up.',
 };
 

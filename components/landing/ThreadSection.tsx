@@ -105,7 +105,7 @@ export function ThreadSection() {
                   {m.kind === 'done' && (
                     <div className="ml-14 rounded-md bg-teal-900 p-4 text-ivory-50">
                       <p className="text-[15px]">
-                        <span className="font-semibold">Clinic:</span> “Haan, confirm ho gaya — Tuesday, 6 October, subah 9:30.”
+                        <span className="font-semibold">Clinic:</span> “Haan, confirm ho gaya. Tuesday, 6 October, subah 9:30.”
                       </p>
                       <p className="mt-2 text-[13.5px] text-sea-200">
                         Marked confirmed only now, on the clinic’s own words. Reminders added for Monday evening and Tuesday 8:30.

@@ -66,8 +66,6 @@
 
 /* ---------- Nami layer ---------- */
 
-/* The server-rendered hero Nami hides once the roaming layer has taken over. */
-html[data-nami-roam="on"] .lp-static-hero { visibility: hidden; }
 
 /* Swim pose: feather the edges of her water patch so it melts into dividers. */
 .lp-swim-mask {
@@ -203,3 +201,34 @@ html[data-nami-roam="on"] .lp-static-hero { visibility: hidden; }
 [data-seen='1'] .sb-thread { animation: sb-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 .sb-thread { stroke-dasharray: var(--len, 1200); stroke-dashoffset: var(--len, 1200); }
 @media (prefers-reduced-motion: reduce) { .sb-thread { stroke-dashoffset: 0; animation: none !important; } .sb-note:hover { transform: rotate(var(--tilt, -1.2deg)); } }
+
+/* ---------- small living things ---------- */
+
+/* steam rising off the chai */
+@keyframes hz-steam {
+  0% { opacity: 0; transform: translateY(30px) scaleY(0.8); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-70px) scaleY(1.15); }
+}
+.hz-steam { transform-box: fill-box; transform-origin: 50% 100%; animation: hz-steam 6.3s ease-out infinite; }
+
+/* jasmine petals drifting down the desk */
+@keyframes hz-fall {
+  0% { transform: translate(0, -40px) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate(-260px, 1120px) rotate(320deg); opacity: 0; }
+}
+@keyframes hz-sway { 0%, 100% { transform: translateX(-18px) rotate(-20deg); } 50% { transform: translateX(18px) rotate(25deg); } }
+.hz-fall { transform-box: view-box; animation: hz-fall linear infinite; }
+.hz-sway { transform-box: fill-box; transform-origin: center; animation: hz-sway ease-in-out infinite; }
+
+/* notes breathe a little, as if there's a fan on */
+@keyframes sb-sway { 0%, 100% { rotate: -0.6deg; } 50% { rotate: 0.7deg; } }
+.sb-sway { animation: sb-sway var(--sway, 8s) ease-in-out infinite; }
+.sb-sway:hover { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hz-steam, .hz-fall, .hz-sway, .sb-sway { animation: none; }
+  .hz-fall { opacity: 0; }
+}

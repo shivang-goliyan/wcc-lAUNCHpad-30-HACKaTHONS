@@ -18,7 +18,10 @@ import { useReducedMotionSafe } from './useReducedMotionSafe';
  *   same lane) she dives instead: fades out mid-travel and resurfaces at the
  *   next slot.
  * - Fast scrolling switches her to the swim pose.
- * - Hero: waves once, then her eyes follow the cursor.
+ * - Hero: waves once, then her eyes follow the cursor. Hovering the main
+ *   button makes her cheer.
+ * - Left alone for a few seconds she does small things on her own (waves,
+ *   a heart, a little cheer), always through real clips via idle.
  * - Reduced motion: renders nothing; NamiSlot shows static poses instead.
  * - Tab hidden: NamiImage pauses its own loop; we drop pointer tracking.
  * - Always `pointer-events: none` and `aria-hidden`.
@@ -38,9 +41,9 @@ const BASE = 200; // px size of the rendered Nami box before scaling
 const POKES = [
   'Hehe! That tickles.',
   'Hi! I speak Hindi and English.',
-  'I never give medical advice — I get you to a real doctor.',
+  'No medical advice from me. I get you to a real doctor.',
   'I always say I’m an AI. No pretending.',
-  'Psst — try the demo. I’ll book Dr. Mehta for you.',
+  'Try the demo. I’ll book Dr. Mehta for you.',
 ];
 const DESKTOP_MIN = 1280; // matches Tailwind `xl`, where the lanes exist
 const FAST = 1900; // px/s → swim
@@ -181,7 +184,8 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
     // Dive: sink and fade out while pinned to the old slot, resurface pinned to the new one.
     // She never moves across content while visible.
     const q = t < 0.5 ? qa : qb;
-    const vis = smooth(0.25, 0.9, Math.abs(t - 0.5) * 2);
+    // short and decisive, so she is never a half-transparent ghost over text for long
+    const vis = smooth(0.55, 0.95, Math.abs(t - 0.5) * 2);
     const sz = q.size * (0.9 + 0.1 * vis);
     return {
       x: q.x + (q.size - sz) / 2,
@@ -237,6 +241,10 @@ export function RoamingNami() {
     scrolledAt: 0,
     pokeText: '',
     pokes: 0,
+    act: 'greeting' as PoseName,
+    actUntil: 0,
+    nextActAt: 0,
+    cheerUntil: 0,
   });
 
   const apply = useCallback(() => {
@@ -257,6 +265,9 @@ export function RoamingNami() {
     if (now < r.fastUntil && !f.heroHold && p !== 'walk' && p !== 'walk-left') p = 'swim';
     // no treadmill: when the page stops moving, so does she
     if ((p === 'walk' || p === 'walk-left') && now - r.scrolledAt > 260) p = 'stand';
+    const still = f.opacity > 0.9 && p !== 'swim' && p !== 'walk' && p !== 'walk-left' && p !== 'quiet';
+    if (still && now < r.actUntil) p = r.act;
+    if (f.heroHold && now < r.cheerUntil) p = 'celebrate';
     const poked = now < r.pokeUntil && f.opacity > 0.9;
     if (poked && p !== 'swim') p = 'celebrate';
     if (p !== r.pose) {
@@ -314,21 +325,13 @@ export function RoamingNami() {
     };
   }, [reduce, apply]);
 
-  // hide the server-rendered hero Nami once we are positioned
-  useEffect(() => {
-    if (!ready || reduce) return;
-    document.documentElement.dataset.namiRoam = 'on';
-    return () => {
-      delete document.documentElement.dataset.namiRoam;
-    };
-  }, [ready, reduce]);
-
   // scroll → position; a settle check afterwards lets a walking Nami stop and stand
   useEffect(() => {
     if (reduce) return;
     let settle: ReturnType<typeof setTimeout> | undefined;
     const unsub = scrollY.on('change', () => {
       st.current.scrolledAt = performance.now();
+      st.current.actUntil = 0;
       apply();
       clearTimeout(settle);
       settle = setTimeout(apply, 300);
@@ -376,6 +379,39 @@ export function RoamingNami() {
       window.removeEventListener('pointermove', onMove);
       cancelAnimationFrame(raf);
     };
+  }, [apply, reduce]);
+
+  // little things she does on her own when nobody is scrolling
+  useEffect(() => {
+    if (reduce) return;
+    const ACTS: PoseName[] = ['greeting', 'heart', 'celebrate', 'thinking', 'heart'];
+    let n = 0;
+    st.current.nextActAt = performance.now() + 6000;
+    const id = setInterval(() => {
+      const r = st.current;
+      const now = performance.now();
+      if (document.hidden || now < r.nextActAt || now < r.actUntil || now - r.scrolledAt < 3500) return;
+      const f = r.frame;
+      if (!f || f.opacity < 0.95 || f.say) return;
+      r.act = ACTS[n++ % ACTS.length];
+      r.actUntil = now + 3000;
+      r.nextActAt = now + 9000 + Math.random() * 6000;
+      apply();
+      setTimeout(apply, 3050);
+    }, 700);
+    return () => clearInterval(id);
+  }, [apply, reduce]);
+
+  // the main button makes her cheer
+  useEffect(() => {
+    if (reduce) return;
+    const onCheer = () => {
+      st.current.cheerUntil = performance.now() + 2400;
+      apply();
+      setTimeout(apply, 2450);
+    };
+    window.addEventListener('nami:cheer', onCheer);
+    return () => window.removeEventListener('nami:cheer', onCheer);
   }, [apply, reduce]);
 
   const poke = () => {
@@ -431,7 +467,15 @@ export function RoamingNami() {
     >
       {/* only her body is clickable, the box corners stay click-through */}
       <span onClick={poke} className="pointer-events-auto absolute inset-[18%_22%_8%_22%] cursor-pointer rounded-full" />
-      <NamiImage pose={pose} lookAt={look} mouth={mouth} className={clsx('h-full w-full', pose === 'swim' && 'lp-swim-mask')} />
+      <motion.div
+        className="h-full w-full"
+        style={{ transformOrigin: '50% 90%' }}
+        initial={{ opacity: 0, scale: 0.86, y: 18 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 170, damping: 16, delay: 0.15 }}
+      >
+        <NamiImage pose={pose} lookAt={look} mouth={mouth} className={clsx('h-full w-full', pose === 'swim' && 'lp-swim-mask')} />
+      </motion.div>
     </motion.div>
     </>
   );
