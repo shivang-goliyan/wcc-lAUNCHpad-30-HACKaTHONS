@@ -7,7 +7,11 @@ import { z } from 'zod';
 
 const OPENAI_COMPAT = process.env.LLM_PROVIDER === 'openai';
 const COMPAT_BASE = (process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
-const COMPAT_KEY = process.env.LLM_API_KEY || process.env.OPENROUTER_API_KEY || '';
+// several keys are tried in turn when one is rate-limited (free tiers are per account)
+const COMPAT_KEYS = [process.env.LLM_API_KEY, process.env.OPENROUTER_API_KEY, process.env.OPENROUTER_API_KEY_2].filter((k): k is string => !!k);
+const COMPAT_KEY = COMPAT_KEYS[0] ?? '';
+// OpenRouter only: other models to try when the first one is busy
+const FALLBACK_MODELS = (process.env.LLM_FALLBACK_MODELS || '').split(',').map((m) => m.trim()).filter(Boolean);
 
 // compat providers name models differently, so there is no default there: set LLM_MODEL
 export const LLM_MODEL = process.env.LLM_MODEL || (OPENAI_COMPAT ? '' : 'claude-opus-5-5');
@@ -59,12 +63,19 @@ export type CompatToolCall = { id: string; type: 'function'; function: { name: s
 export type CompatTool = { type: 'function'; function: { name: string; description: string; parameters: Record<string, unknown> } };
 
 export async function compatChat(body: { messages: CompatMessage[]; tools?: CompatTool[]; response_format?: unknown; max_tokens?: number }) {
-  const r = await fetch(`${COMPAT_BASE}/chat/completions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${COMPAT_KEY}` },
-    body: JSON.stringify({ model: LLM_MODEL, temperature: 0.3, ...body }),
-    signal: AbortSignal.timeout(60_000),
-  });
+  const routed = COMPAT_BASE.includes('openrouter.ai') && FALLBACK_MODELS.length ? { models: [LLM_MODEL, ...FALLBACK_MODELS] } : {};
+  let r: Response | null = null;
+  for (const key of COMPAT_KEYS) {
+    r = await fetch(`${COMPAT_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model: LLM_MODEL, temperature: 0.3, ...routed, ...body }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    // out of requests on this key: try the next one
+    if (r.status !== 429 && r.status !== 402) break;
+  }
+  if (!r) throw new Error('No LLM key configured');
   if (!r.ok) throw new Error(`LLM provider said ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const data = (await r.json()) as {
     choices?: { message: { content: string | null; tool_calls?: CompatToolCall[] }; finish_reason: string }[];
