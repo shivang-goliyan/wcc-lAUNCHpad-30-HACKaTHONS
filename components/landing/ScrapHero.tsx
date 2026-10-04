@@ -19,10 +19,10 @@ export function ScrapHero() {
         alt=""
         aria-hidden
         fetchPriority="high"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-[60%_40%]"
+        className="absolute inset-x-0 bottom-0 -z-10 h-[46%] w-full object-cover object-[75%_30%] lg:top-0 lg:h-full lg:object-[60%_40%]"
       />
       {/* paper fades the painting under the headline, so text always reads */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(246,239,226,0.55)_0%,rgba(246,239,226,0.25)_40%,rgba(246,239,226,0)_60%)] lg:bg-none" />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-[46%] bg-[linear-gradient(180deg,#f6efe2_0%,rgba(246,239,226,0)_35%)] lg:hidden" />
 
       <nav aria-label="Main" className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 pt-6 sm:px-8">
         <a href="#top" className="flex items-baseline gap-3 rounded-lg" aria-label="Raynet home">
@@ -75,7 +75,7 @@ export function ScrapHero() {
 
         {/* the notes Nami keeps, and Nami herself */}
         <div className="relative min-h-[420px] lg:min-h-[520px]">
-          <div className="sb-note sb-yellow sb-tape absolute top-2 left-[2%] w-[200px] rounded-sm p-4 sm:left-[6%]" style={{ ['--tilt' as string]: '-4deg' }}>
+          <div className="sb-note sb-yellow sb-tape absolute top-2 left-[2%] hidden w-[200px] rounded-sm p-4 sm:left-[6%] sm:block" style={{ ['--tilt' as string]: '-4deg' }}>
             <p className="font-hand text-[19px] leading-snug text-ink-900">
               Ma, call me after your BP tablet.
               <br />— Arjun ♥
