@@ -42,16 +42,16 @@ export function Problem() {
             </div>
             <dl className="mt-4 grid grid-cols-2 gap-3 text-[14px] text-ink-600">
               <div>
-                <dt className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-teal-900" aria-hidden /> Live alone
+                <dt className="flex items-start gap-1.5">
+                  <span className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full bg-teal-900" aria-hidden /> Live alone
                 </dt>
                 <dd className="mt-0.5 text-xl font-semibold text-ink-900">
                   <CountUp to={5.7} decimals={1} suffix="%" />
                 </dd>
               </div>
               <div>
-                <dt className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-sea-500" aria-hidden /> Spouse or others only
+                <dt className="flex items-start gap-1.5">
+                  <span className="mt-[5px] h-2.5 w-2.5 shrink-0 rounded-full bg-sea-500" aria-hidden /> Spouse or others only
                 </dt>
                 <dd className="mt-0.5 text-xl font-semibold text-ink-900">
                   <CountUp to={20.3} decimals={1} suffix="%" delay={0.2} />

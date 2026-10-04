@@ -101,7 +101,7 @@ export function CaregiverPhone() {
                 <span
                   key={`r${reported}`}
                   className={clsx(
-                    'flex min-h-10 items-center justify-center rounded-xl border text-[12.5px] font-semibold',
+                    'flex min-h-10 items-center justify-center rounded-xl border text-[11.5px] font-semibold whitespace-nowrap sm:text-[12.5px]',
                     reported ? 'lp-press border-ok-600 bg-ok-600 text-white' : 'border-line bg-card text-ink-900',
                   )}
                 >

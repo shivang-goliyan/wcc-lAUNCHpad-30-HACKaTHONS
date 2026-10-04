@@ -180,13 +180,14 @@ export function Jobs() {
             <li key={job.id} className="relative">
               <NamiSlot id={`job-${job.id}`} pose={job.pose} className={`${LANE_LEFT} top-[calc(50%-84px)]`} />
               <InView className="h-full" amount={0.3}>
-                <article className="lp-rise grid gap-6 overflow-hidden rounded-[26px] border border-line/70 bg-card/80 p-6 shadow-[0_8px_30px_rgba(23,61,56,0.06)] backdrop-blur sm:p-8 md:grid-cols-[minmax(0,1fr)_290px] md:items-center md:gap-10">
+                <article className="lp-rise relative grid gap-6 overflow-hidden rounded-[26px] border border-line/70 bg-card/80 p-6 shadow-[0_8px_30px_rgba(23,61,56,0.06)] backdrop-blur sm:p-8 md:grid-cols-[minmax(0,1fr)_290px] md:items-center md:gap-10">
                   <div>
+                    <NamiSlot id={`job-${job.id}-m`} pose={job.pose} className="absolute top-2 right-2 h-[92px] w-[92px] xl:hidden" />
                     <div className="flex items-center gap-3">
                       <span className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-900 text-ivory-50">{job.icon}</span>
                       <span className="font-display text-sm text-ink-600/70 tabular-nums">{job.n}</span>
                     </div>
-                    <h3 className="lp-display mt-4 font-display text-[clamp(1.6rem,2.6vw,2.1rem)] leading-tight font-medium text-teal-900">{job.title}</h3>
+                    <h3 className="lp-display mt-6 pr-16 font-display sm:mt-4 sm:pr-0 text-[clamp(1.6rem,2.6vw,2.1rem)] leading-tight font-medium text-teal-900">{job.title}</h3>
                     <p lang="hi" className="mt-1.5 font-display text-[17px] text-cocoa-500">
                       {job.hi}
                     </p>

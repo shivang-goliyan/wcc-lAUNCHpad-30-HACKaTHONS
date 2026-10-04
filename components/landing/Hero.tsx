@@ -80,25 +80,25 @@ export function Hero() {
       <Nav />
 
       <div className="relative z-10 mx-auto grid w-full max-w-[1280px] flex-1 grid-cols-1 gap-2 px-5 pb-[56px] sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(300px,36%)] lg:gap-6 lg:pb-[50px]">
-        <div className="self-center pt-8 pb-10 lg:pt-0 lg:pb-16">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-900/10 bg-card/70 px-3.5 py-1.5 text-[13px] font-medium text-teal-900 backdrop-blur sm:text-sm">
+        <div className="self-center pt-6 pb-2 sm:pt-8 sm:pb-10 lg:pt-0 lg:pb-16">
+          <p className="mb-5 hidden items-center sm:inline-flex gap-2 rounded-full border border-teal-900/10 bg-card/70 px-3.5 py-1.5 text-[13px] font-medium text-teal-900 backdrop-blur sm:text-sm">
             <span className="h-2 w-2 rounded-full bg-ok-600" aria-hidden />
             An AI companion for parents who live alone
           </p>
           <h1
             id="hero-title"
-            className="lp-display max-w-[13.5em] font-display text-[clamp(2.25rem,5.6vw,4.6rem)] leading-[1.02] font-medium text-teal-900 text-balance"
+            className="lp-display max-w-[13.5em] font-display text-[clamp(2.1rem,5.6vw,4.6rem)] leading-[1.02] font-medium text-teal-900 text-balance"
           >
             Your parent&rsquo;s gentle companion — <em className="font-normal text-teal-700 italic">who actually gets things&nbsp;done.</em>
           </h1>
           <p lang="hi" className="mt-4 font-display text-[clamp(1.2rem,2.2vw,1.7rem)] leading-snug text-cocoa-500">
             आपके माता-पिता की साथी — जो काम भी करवाती है।
           </p>
-          <p className="mt-5 max-w-[34em] text-[17px] leading-relaxed text-ink-600 sm:text-lg">
+          <p className="mt-4 max-w-[34em] text-[16px] leading-relaxed text-ink-600 sm:mt-5 sm:text-lg">
             Nami chats with them in Hindi or English, reminds them, phones the clinic with their OK, and makes sure a real
             person follows up when something&rsquo;s wrong.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap">
             <a href="/try" className={BTN_PRIMARY}>
               Try the live demo as Meera
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
@@ -107,11 +107,11 @@ export function Hero() {
               See how it works
             </ScrollLink>
           </div>
-          <p className="mt-4 text-[13px] text-ink-600/90">No sign-up. The clinic in the demo is simulated, and labelled that way.</p>
+          <p className="mt-4 hidden text-[13px] text-ink-600/90 sm:block">No sign-up. The clinic in the demo is simulated, and labelled that way.</p>
         </div>
 
         {/* Nami's rock. The slot is the exact box she sits in; RoamingNami takes it from here. */}
-        <div className="relative ml-auto w-[min(52vw,230px)] self-end sm:w-[min(40vw,260px)] lg:mr-[2%] lg:w-[min(30vw,400px)]">
+        <div className="relative ml-auto -mt-6 w-[min(50vw,200px)] self-end sm:mt-0 sm:w-[min(40vw,260px)] lg:mr-[2%] lg:w-[min(30vw,400px)]">
           <NamiSlot id="hero" pose="greeting" hero className="relative z-10 mx-auto aspect-square w-[86%]" />
           <Rock className="relative -mt-[19%] w-full" />
         </div>

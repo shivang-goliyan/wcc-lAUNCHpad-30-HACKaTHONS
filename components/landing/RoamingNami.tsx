@@ -152,8 +152,22 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
   const ca = qa.x + qa.size / 2;
   const cb = qb.x + qb.size / 2;
   const solid = a.path || b.path ? desktop || (a.hero && b.path) : desktop && Math.abs(ca - cb) < 48;
-  const opacity = solid ? 1 : smooth(0.2, 0.8, Math.abs(t - 0.5) * 2);
-  const size = lerp(qa.size, qb.size, e) * (solid ? 1 : 0.85 + 0.15 * opacity);
+  if (!solid) {
+    // Dive: sink and fade out while pinned to the old slot, resurface pinned to the new one.
+    // She never moves across content while visible.
+    const q = t < 0.5 ? qa : qb;
+    const vis = smooth(0.25, 0.9, Math.abs(t - 0.5) * 2);
+    const sz = q.size * (0.9 + 0.1 * vis);
+    return {
+      x: q.x + (q.size - sz) / 2,
+      y: q.y + (q.size - sz) + (1 - vis) * 14,
+      size: sz,
+      opacity: vis,
+      pose: t < 0.5 ? (a.path ? 'swim' : a.pose) : b.path ? 'swim' : b.pose,
+      heroHold: false,
+    };
+  }
+  const size = lerp(qa.size, qb.size, e);
   const cx = lerp(ca, cb, e);
   const by = lerp(qa.y + qa.size, qb.y + qb.size, e); // interpolate the baseline, keep feet steady
   const pa: PoseName = a.path ? 'swim' : a.pose;
@@ -161,7 +175,7 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
   let pose: PoseName = t < 0.5 ? pa : pb;
   // gliding into or out of the water: swim for the whole move, settle at the ends
   if (solid && (a.path || b.path)) pose = t < 0.12 ? pa : t > 0.88 ? pb : 'swim';
-  return { x: cx - size / 2, y: by - size, size, opacity, pose, heroHold: false };
+  return { x: cx - size / 2, y: by - size, size, opacity: 1, pose, heroHold: false };
 }
 
 export function RoamingNami() {
