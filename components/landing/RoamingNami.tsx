@@ -17,7 +17,6 @@ import { useReducedMotionSafe } from './useReducedMotionSafe';
  *   crosses text. Elsewhere (mobile/tablet, or two slots that are not in the
  *   same lane) she dives instead: fades out mid-travel and resurfaces at the
  *   next slot.
- * - Fast scrolling switches her to the swim pose.
  * - Hero: waves once, then her eyes follow the cursor. Hovering the main
  *   button makes her cheer.
  * - Left alone for a few seconds she does small things on her own (waves,
@@ -28,7 +27,7 @@ import { useReducedMotionSafe } from './useReducedMotionSafe';
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useMotionValue, useScroll, useVelocity } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useScroll } from 'motion/react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { clsx } from 'clsx';
 import { NamiImage } from '@/components/nami/NamiImage';
@@ -46,8 +45,6 @@ const POKES = [
   'Try the demo. I’ll book Dr. Mehta for you.',
 ];
 const DESKTOP_MIN = 1280; // matches Tailwind `xl`, where the lanes exist
-const FAST = 1900; // px/s → swim
-const SLOW = 900;
 
 type Slot = {
   id: string;
@@ -210,7 +207,6 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
 export function RoamingNami() {
   const reduce = useReducedMotionSafe();
   const { scrollY } = useScroll();
-  const velocity = useVelocity(scrollY);
 
   const x = useMotionValue(-1000);
   const y = useMotionValue(-1000);
@@ -230,7 +226,6 @@ export function RoamingNami() {
   const st = useRef({
     slots: [] as Slot[],
     desktop: true,
-    fastUntil: 0,
     greetUntil: 0,
     frame: null as Frame | null,
     pose: 'greeting' as PoseName,
@@ -262,7 +257,6 @@ export function RoamingNami() {
     const now = performance.now();
     let p = f.pose;
     if (f.heroHold) p = now < r.greetUntil ? 'greeting' : 'idle';
-    if (now < r.fastUntil && !f.heroHold && p !== 'walk' && p !== 'walk-left') p = 'swim';
     // no treadmill: when the page stops moving, so does she
     if ((p === 'walk' || p === 'walk-left') && now - r.scrolledAt > 260) p = 'stand';
     const still = f.opacity > 0.9 && p !== 'swim' && p !== 'walk' && p !== 'walk-left' && p !== 'quiet';
@@ -331,7 +325,6 @@ export function RoamingNami() {
     let settle: ReturnType<typeof setTimeout> | undefined;
     const unsub = scrollY.on('change', () => {
       st.current.scrolledAt = performance.now();
-      st.current.actUntil = 0;
       apply();
       clearTimeout(settle);
       settle = setTimeout(apply, 300);
@@ -341,25 +334,6 @@ export function RoamingNami() {
       clearTimeout(settle);
     };
   }, [scrollY, apply, reduce]);
-
-  // fast scroll → swim, with a short tail so it doesn't flicker
-  useEffect(() => {
-    if (reduce) return;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const unsub = velocity.on('change', (v) => {
-      const r = st.current;
-      const fast = Math.abs(v) > FAST || (performance.now() < r.fastUntil && Math.abs(v) > SLOW);
-      if (!fast) return;
-      r.fastUntil = performance.now() + 380;
-      clearTimeout(timer);
-      timer = setTimeout(apply, 400);
-      apply();
-    });
-    return () => {
-      unsub();
-      clearTimeout(timer);
-    };
-  }, [velocity, apply, reduce]);
 
   // cursor tracking (hero only); skipped while the tab is hidden
   useEffect(() => {
