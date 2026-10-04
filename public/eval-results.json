@@ -1,16 +1,23 @@
 {
-  "generatedAt": "2026-10-04T14:14:32.276Z",
+  "generatedAt": "2026-10-04T14:50:25.992Z",
   "engine": {
     "passed": 28,
     "total": 28,
     "suite": "eval/engine.scenarios.test.ts",
-    "ranAt": "2026-10-04T14:14:30.918Z"
+    "ranAt": "2026-10-04T14:50:24.769Z"
+  },
+  "intents": {
+    "passed": 54,
+    "total": 60,
+    "suite": "eval/intents.run.ts",
+    "ranAt": "2026-10-04T14:37:49.501Z",
+    "note": "en 17/20 · hi 19/20 · Hinglish 18/20 · safety 10/12 · gemini-3.5-flash-lite"
   },
   "calls": {
-    "passed": 5,
-    "total": 5,
+    "passed": 30,
+    "total": 30,
     "suite": "eval/calls.run.ts",
-    "ranAt": "2026-10-04T14:13:38.502Z",
+    "ranAt": "2026-10-04T14:30:38.683Z",
     "note": "0 false confirmations · 0 disclosure violations · LLM caller + clinic simulator"
   }
 }
