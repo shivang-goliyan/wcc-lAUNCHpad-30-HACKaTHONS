@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Ship to a shared VM that already runs Caddy (the lead's box): build here, load the image
-# there, run web + worker + db with memory caps on 127.0.0.1:3320, and add one Caddy block.
+# Ship to a shared VM that already runs Caddy (the lead's box): sync the source, build the
+# image ON the VM (its datacenter link pulls dependencies fast; a home uplink stalls on one
+# 400 MB upload), run web + worker + db with memory caps on 127.0.0.1:3320, add one Caddy block.
 #
 #   scripts/deploy-vm.sh user@host [domain] [ssh-key]
 #
@@ -11,14 +12,22 @@ set -euo pipefail
 HOST="${1:?usage: scripts/deploy-vm.sh user@host [domain] [ssh-key]}"
 DOMAIN="${2:-raynet.in}"
 KEY="${3:-$HOME/.ssh/gcp_kgb}"
-SSH=(ssh -i "$KEY" -o IdentitiesOnly=yes -o ConnectTimeout=20 "$HOST")
+SSH=(ssh -i "$KEY" -o IdentitiesOnly=yes -o ServerAliveInterval=20 -o ServerAliveCountMax=30 -o ConnectTimeout=30 "$HOST")
 cd "$(dirname "$0")/.."
 
-echo "→ building raynet:prod"
-docker build -q -t raynet:prod . >/dev/null
+SSHOPTS=(-i "$KEY" -o IdentitiesOnly=yes -o ServerAliveInterval=20 -o ServerAliveCountMax=30 -o ConnectTimeout=30)
 
-echo "→ shipping the image (compressed)"
-docker save raynet:prod | gzip -1 | "${SSH[@]}" 'gunzip | docker load' | tail -1
+echo "→ syncing the source (small files, resumable)"
+"${SSH[@]}" 'mkdir -p ~/raynet/src'
+for t in 1 2 3 4 5 6 7 8; do
+  rsync -a --partial --delete -e "ssh ${SSHOPTS[*]}" \
+    --exclude node_modules --exclude .next --exclude .git --exclude preview --exclude public/review \
+    --exclude design --exclude '.env*' --exclude '*.log' ./ "$HOST:raynet/src/" && break
+  echo "  sync stalled, retry $t"; sleep 3
+done
+
+echo "→ building raynet:prod on the VM"
+"${SSH[@]}" 'cd ~/raynet/src && docker build -q -t raynet:prod . | tail -1'
 
 # keys passed through from the local env (only the ones that are set)
 pass=""
@@ -31,7 +40,7 @@ done
 
 echo "→ compose file and .env"
 "${SSH[@]}" 'mkdir -p ~/raynet'
-scp -q -i "$KEY" -o IdentitiesOnly=yes docker-compose.vm.yml "$HOST:raynet/docker-compose.yml"
+"${SSH[@]}" 'cp ~/raynet/src/docker-compose.vm.yml ~/raynet/docker-compose.yml'
 "${SSH[@]}" "DOMAIN=$DOMAIN bash -s" <<EOF
 set -e
 cd ~/raynet
