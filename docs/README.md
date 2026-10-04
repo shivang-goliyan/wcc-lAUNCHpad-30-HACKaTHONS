@@ -10,6 +10,7 @@ Read these in this order. If two docs disagree, the earlier one wins, unless `DE
 6. `BUILD-PLAN.md`: hour-by-hour plan, gates, P0 checklist, form answers and survey
 7. `source/`: the original Codex specs (workflow and mascot). They are still authoritative on **care behaviour** wherever our docs are silent.
 8. `../research/`: sourced problem data
+9. `PROGRESS.md`: what has been built so far, what is simulated, and what is still needed
 
 ## Canonical names
 
