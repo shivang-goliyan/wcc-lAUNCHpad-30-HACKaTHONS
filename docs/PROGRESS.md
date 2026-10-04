@@ -24,7 +24,7 @@ This document records what has been built so far, what works, what is simulated,
 | Meera's companion screen `/app` | ✅ Done |
 | Caregiver phone page `/care/[token]` | ✅ Done |
 | Agent console for judges `/console` | ✅ Done |
-| Landing page `/` with Nami roaming | 🟡 **In progress.** Committed as work-in-progress at the lead's request |
+| Landing page `/` with Nami roaming | ✅ Done. Nami travels the page (sits on the rock and waves, swims along the water dividers, points at cards, falls asleep in the footer). There is a looping call replay, the escalation ladder, and a families phone mockup |
 | Eval harness (engine, 60 intents, simulated calls) | ✅ Engine and scripted calls run. Intent and LLM-call evals need an Anthropic key |
 | VM deployment (Docker Compose, Caddy HTTPS, Postgres, worker) | ✅ Files done. The image build couldn't be tested here because the sandbox proxy blocks npm TLS; it needs a first build on the VM |
 | README for judges | ✅ Done (needs the live link and video link added) |
@@ -144,7 +144,10 @@ These are plain code, with no LLM involved.
 - **`/care/[token]`**, the caregiver phone page: the evidence list, I'll check / I can't / I spoke with her / still needs help, notices, shared reminders, appointments, and Memory Corner upload.
 - **`/console`**, for judges: the "LLMs propose, code disposes" hero, a live agent graph, the audit timeline, the call viewer (facts, disclosure check, verifier checks), eval results, and caregiver QR codes.
 - **`/mascot-lab`**: a gallery of every Nami pose with a lip-sync test.
-- **`/`** landing page: work in progress (see §1).
+- **`/`**, the landing page: the hero lake scene, count-up problem stats, four job cards, a "Watch Nami book an appointment" replay with verifier ticks, the honesty ladder, a families phone mockup and a trust strip. Gaps:
+  - The interview quote card is hidden until a real quote is added (`QUOTE` in `components/landing/Problem.tsx`).
+  - The footer GitHub link is a placeholder.
+  - There is no EN/हिं toggle or live "Talk to Nami" button on the landing page yet (the live talk happens in `/app`).
 
 ### 3.7 Tests and evals
 
@@ -179,7 +182,7 @@ These are plain code, with no LLM involved.
 
 ## 5. Known gaps and next steps
 
-1. Finish the landing page (in progress), then review the screenshots.
+1. Landing page: add the real interview quote and the GitHub link, plus an optional EN/हिं toggle and "Talk to Nami" button.
 2. Once keys arrive, run:
    - the Hindi voice bake-off;
    - `pnpm eval:intents` and `pnpm eval:calls` (LLM mode);
