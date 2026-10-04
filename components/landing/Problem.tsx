@@ -28,7 +28,7 @@ export function Problem() {
 
         <InView className="relative mt-24 grid gap-5 md:mt-16 md:grid-cols-3 lg:gap-6" amount={0.2}>
           {/* Nami points at the numbers from the left lane (xl) / peeks over the first card (mobile). */}
-          <NamiSlot id="problem-lane" pose="point-right" className={`${LANE_LEFT} top-[calc(50%-84px)]`} />
+          <NamiSlot id="problem-lane" pose="point-right" say="Most of this stays invisible. That part is my job." className={`${LANE_LEFT} top-[calc(50%-84px)]`} />
 
           <article className={CARD} style={{ ['--d' as string]: '0ms' }}>
             <NamiSlot id="problem-peek" pose="peek" className="absolute right-5 bottom-full h-[132px] w-[132px] xl:hidden" />

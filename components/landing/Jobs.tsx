@@ -13,6 +13,7 @@ type Job = {
   body: string;
   control: string;
   pose: PoseName;
+  say: string;
   icon: ReactNode;
   vignette: ReactNode;
 };
@@ -37,6 +38,7 @@ function Bubble({ from, children, lang }: { from: 'nami' | 'meera'; children: Re
 const JOBS: Job[] = [
   {
     id: 'reminds',
+    say: 'I remind her, and I only write down what she tells me.',
     n: '01',
     title: 'Reminds',
     hi: '“मीरा जी, BP की दवाई का time.”',
@@ -66,6 +68,7 @@ const JOBS: Job[] = [
   },
   {
     id: 'books',
+    say: "I'll phone the clinic — but only after she says yes.",
     n: '02',
     title: 'Books the doctor',
     hi: '“अगले हफ्ते डॉक्टर मेहता से सुबह का अपॉइंटमेंट बुक कर दो।”',
@@ -103,6 +106,7 @@ const JOBS: Job[] = [
   },
   {
     id: 'checks',
+    say: "If she doesn't answer, I follow the plan she agreed to.",
     n: '03',
     title: 'Checks in',
     hi: '“नमस्ते मीरा जी! आज कैसा लग रहा है?”',
@@ -126,6 +130,7 @@ const JOBS: Job[] = [
   },
   {
     id: 'people',
+    say: "When something's wrong, a real person has to say “I've got it.”",
     n: '04',
     title: 'Gets your people',
     hi: '“मदद!” — or one big red button',
@@ -178,7 +183,7 @@ export function Jobs() {
         <ol className="mt-12 space-y-5 sm:mt-14 lg:space-y-6">
           {JOBS.map((job, i) => (
             <li key={job.id} className="relative">
-              <NamiSlot id={`job-${job.id}`} pose={job.pose} className={`${LANE_LEFT} top-[calc(50%-84px)]`} />
+              <NamiSlot id={`job-${job.id}`} pose={job.pose} say={job.say} className={`${LANE_LEFT} top-[calc(50%-84px)]`} />
               <InView className="h-full" amount={0.3}>
                 <article className="lp-rise relative grid gap-6 overflow-hidden rounded-[26px] border border-line/70 bg-card/80 p-6 shadow-[0_8px_30px_rgba(23,61,56,0.06)] backdrop-blur sm:p-8 md:grid-cols-[minmax(0,1fr)_290px] md:items-center md:gap-10">
                   <div>

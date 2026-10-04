@@ -58,7 +58,7 @@ export function Families() {
           </div>
 
           <div className="relative justify-self-start sm:justify-self-center lg:justify-self-end">
-            <NamiSlot id="families-lane" pose="point-left" className={`${LANE_RIGHT} top-[calc(50%-84px)]`} />
+            <NamiSlot id="families-lane" pose="point-left" say="This is what Arjun sees on his phone." className={`${LANE_RIGHT} top-[calc(50%-84px)]`} />
             <NamiSlot id="families-side" pose="point-left" className="absolute bottom-6 left-[calc(100%-4px)] h-[104px] w-[104px] sm:left-[calc(100%+8px)] sm:h-[124px] sm:w-[124px] lg:hidden" />
             <CaregiverPhone />
           </div>

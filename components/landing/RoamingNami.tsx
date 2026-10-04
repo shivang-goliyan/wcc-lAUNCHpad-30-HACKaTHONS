@@ -20,17 +20,28 @@ import { useReducedMotionSafe } from './useReducedMotionSafe';
  * - Fast scrolling switches her to the swim pose.
  * - Hero: waves once, then her eyes follow the cursor.
  * - Reduced motion: renders nothing; NamiSlot shows static poses instead.
- * - Tab hidden: NamiSvg pauses its own loop; we drop pointer tracking.
+ * - Tab hidden: NamiImage pauses its own loop; we drop pointer tracking.
  * - Always `pointer-events: none` and `aria-hidden`.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue, useScroll, useVelocity } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useScroll, useVelocity } from 'motion/react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { clsx } from 'clsx';
-import { NamiSvg } from '@/components/nami/NamiSvg';
+import { NamiImage } from '@/components/nami/NamiImage';
+import { SayBubble } from './SayBubble';
 import type { PoseName } from '@/lib/nami/poses';
 
 const BASE = 200; // px size of the rendered Nami box before scaling
+
+// what she says when someone pokes her
+const POKES = [
+  'Hehe! That tickles.',
+  'Hi! I speak Hindi and English.',
+  'I never give medical advice — I get you to a real doctor.',
+  'I always say I’m an AI. No pretending.',
+  'Psst — try the demo. I’ll book Dr. Mehta for you.',
+];
 const DESKTOP_MIN = 1280; // matches Tailwind `xl`, where the lanes exist
 const FAST = 1900; // px/s → swim
 const SLOW = 900;
@@ -40,6 +51,7 @@ type Slot = {
   pose: PoseName;
   path: boolean;
   hero: boolean;
+  say?: string;
   /** viewport x of the box (fixed for normal slots) */
   x: number;
   /** path slots: start and end x */
@@ -53,7 +65,7 @@ type Slot = {
   h: number;
 };
 
-type Frame = { x: number; y: number; size: number; opacity: number; pose: PoseName; heroHold: boolean };
+type Frame = { x: number; y: number; size: number; opacity: number; pose: PoseName; heroHold: boolean; say?: string };
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -95,6 +107,7 @@ function measure(): { slots: Slot[]; desktop: boolean } {
       pose: (el.dataset.pose as PoseName) ?? 'idle',
       path,
       hero: el.dataset.hero === '1',
+      say: el.dataset.say || undefined,
       x,
       x0: x,
       x1: x,
@@ -143,7 +156,9 @@ function frameAt(slots: Slot[], scroll: number, desktop: boolean): Frame | null 
   const p = a.h > 0 ? (scroll - (a.f - a.h)) / (2 * a.h) : 1;
   if (i === slots.length - 1 || scroll <= holdEnd) {
     const q = pinned(a, scroll, p);
-    return { ...q, opacity: 1, pose: a.path ? 'swim' : a.pose, heroHold: a.hero };
+    // she only talks once she has settled in the middle of the hold
+    const settled = Math.abs(p - 0.5) < 0.42;
+    return { ...q, opacity: 1, pose: a.path ? 'swim' : a.pose, heroHold: a.hero, say: !a.path && settled ? a.say : undefined };
   }
   const b = slots[i + 1];
   const t = clamp((scroll - holdEnd) / (b.f - b.h - holdEnd), 0, 1);
@@ -189,6 +204,12 @@ export function RoamingNami() {
   const scale = useMotionValue(1);
   const opacity = useMotionValue(0);
 
+  const bx = useMotionValue(-1000);
+  const by = useMotionValue(-1000);
+  const mouth = useMotionValue(0);
+  const [say, setSay] = useState<{ text: string; side: 'left' | 'right' } | null>(null);
+  const [narrate, setNarrate] = useState(false);
+
   const [pose, setPose] = useState<PoseName>('greeting');
   const [look, setLook] = useState<{ x: number; y: number } | null>(null);
   const [ready, setReady] = useState(false);
@@ -202,6 +223,10 @@ export function RoamingNami() {
     pose: 'greeting' as PoseName,
     raf: 0,
     pointer: null as { x: number; y: number } | null,
+    say: undefined as string | undefined,
+    pokeUntil: 0,
+    pokeText: '',
+    pokes: 0,
   });
 
   const apply = useCallback(() => {
@@ -220,9 +245,20 @@ export function RoamingNami() {
     let p = f.pose;
     if (f.heroHold) p = now < r.greetUntil ? 'greeting' : 'idle';
     if (now < r.fastUntil && !f.heroHold) p = 'swim';
+    const poked = now < r.pokeUntil && f.opacity > 0.9;
+    if (poked && p !== 'swim') p = 'celebrate';
     if (p !== r.pose) {
       r.pose = p;
       setPose(p);
+    }
+    // speech bubble above her head, kept inside her lane so it never covers content
+    const side = f.x + f.size / 2 > window.innerWidth / 2 ? 'left' : 'right';
+    bx.set(side === 'left' ? Math.min(window.innerWidth - 8, f.x + f.size) : Math.max(8, f.x));
+    by.set(f.y + f.size * 0.1);
+    const text = poked ? r.pokeText : f.opacity > 0.9 ? f.say : undefined;
+    if (text !== r.say) {
+      r.say = text;
+      setSay(text ? { text, side } : null);
     }
     // gaze: follow the cursor while she sits on the rock
     if (f.heroHold && r.pointer) {
@@ -234,7 +270,7 @@ export function RoamingNami() {
     } else {
       setLook((o) => (o === null ? o : null));
     }
-  }, [scrollY, x, y, scale, opacity]);
+  }, [scrollY, x, y, scale, opacity, bx, by]);
 
   // measure on mount, resize and any layout change
   useEffect(() => {
@@ -320,16 +356,62 @@ export function RoamingNami() {
     };
   }, [apply, reduce]);
 
+  const poke = () => {
+    const r = st.current;
+    r.pokeText = POKES[r.pokes++ % POKES.length];
+    r.pokeUntil = performance.now() + 2600;
+    apply();
+    setTimeout(apply, 2650);
+  };
+
+  // narration is opt-in and remembered
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        if (localStorage.getItem('nami_narrate') === '1') setNarrate(true);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+  const toggleNarrate = () => {
+    setNarrate((n) => {
+      try {
+        localStorage.setItem('nami_narrate', n ? '0' : '1');
+      } catch {}
+      if (n) window.speechSynthesis?.cancel();
+      return !n;
+    });
+  };
+
   if (reduce || !ready) return null;
 
   return (
+    <>
+    <AnimatePresence>
+      {say && <SayBubble key={say.text} text={say.text} side={say.side} x={bx} y={by} mouth={mouth} narrate={narrate} />}
+    </AnimatePresence>
+    <p className="sr-only" aria-live="polite">
+      {say?.text ?? ''}
+    </p>
+    <button
+      type="button"
+      onClick={toggleNarrate}
+      aria-pressed={narrate}
+      className="fixed bottom-5 left-5 z-40 inline-flex items-center gap-2 rounded-full border border-teal-900/10 bg-card/90 px-4 py-2.5 text-sm font-semibold text-teal-900 shadow-[0_8px_24px_rgba(23,61,56,0.14)] backdrop-blur transition hover:bg-card"
+    >
+      {narrate ? <Volume2 className="h-4 w-4" aria-hidden /> : <VolumeX className="h-4 w-4" aria-hidden />}
+      {narrate ? 'Nami is talking' : 'Let Nami talk'}
+    </button>
     <motion.div
       aria-hidden
       className="pointer-events-none fixed top-0 left-0 z-30 will-change-transform"
       style={{ x, y, scale, opacity, width: BASE, height: BASE, transformOrigin: '0 0' }}
     >
-      <NamiSvg pose={pose} lookAt={look} className={clsx('h-full w-full', pose === 'swim' && 'lp-swim-mask')} />
+      {/* only her body is clickable, the box corners stay click-through */}
+      <span onClick={poke} className="pointer-events-auto absolute inset-[18%_22%_8%_22%] cursor-pointer rounded-full" />
+      <NamiImage pose={pose} lookAt={look} mouth={mouth} className={clsx('h-full w-full', pose === 'swim' && 'lp-swim-mask')} />
     </motion.div>
+    </>
   );
 }
 

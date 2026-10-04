@@ -60,7 +60,7 @@ export function Footer() {
 
       <Container className="pt-28 pb-12 sm:pt-32">
         <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <NamiSlot id="footer-lane" pose="quiet" className={`${LANE_RIGHT} top-0`} />
+          <NamiSlot id="footer-lane" pose="quiet" say="Time for my nap. Try the demo whenever you like!" className={`${LANE_RIGHT} top-0`} />
           <div>
             <p className="lp-display max-w-[16em] font-display text-[clamp(2rem,4.4vw,3.5rem)] leading-[1.05] font-medium text-balance">
               Nami doesn&rsquo;t replace family. <span className="text-sea-500 italic">She makes sure they show up.</span>
@@ -88,8 +88,7 @@ export function Footer() {
             <a href="/console" className="text-ivory-50/90 hover:text-ivory-50">
               Agent console
             </a>
-            {/* TODO(team): real repository URL */}
-            <a href="#" className="text-ivory-50/90 hover:text-ivory-50">
+            <a href="https://github.com/shivang-goliyan/wcc-lAUNCHpad-30-HACKaTHONS" className="text-ivory-50/90 hover:text-ivory-50">
               GitHub
             </a>
           </nav>

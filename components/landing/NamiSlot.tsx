@@ -2,7 +2,7 @@
 
 import { useReducedMotionSafe } from './useReducedMotionSafe';
 import { clsx } from 'clsx';
-import { NamiSvg } from '@/components/nami/NamiSvg';
+import { NamiImage } from '@/components/nami/NamiImage';
 import type { PoseName } from '@/lib/nami/poses';
 
 /**
@@ -21,12 +21,15 @@ export function NamiSlot({
   pose,
   path = false,
   hero = false,
+  say,
   className,
 }: {
   id: string;
   pose: PoseName;
   path?: boolean;
   hero?: boolean;
+  /** what she tells the visitor while she sits here */
+  say?: string;
   className?: string;
 }) {
   const reduce = useReducedMotionSafe();
@@ -37,16 +40,17 @@ export function NamiSlot({
       data-pose={pose}
       data-path={path ? '1' : undefined}
       data-hero={hero ? '1' : undefined}
+      data-say={say}
       aria-hidden
       className={clsx('pointer-events-none', className)}
     >
       {showStatic ? (
         path ? (
           <div className="aspect-square h-full">
-            <NamiSvg pose="swim" reducedMotion className="lp-swim-mask h-full w-full" />
+            <NamiImage pose="swim" reducedMotion className="lp-swim-mask h-full w-full" />
           </div>
         ) : (
-          <NamiSvg pose={pose} reducedMotion className={clsx('h-full w-full', hero && 'lp-static-hero')} />
+          <NamiImage pose={pose} reducedMotion className={clsx('h-full w-full', hero && 'lp-static-hero')} />
         )
       ) : null}
     </div>

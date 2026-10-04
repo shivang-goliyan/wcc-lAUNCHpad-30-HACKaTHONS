@@ -35,7 +35,7 @@ export function DemoSection() {
           </p>
         </div>
         <div className="relative mt-24 sm:mt-20 xl:mt-12">
-          <NamiSlot id="replay-lane" pose="listening" className={`${LANE_RIGHT} top-10`} />
+          <NamiSlot id="replay-lane" pose="listening" say="Watch me book Dr. Mehta. Code checks every word I hear." className={`${LANE_RIGHT} top-10`} />
           <NamiSlot id="replay-peek" pose="peek" className="absolute right-6 bottom-full h-[132px] w-[132px] xl:hidden" />
           <CallReplay />
         </div>
@@ -82,7 +82,7 @@ export function HonestSection() {
         </div>
 
         <div className="relative mt-24 sm:mt-20 lg:mt-14">
-          <NamiSlot id="honest-lane" pose="thinking" className={`${LANE_RIGHT} -top-6`} />
+          <NamiSlot id="honest-lane" pose="thinking" say="I never say “booked” until the clinic really confirms." className={`${LANE_RIGHT} -top-6`} />
           <NamiSlot id="honest-peek" pose="peek" className="absolute right-6 bottom-full h-[132px] w-[132px] xl:hidden" />
           <InView as="ol" className="grid gap-3 lg:grid-cols-6 lg:gap-2" amount={0.3}>
           {LADDER.map((s, i) => (

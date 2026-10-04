@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react';
-import { Birds, LakeScene, NearWater, Rock } from './LakeScene';
+import { Birds, NearWater, Rock } from './LakeScene';
 import { HeroBubble } from './HeroBubble';
 import { NamiSlot } from './NamiSlot';
 import { ScrollLink } from './ScrollLink';
@@ -61,8 +61,18 @@ export function Hero() {
         }}
       />
       <Birds className="absolute right-[16%] top-[16%] -z-10 w-[120px] opacity-80 sm:w-[150px]" />
-      {/* landscape */}
-      <LakeScene className="absolute inset-x-0 bottom-0 -z-10 h-[44%] w-full sm:h-[54%] lg:h-[66%]" />
+      {/* landscape: painted from the concept art, top edge fades into the sky gradient */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/scenes/lake-1672.webp"
+        srcSet="/scenes/lake-960.webp 960w, /scenes/lake-1672.webp 1672w"
+        sizes="100vw"
+        alt=""
+        aria-hidden
+        fetchPriority="high"
+        className="absolute inset-x-0 bottom-0 -z-10 h-[52%] w-full object-cover object-[50%_80%] sm:h-[62%] lg:h-[78%]"
+        style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, #000 34%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, #000 34%)' }}
+      />
       {/* soft light behind the copy keeps contrast high on any width */}
       <div
         aria-hidden
