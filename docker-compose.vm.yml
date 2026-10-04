@@ -1,0 +1,52 @@
+# For a shared VM that already runs its own Caddy on 80/443 (the lead's box).
+# No Caddy here: the web app listens on 127.0.0.1:3320 and the host's Caddy proxies
+# raynet.in to it. Memory is capped so the other services on the box are never squeezed.
+#   docker compose -f docker-compose.vm.yml up -d
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: nami
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nami"]
+      interval: 5s
+      retries: 10
+    mem_limit: 256m
+
+  web:
+    image: raynet:prod
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://nami:${POSTGRES_PASSWORD}@db:5432/nami
+      UPLOAD_DIR: /data/uploads
+      TTS_CACHE_DIR: /data/tts
+    volumes:
+      - uploads:/data
+    ports:
+      - "127.0.0.1:3320:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 700m
+
+  worker:
+    image: raynet:prod
+    restart: unless-stopped
+    command: ["pnpm", "worker"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://nami:${POSTGRES_PASSWORD}@db:5432/nami
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 400m
+
+volumes:
+  pgdata:
+  uploads:
