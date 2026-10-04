@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import type { AppSnapshot } from '@/lib/server/snapshot';
 import { RealtimeVoice, type VoiceState } from '@/lib/client/realtime';
-import { chime, speak, stopSpeaking } from '@/lib/client/speak';
+import { chime, stopSpeaking } from '@/lib/client/speak';
+import { CascadeVoice, cascadeSupported } from '@/lib/client/cascade';
 import { STRINGS, type UILang } from '@/lib/client/i18n';
 
 export type Caption = { id: string; who: 'nami' | 'meera' | 'system'; text: string; final: boolean };
@@ -35,6 +36,10 @@ export function useNamiApp() {
   const [ack, setAck] = useState(0);
   const [busy, setBusy] = useState(false);
   const rt = useRef<RealtimeVoice | null>(null);
+  // listen -> agent -> speak, when there is no realtime voice model
+  const cv = useRef<CascadeVoice | null>(null);
+  // speaks typed replies and app announcements with the server voice (browser voice as fallback)
+  const speaker = useRef<CascadeVoice | null>(null);
   const lipStop = useRef<(() => void) | null>(null);
   const seen = useRef<Set<string>>(new Set());
   const first = useRef(true);
@@ -82,16 +87,21 @@ export function useNamiApp() {
   const sayLocal = useCallback(
     (text: string) => {
       if (muted) return;
-      speak(text, {
-        onStart: () => setTextSpeaking(true),
-        onEnd: () => {
-          setTextSpeaking(false);
-          setMouth(0);
-        },
-        onBoundary: () => {
-          setMouth(0.4 + Math.random() * 0.5);
-          setTimeout(() => setMouth(0.1), 120);
-        },
+      // a live voice session speaks for itself
+      if (cv.current?.connected) return void cv.current.say(text);
+      if (!speaker.current)
+        speaker.current = new CascadeVoice({
+          onState: (st) => setTextSpeaking(st === 'speaking'),
+          onUserText: () => {},
+          onNamiText: () => {},
+          onMouth: (v) => setMouth(v),
+          ask: async () => null,
+          lang: () => 'en',
+        });
+      setTextSpeaking(true);
+      void speaker.current.say(text).finally(() => {
+        setTextSpeaking(false);
+        setMouth(0);
       });
     },
     [muted],
@@ -170,9 +180,45 @@ export function useNamiApp() {
   }, [data, announce]);
 
   // ---- voice ------------------------------------------------------------------------------------
+  /** one agent turn over HTTP: what Meera said in, Nami's reply out */
+  const askAgent = useCallback(
+    async (text: string) => {
+      void post('/api/safety', { text }).then((r) => r?.matched && mutate());
+      const r = await post('/api/chat', { history: history.current.slice(-10), message: text });
+      history.current.push({ role: 'user', text });
+      void mutate();
+      if (!r.ok) {
+        addCaption('system', r.error === 'llm_not_configured' ? 'Voice needs an AI key on the server — use the buttons meanwhile.' : 'Sorry, I could not answer that. Please try again or use the buttons.', true);
+        return null;
+      }
+      history.current.push({ role: 'assistant', text: r.text });
+      return r.text as string;
+    },
+    [addCaption, mutate],
+  );
+
+  const startCascade = useCallback(async () => {
+    const v = new CascadeVoice({
+      onState: (st, detail) => {
+        setVoice(st);
+        if (st === 'error') setVoiceError(detail ?? 'error');
+      },
+      onUserText: (text, final) => addCaption('meera', text, final),
+      onNamiText: (text) => addCaption('nami', text, true),
+      onMouth: (val) => setMouth(val),
+      ask: askAgent,
+      lang: () => lang,
+    });
+    cv.current = v;
+    await v.connect();
+  }, [addCaption, askAgent, lang]);
+
   const startVoice = useCallback(async () => {
     setVoiceError(null);
     stopSpeaking();
+    speaker.current?.interrupt();
+    // talking over Nami: stop her and listen
+    if (cv.current?.connected) return cv.current.interrupt();
     const v = new RealtimeVoice({
       onState: (st, detail) => {
         setVoice(st);
@@ -204,20 +250,40 @@ export function useNamiApp() {
     try {
       await v.connect();
     } catch (e) {
-      setVoiceError(e instanceof Error ? e.message : 'voice_error');
+      rt.current = null;
+      // no realtime model on the server: listen in the browser and answer through the text agent
+      if (cascadeSupported()) {
+        setVoiceError(null);
+        try {
+          await startCascade();
+        } catch (e2) {
+          setVoiceError(e2 instanceof Error ? e2.message : 'voice_error');
+        }
+      } else setVoiceError(e instanceof Error ? e.message : 'voice_error');
     }
-  }, [addCaption, mutate]);
+  }, [addCaption, mutate, startCascade]);
 
   const stopVoice = useCallback(() => {
     rt.current?.disconnect('user');
     rt.current = null;
+    cv.current?.disconnect();
+    cv.current = null;
   }, []);
 
-  useEffect(() => () => rt.current?.disconnect('unmount'), []);
+  useEffect(
+    () => () => {
+      rt.current?.disconnect('unmount');
+      cv.current?.disconnect();
+      speaker.current?.interrupt();
+    },
+    [],
+  );
 
   const toggleMute = useCallback(() => {
     setMuted((m) => {
       rt.current?.setMuted(!m);
+      cv.current?.setMuted(!m);
+      speaker.current?.setMuted(!m);
       if (!m) stopSpeaking();
       return !m;
     });
