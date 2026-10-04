@@ -16,7 +16,7 @@ cd "$(dirname "$0")/.."
 
 echo "→ syncing code to $HOST:~/$DIR"
 rsync -az --delete \
-  --exclude node_modules --exclude .next --exclude .git --exclude preview \
+  --exclude node_modules --exclude .next --exclude .git --exclude preview --exclude public/review \
   --exclude '.env*' --exclude '*.log' --exclude eval/results \
   ./ "$HOST:$DIR/"
 
