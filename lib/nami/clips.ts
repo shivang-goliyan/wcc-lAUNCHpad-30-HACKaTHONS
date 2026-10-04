@@ -168,6 +168,18 @@ export const WAN_CLIPS: Record<string, Clip> = {
     "cols": 1,
     "fps": 16
   },
+  "walk@loop": {
+    "src": "/nami/clips/walk-loop.mp4",
+    "frames": 23,
+    "cols": 1,
+    "fps": 16
+  },
+  "walk-left@loop": {
+    "src": "/nami/clips/walk-left-loop.mp4",
+    "frames": 23,
+    "cols": 1,
+    "fps": 16
+  },
   "greeting@loop": {
     "src": "/nami/clips/greeting-loop.mp4",
     "frames": 16,

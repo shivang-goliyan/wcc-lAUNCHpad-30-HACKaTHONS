@@ -213,7 +213,7 @@ export function MascotLab() {
           <Seg
             label="Pose override (landing choreography)"
             value={poseOverride}
-            options={[null, "swim", "peek", "point-left", "point-right"] as const}
+            options={[null, "stand", "walk", "walk-left", "swim", "peek", "point-left", "point-right", "celebrate", "hop", "heart"] as const}
             onChange={setPoseOverride}
           />
           <div className="grid gap-5 sm:grid-cols-2">
