@@ -20,6 +20,9 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgres://nami:${POSTGRES_PASSWORD:-nami}@db:5432/nami
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -51,4 +54,5 @@ services:
 
 volumes:
   pgdata:
+  uploads:
   caddy_data:
