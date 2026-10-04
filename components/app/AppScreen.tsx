@@ -27,6 +27,7 @@ import {
 import { NamiImage } from '@/components/nami/NamiImage';
 import type { PoseName } from '@/lib/nami/poses';
 import { useNamiApp, post, type Snap } from './useNamiApp';
+import { useWakeWord } from './useWakeWord';
 
 function cx(...c: Array<string | false | null | undefined>) {
   return c.filter(Boolean).join(' ');
@@ -356,6 +357,7 @@ function HelpBanner({ d, c, app }: { d: Snap; c: Snap['cases'][number]; app: App
 function Controls({ app }: { app: App }) {
   const { t } = app;
   const on = app.voice !== 'off' && app.voice !== 'error';
+  const wake = useWakeWord({ voiceOn: on, start: () => void app.startVoice() });
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <button onClick={() => (on ? app.stopVoice() : app.startVoice())} className={cx('col-span-2 flex min-h-16 items-center justify-center gap-3 rounded-2xl text-xl font-semibold shadow-[0_8px_30px_rgba(23,61,56,.10)] sm:col-span-1', on ? 'bg-sea-500 text-teal-900' : 'bg-teal-900 text-ivory-50 hover:bg-teal-700')}>
@@ -374,6 +376,24 @@ function Controls({ app }: { app: App }) {
         <p className="col-span-full rounded-xl bg-[#fbf3e3] px-4 py-2 text-sm text-warn-600">
           {app.voiceError === 'voice_not_configured' ? 'Live voice is not configured on this server yet. Type to Nami below; she will answer aloud.' : app.voiceError === 'rate_limited' || app.voiceError === 'daily_cap' ? 'Voice demo limit reached for now, type to Nami below.' : `Voice unavailable (${app.voiceError}), type to Nami below.`}
         </p>
+      )}
+      {wake.status !== 'unavailable' && (
+        <button
+          onClick={wake.toggle}
+          aria-pressed={wake.status !== 'off'}
+          className="col-span-full flex items-center justify-center gap-2 text-sm font-semibold text-ink-600 sm:col-span-2 sm:justify-start"
+        >
+          <span className={cx('h-2.5 w-2.5 rounded-full', wake.status === 'listening' ? 'animate-pulse bg-sea-500' : wake.status === 'error' ? 'bg-help-600' : 'bg-line')} aria-hidden />
+          {wake.status === 'off'
+            ? app.lang === 'hi' ? '“Hey Nami” सुनना चालू करें' : 'Turn on “Hey Nami”'
+            : wake.status === 'loading'
+              ? app.lang === 'hi' ? 'तैयार हो रही हूँ…' : 'Getting ready…'
+              : wake.status === 'error'
+                ? app.lang === 'hi' ? 'माइक नहीं मिला · फिर कोशिश करें' : 'No microphone · tap to retry'
+                : wake.status === 'paused'
+                  ? app.lang === 'hi' ? 'बात चल रही है' : 'In a conversation'
+                  : app.lang === 'hi' ? 'बोलिए “Hey Nami” · यहीं फ़ोन पर सुनती हूँ' : 'Say “Hey Nami” · listening on this device only'}
+        </button>
       )}
       <button onClick={app.toggleMute} className="col-span-full flex items-center justify-center gap-2 text-sm font-semibold text-ink-600 sm:col-span-1 sm:col-start-4">
         {app.muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />} {app.muted ? t.unmute : t.mute}
