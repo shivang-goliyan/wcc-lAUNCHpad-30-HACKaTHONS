@@ -79,6 +79,7 @@ export async function careSnapshot(hh: string, contactId: string) {
     now,
     time: time24(now, tz),
     contact: { id: contact.id, name: contact.name, relation: contact.relation },
+    timezone: tz,
     recipient: { name: s.recipient.displayName, addressAs: s.recipient.addressAs, city: s.recipient.city },
     device: { lastSeen: s.device.lastSeenAt ? time24(s.device.lastSeenAt, tz) : null, lastExplicitResponse: s.device.lastExplicitResponseAt ? time24(s.device.lastExplicitResponseAt, tz) : null },
     cases,

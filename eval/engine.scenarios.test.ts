@@ -355,3 +355,25 @@ describe('memory corner', () => {
     expect(h.s.notices.some((n) => n.contactId === 'c_arjun' && n.text.includes('toy train'))).toBe(true);
   });
 });
+
+describe('caregiver action guards', () => {
+  it('family cannot accept before they were asked, and only the owner can report an outcome', () => {
+    const h = setup();
+    h.advance(t('09:58'), t('10:05'));
+    const c = h.s.cases[0];
+    expect(c.state).toBe('awaiting_response');
+    expect(() => h.run({ type: 'case.contactAction', caseId: c.id, contactId: 'c_arjun', action: 'accept', source: 'link' }, t('10:06'))).toThrow(EngineReject);
+    h.advance(t('10:06'), t('10:31'));
+    h.run({ type: 'case.contactAction', caseId: c.id, contactId: 'c_arjun', action: 'accept', source: 'link' }, t('10:32'));
+    expect(() => h.run({ type: 'case.contactAction', caseId: c.id, contactId: 'c_priya', action: 'spoke', source: 'link' }, t('10:33'))).toThrow(EngineReject);
+    expect(h.s.cases[0].state).toBe('owner_accepted');
+  });
+
+  it('call ids carry the household id so they are globally unique', () => {
+    const h = setup({ phoneCallsEnabled: true, phones: { arjun: '+919000000001' } });
+    h.s.hid = 'hh_test';
+    h.advance(t('09:58'), t('10:31'));
+    const call = h.effects.find((e) => e.kind === 'start_call');
+    expect(call && call.kind === 'start_call' && call.payload.callId.startsWith('call_hh_test_')).toBe(true);
+  });
+});

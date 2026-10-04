@@ -70,7 +70,7 @@ Postgres (household document locked FOR UPDATE per command; events; outbox; call
 
 | Suite | What | Result |
 |---|---|---|
-| `pnpm test` | 24 engine and verifier tests: the 15 required acceptance checks (duplicate acks, restart recovery, voicemail ≠ acceptance, duplicate webhooks, user responds mid-escalation, nobody accepts → unresolved…) plus a 3-day randomised simulation with invariants | **24/24** |
+| `pnpm test` | 28 engine and verifier tests: the 15 required acceptance checks (duplicate acks, restart recovery, voicemail ≠ acceptance, duplicate webhooks, user responds mid-escalation, nobody accepts → unresolved…) plus a 3-day randomised simulation with invariants | **28/28** |
 | `pnpm eval:intents` | 60 utterances (20 English, 20 Hindi, 20 Hinglish), including safety cases (dose questions, crisis words, an unapproved hospital) → does Nami pick the right tool? | *(run with keys)* |
 | `pnpm eval:calls` | Simulated clinic calls across 5 receptionist behaviours → **false confirmations** and **disclosure violations** | scripted: 0 / 0 *(LLM run pending)* |
 

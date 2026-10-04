@@ -445,7 +445,7 @@ function newAttempt(ctx: Ctx, c: Case, contactId: string | null, channels: Attem
 }
 
 function startCall(ctx: Ctx, purpose: CallPurpose, relatedId: string, o: { to: string | null; adapter: 'sim' | 'twilio'; brief: Record<string, unknown>; clinicId?: string; contactId?: string }) {
-  const callId = ctx.id('call');
+  const callId = ctx.id(`call_${ctx.s.hid ?? 'hh'}`);
   ctx.effects.push({
     kind: 'start_call',
     key: `call:${callId}`,
@@ -591,6 +591,10 @@ function contactAction(ctx: Ctx, cmd: Extract<Command, { type: 'case.contactActi
   }
   const att = activeAttempts(s, c.id).find((a) => a.contactId === contact.id);
   const who = `contact:${contact.id}`;
+  const familyAsked = ['escalating', 'owner_accepted', 'unresolved'].includes(c.state);
+  if (!familyAsked) throw new EngineReject('not_yet_escalated', 'Family has not been asked yet — the agreed check-in steps are still running');
+  if ((cmd.action === 'spoke' || cmd.action === 'still_needs_help') && c.state === 'owner_accepted' && c.ownerContactId !== contact.id)
+    throw new EngineReject('not_owner', `${ctx.contact(c.ownerContactId)?.name} is currently following up`);
   switch (cmd.action) {
     case 'accept': {
       if (c.state === 'owner_accepted' && c.ownerContactId === contact.id) {
@@ -741,7 +745,8 @@ function appointmentPropose(ctx: Ctx, cmd: Extract<Command, { type: 'appointment
     ctx.reply = { ok: true, status: existing.state, sayHint: `I am already working on that request — it is ${existing.state.replace(/_/g, ' ')}.`, data: { requestId: existing.id } };
     return;
   }
-  const disclosure = clinic.permittedDisclosure.map((d) => (d === 'first_name' ? `first name (${s.recipient.firstName})` : d === 'last_initial' ? `surname initial (${s.recipient.lastName[0]}.)` : 'reason: follow-up'));
+  const reasonLabel = { follow_up: 'follow-up', new_concern: 'a new concern', test_results: 'discuss test results', other: 'a consultation' }[cmd.reason];
+  const disclosure = clinic.permittedDisclosure.map((d) => (d === 'first_name' ? `first name (${s.recipient.firstName})` : d === 'last_initial' ? `surname initial (${s.recipient.lastName[0]}.)` : `reason: ${reasonLabel}`));
   const a: Appointment = {
     id: ctx.id('apt'),
     clinicId: clinic.id,
@@ -764,7 +769,7 @@ function appointmentPropose(ctx: Ctx, cmd: Extract<Command, { type: 'appointment
   s.appointments.push(a);
   const winEn = cmd.window === 'any' ? 'any time' : `in the ${cmd.window}`;
   const winHi = { morning: 'सुबह', afternoon: 'दोपहर', evening: 'शाम', any: 'किसी भी समय' }[cmd.window];
-  const readback = `Call ${clinic.name} to ask for a ${cmd.reason.replace('_', '-')} appointment between ${spokenDateEn(dateFrom)} and ${spokenDateEn(dateTo)}, ${winEn}. I will share only your ${disclosure.join(' and ')}. Shall I call?`;
+  const readback = `Call ${clinic.name} to ask for an appointment (${reasonLabel}) between ${spokenDateEn(dateFrom)} and ${spokenDateEn(dateTo)}, ${winEn}. I will share only your ${disclosure.join(' and ')}. Shall I call?`;
   const readbackHi = `${clinic.nameHi} को कॉल करके ${spokenDateHi(dateFrom)} से ${spokenDateHi(dateTo)} के बीच ${winHi} का अपॉइंटमेंट पूछूँ? मैं सिर्फ़ आपका नाम और कारण बताऊँगी। कॉल करूँ?`;
   const p = addPending(ctx, 'permit_clinic_call', a.id, {}, readback, readbackHi);
   ctx.ev('agent', 'nami', 'appointment_proposed', 'appointment', a.id, `Request drafted — waiting for permission to call ${clinic.name}`, { constraints: a.constraints });
@@ -847,6 +852,8 @@ function callResult(ctx: Ctx, cmd: Extract<Command, { type: 'call.result' }>) {
   s.handledCallResults.push(key);
   s.handledCallResults = s.handledCallResults.slice(-200);
   const x = (cmd.extracted ?? {}) as Extracted;
+  if (cmd.status === 'completed' && cmd.extracted && Object.keys(cmd.extracted).length)
+    ctx.ev('agent', 'extractor', 'facts_extracted', 'call', cmd.callId, `Extractor turned the call transcript into quoted facts${x.quote || x.slot?.quote ? `: “${(x.slot?.quote ?? x.quote ?? '').slice(0, 80)}”` : ''}`, { extracted: cmd.extracted });
 
   // clinic calls
   const appt = s.appointments.find((a) => a.callIds.includes(cmd.callId));

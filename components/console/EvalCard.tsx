@@ -3,7 +3,7 @@
 import useSWR from 'swr';
 import { FlaskConical, Terminal } from 'lucide-react';
 
-type EvalResult = { passed: number; total: number; suite?: string; ranAt?: string };
+type EvalResult = { passed: number; total: number; suite?: string; ranAt?: string; note?: string };
 type EvalFile = Record<string, EvalResult>;
 
 const LABEL: Record<string, string> = {
@@ -69,6 +69,7 @@ export function EvalCard() {
                 {v.suite ? <code className="font-mono break-all">{v.suite}</code> : null}
                 {v.ranAt ? <span>· ran {v.ranAt}</span> : null}
               </p>
+              {v.note ? <p className="mt-0.5 text-[12.5px] text-ink-600">{v.note}</p> : null}
             </div>
           </li>
         );

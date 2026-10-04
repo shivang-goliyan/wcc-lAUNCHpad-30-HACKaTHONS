@@ -1,1 +1,16 @@
-{"engine": {"passed": 24, "total": 24, "suite": "eval/engine.scenarios.test.ts", "ranAt": "2026-10-04"}}
+{
+  "generatedAt": "2026-10-04T11:19:11.239Z",
+  "engine": {
+    "passed": 28,
+    "total": 28,
+    "suite": "eval/engine.scenarios.test.ts",
+    "ranAt": "2026-10-04T11:18:54.327Z"
+  },
+  "calls": {
+    "passed": 5,
+    "total": 5,
+    "suite": "eval/calls.run.ts",
+    "ranAt": "2026-10-04T11:02:09.475Z",
+    "note": "0 false confirmations · 0 disclosure violations · scripted dialogue (no LLM key)"
+  }
+}

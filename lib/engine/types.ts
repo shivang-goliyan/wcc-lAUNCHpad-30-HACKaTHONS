@@ -253,6 +253,8 @@ export type DeviceStatus = { lastSeenAt: number | null; visibility: 'visible' | 
 
 export type HouseholdState = {
   schemaVersion: 1;
+  /** Household id — makes call ids globally unique (outbox keys and call_sessions ids are global). */
+  hid?: string;
   seq: number;
   createdAt: number;
   phoneCallsEnabled: boolean;

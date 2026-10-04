@@ -26,5 +26,6 @@ export async function GET(req: NextRequest) {
       : { scenario: sc && SCENARIOS.includes(sc) ? sc : 'cooperative', startAt: start },
   );
   await setHouseholdCookie(id);
-  return NextResponse.redirect(new URL('/app', req.url), 303);
+  const next = q.get('next') === '/console' ? '/console' : '/app';
+  return NextResponse.redirect(new URL(next, req.url), 303);
 }

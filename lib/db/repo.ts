@@ -24,7 +24,7 @@ export async function createHousehold(opts: { kind?: 'sandbox' | 'video'; scenar
   const real = Date.now();
   const offset = demoOffsetFor(real, opts.startAt ?? '08:55');
   const now = real + offset;
-  const state = seedHousehold({ now, scenario: opts.scenario, phoneCallsEnabled: opts.phoneCallsEnabled, phones: opts.phones });
+  const state = { ...seedHousehold({ now, scenario: opts.scenario, phoneCallsEnabled: opts.phoneCallsEnabled, phones: opts.phones }), hid: id };
   const first = tick(state, now);
   const wake = nextWakeAt(first.state, now);
   const kind = opts.kind ?? 'sandbox';
@@ -76,6 +76,7 @@ export async function runCommand(hh: string, cmd: Command | null, opts: { clockJ
     const events: EngineEvent[] = [];
     const effects: Effect[] = [];
     let state = row.state;
+    if (state.hid !== hh) state = { ...state, hid: hh };
 
     if (opts.clockJumpTo !== undefined) {
       const target = opts.clockJumpTo === 'next' ? nextWakeAt(state, now) : opts.clockJumpTo;

@@ -151,7 +151,7 @@ export function scriptedClinicCall(b: ClinicBrief, calendar: SimSlot[], startMs:
   const intro = `Namaste, main Nami hoon, ek AI assistant, ${b.patientFirstName} ji ki taraf se call kar rahi hoon.`;
   if (b.goal === 'availability') {
     say('clinic', `${b.clinicName}, boliye?`);
-    say('nami', `${intro} Kya ${b.dateFromSpoken} se ${b.dateToSpoken} ke beech ${b.doctor} ke saath ${windowHinglish[b.window]} follow-up appointment mil sakta hai?`);
+    say('nami', `${intro} Kya ${b.dateFromSpoken} se ${b.dateToSpoken} ke beech ${b.doctor} ke saath ${windowHinglish[b.window]} appointment mil sakta hai — ${({ follow_up: 'follow-up ke liye', new_concern: 'ek nayi takleef ke liye', test_results: 'test reports dikhane ke liye', other: 'consultation ke liye' } as Record<string, string>)[b.reason] ?? 'consultation ke liye'}?`);
     if (b.scenario === 'asks_for_extra_info') {
       say('clinic', 'Patient ka phone number aur date of birth bata dijiye.');
       say('nami', 'Maaf kijiye, main woh share nahi kar sakti — patient ka family aapko call back karega. Sirf naam aur follow-up reason share kar sakti hoon.');
