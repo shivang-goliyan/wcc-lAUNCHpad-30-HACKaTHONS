@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { CircleCheck, Clock, Eye, MapPin, ShieldCheck, WifiOff } from 'lucide-react';
 import type { CareSnapshot } from '@/lib/server/snapshot';
 import { CaseCard, type ActionResult, type CareAction } from './CaseCard';
+import { MemorySection } from './MemorySection';
 import { AppointmentsSection, FamilyRequestsSection, NoticesSection, PastCasesSection, RemindersSection } from './Sections';
 import { InvalidLink } from './InvalidLink';
 import { NamiAvatar } from './NamiAvatar';
@@ -163,6 +164,7 @@ export function CareView({ token }: { token: string }) {
         )}
 
         <FamilyRequestsSection requests={data.familyRequests} recipientName={name} />
+        <MemorySection token={token} data={data} onDone={() => void mutate()} />
         </div>
         <div className="flex flex-col gap-5">
         <NoticesSection notices={data.notices} />
