@@ -7,8 +7,16 @@ import { z } from 'zod';
 
 const OPENAI_COMPAT = process.env.LLM_PROVIDER === 'openai';
 const COMPAT_BASE = (process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
-// several keys are tried in turn when one is rate-limited (free tiers are per account)
-const COMPAT_KEYS = [process.env.LLM_API_KEY, process.env.OPENROUTER_API_KEY, process.env.OPENROUTER_API_KEY_2].filter((k): k is string => !!k);
+// several keys for the same provider: calls start on a rotating key and move to the
+// next one when a key is rate-limited (free tiers are per key or per account)
+const COMPAT_KEYS = [
+  process.env.LLM_API_KEY,
+  ...(process.env.LLM_API_KEYS || '').split(','),
+  ...(COMPAT_BASE.includes('openrouter.ai') ? [process.env.OPENROUTER_API_KEY, process.env.OPENROUTER_API_KEY_2] : []),
+]
+  .map((k) => k?.trim())
+  .filter((k, i, all): k is string => !!k && all.indexOf(k) === i);
+let nextKey = 0;
 const COMPAT_KEY = COMPAT_KEYS[0] ?? '';
 // OpenRouter only: other models to try when the first one is busy
 const FALLBACK_MODELS = (process.env.LLM_FALLBACK_MODELS || '').split(',').map((m) => m.trim()).filter(Boolean);
@@ -65,17 +73,24 @@ export type CompatTool = { type: 'function'; function: { name: string; descripti
 export async function compatChat(body: { messages: CompatMessage[]; tools?: CompatTool[]; response_format?: unknown; max_tokens?: number }) {
   const routed = COMPAT_BASE.includes('openrouter.ai') && FALLBACK_MODELS.length ? { models: [LLM_MODEL, ...FALLBACK_MODELS] } : {};
   let r: Response | null = null;
-  for (const key of COMPAT_KEYS) {
-    r = await fetch(`${COMPAT_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model: LLM_MODEL, temperature: 0.3, ...routed, ...body }),
-      signal: AbortSignal.timeout(60_000),
-    });
-    // out of requests on this key: try the next one
-    if (r.status !== 429 && r.status !== 402) break;
+  const start = nextKey++ % Math.max(1, COMPAT_KEYS.length);
+  for (const key of [...COMPAT_KEYS.slice(start), ...COMPAT_KEYS.slice(0, start)]) {
+    try {
+      r = await fetch(`${COMPAT_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+        body: JSON.stringify({ model: LLM_MODEL, temperature: 0.3, ...routed, ...body }),
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      // a hung request: move on to the next key rather than freezing the conversation
+      r = null;
+      continue;
+    }
+    // rate-limited, out of credit, or a disabled key: try the next one
+    if (![401, 402, 403, 429].includes(r.status)) break;
   }
-  if (!r) throw new Error('No LLM key configured');
+  if (!r) throw new Error('LLM provider did not answer');
   if (!r.ok) throw new Error(`LLM provider said ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const data = (await r.json()) as {
     choices?: { message: { content: string | null; tool_calls?: CompatToolCall[] }; finish_reason: string }[];
@@ -111,3 +126,37 @@ async function structuredCompat<T extends z.ZodType>(opts: { schema: T; system: 
 }
 
 export const usingCompat = () => OPENAI_COMPAT;
+
+/** The model's first move for one user message: a tool call, or text. Nothing is executed. */
+export async function firstDecision(
+  system: string,
+  tools: { name: string; description: string; parameters: Record<string, unknown> }[],
+  userText: string,
+): Promise<{ call: { name: string; input: Record<string, unknown> } | null; text: string }> {
+  if (OPENAI_COMPAT) {
+    const c = await compatChat({
+      messages: [{ role: 'system', content: system }, { role: 'user', content: userText }],
+      tools: tools.map((t) => ({ type: 'function' as const, function: t })),
+      max_tokens: 1500,
+    });
+    const tc = c.message.tool_calls?.[0];
+    let input: Record<string, unknown> = {};
+    try {
+      input = tc ? JSON.parse(tc.function.arguments || '{}') : {};
+    } catch {}
+    return { call: tc ? { name: tc.function.name, input } : null, text: c.message.content ?? '' };
+  }
+  const res = await anthropic().beta.messages.create({
+    model: LLM_MODEL,
+    max_tokens: 4000,
+    betas: ['server-side-fallback-2026-07-01'],
+    fallbacks: 'default',
+    output_config: { effort: 'low' },
+    system,
+    tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool['input_schema'] })),
+    messages: [{ role: 'user', content: userText }],
+  });
+  const call = res.content.find((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use');
+  const text = res.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text').map((b) => b.text).join(' ');
+  return { call: call ? { name: call.name, input: (call.input ?? {}) as Record<string, unknown> } : null, text };
+}
