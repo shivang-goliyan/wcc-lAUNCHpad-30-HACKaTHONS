@@ -1,4 +1,4 @@
-// Pure domain types for the Nami Care workflow engine.
+// Pure domain types for the Raynet workflow engine.
 // All times are epoch milliseconds in *virtual* time (see lib/clock.ts).
 
 export type Lang = 'hi' | 'en' | 'auto';

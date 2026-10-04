@@ -53,7 +53,7 @@ export function CaregiverPhone() {
           </div>
           <div className="space-y-2.5 px-3.5 pt-2 pb-5">
             <div className="px-1">
-              <p className="text-[10.5px] font-semibold tracking-wide text-teal-700 uppercase">Nami Care · for Arjun</p>
+              <p className="text-[10.5px] font-semibold tracking-wide text-teal-700 uppercase">Raynet · for Arjun</p>
               <p className="mt-0.5 font-display text-[19px] leading-tight text-teal-900">Meera Sharma · Jaipur</p>
               <p className="text-[11.5px] text-ink-600">Last response 09:58</p>
             </div>

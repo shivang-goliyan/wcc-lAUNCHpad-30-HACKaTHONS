@@ -1,12 +1,14 @@
-# Nami Care 🦦
+# Raynet 🦦 · meet Nami
 
 **A gentle AI companion for parents who live alone. She talks in Hindi or English, phones the clinic for you (with your OK), and makes sure a real person follows up when something's wrong.**
 
+> *Nami keeps them company. Raynet makes sure someone shows up.*
+>
 > *Most AI companions try to be the friend. Nami is the one who makes sure the real friends, family and doctor show up.*
 
-**Live demo:** `https://<your-domain>/try` (no sign-up: you get a private demo household as "Meera ji")
+**Live demo:** **https://raynet.in/try** (no sign-up: you get a private demo household as "Meera ji")
 **Demo video:** `<link>`
-**Agent console** (how it works, live): `https://<your-domain>/console`
+**Agent console** (how it works, live): **https://raynet.in/console**
 
 ---
 

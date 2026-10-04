@@ -15,7 +15,7 @@ export function Logo({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
         <path d="M17 6.5 c2.6 0.4 3.8 2.4 3.4 4.6 c-2.4 -0.2 -3.8 -2 -3.4 -4.6Z" fill="#80A99B" />
       </svg>
       <span className={`font-display text-[21px] font-semibold tracking-tight ${tone === 'light' ? 'text-teal-900' : 'text-ivory-50'}`}>
-        Nami Care
+        Raynet
       </span>
     </span>
   );
@@ -24,7 +24,7 @@ export function Logo({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
 function Nav() {
   return (
     <header className="relative z-20 mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 pt-5 sm:px-8 lg:pt-7">
-      <a href="#top" className="rounded-lg" aria-label="Nami Care home">
+      <a href="#top" className="rounded-lg" aria-label="Raynet home">
         <Logo />
       </a>
       <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">

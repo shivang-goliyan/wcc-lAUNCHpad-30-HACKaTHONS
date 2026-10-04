@@ -1,4 +1,4 @@
-# Nami Care — docs index
+# Raynet (Nami) — docs index
 
 Read these in this order. If two docs disagree, the earlier one wins, unless `DECISIONS.md` says otherwise.
 
@@ -18,7 +18,7 @@ Use exactly these names in code, the UI and the pitch.
 
 | Thing | Name |
 |---|---|
-| Product | **Nami Care** |
+| Product | **Raynet** (was Nami Care until D21) |
 | Mascot | **Nami** |
 | User persona | **Meera Sharma** ("Meera ji"), Jaipur |
 | Primary contact | **Arjun** (son) |

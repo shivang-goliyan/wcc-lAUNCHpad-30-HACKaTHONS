@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Nami Care design tokens (docs/DESIGN.md §2). Light, warm theme; high-contrast variant in-app. */
+/* Raynet design tokens (docs/DESIGN.md §2). Light, warm theme; high-contrast variant in-app. */
 :root {
   --teal-900: #173d38;
   --teal-700: #24564f;

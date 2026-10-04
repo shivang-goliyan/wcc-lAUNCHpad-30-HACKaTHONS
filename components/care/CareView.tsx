@@ -90,7 +90,7 @@ export function CareView({ token }: { token: string }) {
             <div className="flex items-center gap-2.5">
               <NamiAvatar className="size-11" />
               <div className="leading-tight">
-                <p className="font-display text-[19px] font-semibold">Nami Care</p>
+                <p className="font-display text-[19px] font-semibold">Raynet</p>
                 <p className="text-[13px] text-sea-200">For {data.contact.name} · {data.contact.relation}</p>
               </div>
             </div>

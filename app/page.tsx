@@ -10,11 +10,11 @@ import { Footer, Trust } from '@/components/landing/Footer';
 import { RoamingNami } from '@/components/landing/RoamingNami';
 
 export const metadata: Metadata = {
-  title: 'Nami Care — your parent’s gentle companion who gets things done',
+  title: 'Raynet — Nami, your parent’s gentle companion who gets things done',
   description:
     'Nami is an AI otter companion for parents who live alone. She talks in Hindi or English, phones the clinic with their OK, and makes sure a real person follows up. Try the live demo as Meera.',
   openGraph: {
-    title: 'Nami Care — a gentle companion who gets things done',
+    title: 'Raynet — Nami, a gentle companion who gets things done',
     description:
       'Reminds, books the doctor (with your OK), checks in, and gets your people. Nami never marks anyone safe. A person does.',
     type: 'website',

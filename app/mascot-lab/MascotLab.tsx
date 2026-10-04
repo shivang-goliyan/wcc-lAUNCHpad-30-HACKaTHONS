@@ -174,7 +174,7 @@ export function MascotLab() {
   return (
     <main className="min-h-screen bg-[#F7F3EA] px-4 py-8 text-[#173D38] sm:px-8">
       <header className="mx-auto mb-8 max-w-6xl">
-        <p className="text-sm font-semibold uppercase tracking-widest text-[#80A99B]">Nami Care · dev</p>
+        <p className="text-sm font-semibold uppercase tracking-widest text-[#80A99B]">Raynet · dev</p>
         <h1 className="mt-1 text-3xl font-semibold">Mascot lab</h1>
         <p className="mt-2 max-w-2xl text-[#4A5552]">
           Every painted pose, the app state contract (<code>NamiStage</code>), the mouth thresholds and a

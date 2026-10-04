@@ -169,7 +169,7 @@ function Header({ app, d }: { app: App; d: Snap }) {
           <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-sea-200">
             <NamiImage pose="idle" className="h-12 w-12 translate-y-1" blink="off" reducedMotion />
           </span>
-          <span className="font-display text-2xl font-semibold text-teal-900">Nami Care</span>
+          <span className="font-display text-2xl font-semibold text-teal-900">Raynet</span>
         </Link>
         <span className="hidden text-ink-600 sm:inline">· {d.recipient.addressAs}, {d.recipient.city}</span>
         <div className="ml-auto flex flex-wrap items-center gap-2">

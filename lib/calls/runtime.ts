@@ -238,7 +238,7 @@ export async function twilioVoice(callId: string, answeredBy: string | null) {
   await setState(callId, 'in_progress');
   if (answeredBy && answeredBy.startsWith('machine')) {
     // Voicemail: leave no details.
-    vr.say({ voice: VOICE(), language: 'hi-IN' }, 'Nami Care se call tha. Kripya Nami link dekhiye. Dhanyavaad.');
+    vr.say({ voice: VOICE(), language: 'hi-IN' }, 'Raynet se call tha. Kripya Nami link dekhiye. Dhanyavaad.');
     vr.hangup();
     await appendTurn(callId, { speaker: 'system', text: `Voicemail detected (${answeredBy}) — no details left.`, t: Date.now() });
     void finishCall(callId, 'voicemail', { voicemail: true, accepted: 'not_reached', outcome: 'not_reached' }, 'twilio');

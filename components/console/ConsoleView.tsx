@@ -134,7 +134,7 @@ export function ConsoleView() {
                 <Activity className="size-5 text-sea-200" aria-hidden />
               </span>
               <div className="leading-tight">
-                <p className="text-[12px] font-bold tracking-[.18em] text-sea-500 uppercase">Nami Care</p>
+                <p className="text-[12px] font-bold tracking-[.18em] text-sea-500 uppercase">Raynet</p>
                 <h1 className="font-display text-[24px] font-semibold sm:text-[28px]">Agent console</h1>
               </div>
             </div>

@@ -8,7 +8,7 @@ const deva = Noto_Sans_Devanagari({ variable: '--font-deva', subsets: ['devanaga
 const devaDisplay = Tiro_Devanagari_Hindi({ variable: '--font-deva-display', subsets: ['devanagari'], weight: '400' });
 
 export const metadata: Metadata = {
-  title: 'Nami Care — a gentle companion who gets things done',
+  title: 'Raynet — Nami, a gentle companion who gets things done',
   description: 'Nami is an AI otter companion for older adults living apart from family. She talks in Hindi or English, phones the clinic with approval, and makes sure a real person follows up.',
 };
 

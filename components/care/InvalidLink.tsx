@@ -18,7 +18,7 @@ export function InvalidLink() {
         </p>
         <div className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-ivory-50 px-4 py-3 text-[15px] text-ink-600">
           <QrCode className="size-5 text-teal-700" aria-hidden />
-          Nami Care · nothing private is shown on this page
+          Raynet · nothing private is shown on this page
         </div>
       </div>
     </main>
