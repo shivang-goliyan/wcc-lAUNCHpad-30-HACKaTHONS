@@ -20,7 +20,7 @@ This document records what has been built so far, what works, what is simulated,
 | Real phone calls (Twilio US number, Say/Gather turn loop, voicemail detection) | ✅ Code done. **Untested until Twilio keys arrive** |
 | Browser voice (OpenAI Realtime over WebRTC, tool bridge, lip-sync) | ✅ Code done. **Untested until an OpenAI key arrives** |
 | Text mode (Claude with the same tools) plus browser speech | ✅ Code done. Needs an Anthropic key |
-| Mascot "Nami" (hand-built SVG rig, 14 poses, blinking, eye tracking, lip-sync) | ✅ Done |
+| Mascot "Nami", painted to match the concept art (D18): 14 Codex-generated poses, painted in-between frames plus RIFE tweens for pose changes, blink and mouth overlays for lip-sync, breathing and gaze lean; 60 fps in Chrome | ✅ Done. The SVG rig stays in the repo as a fallback |
 | Meera's companion screen `/app` | ✅ Done |
 | Caregiver phone page `/care/[token]` | ✅ Done |
 | Agent console for judges `/console` | ✅ Done |
@@ -192,6 +192,10 @@ These are plain code, with no LLM involved.
 4. Add the README links (live demo and video) and the team's interview and survey evidence.
 5. Optional: a Gemini Live voice adapter, if Hindi quality is better or OpenAI credits are short.
 6. Record the video Monday 10:00–12:00, then submit the forms (every member) by 13:30.
+
+### Future tasks (after the hackathon)
+
+- **"Hey Nami" wake word** (PRD F14, P2): invoke Nami hands-free the way "Hey Siri" works. Detection must run on the device, so no audio leaves it until the wake word fires, and the mic indicator must show when capture starts. Route: an open-source keyword model (openWakeWord, ONNX) running in the browser through onnxruntime-web, with a custom "Hey Nami" model trained on synthetic speech in English and Hindi accents. Picovoice Porcupine is the fallback (it needs an AccessKey). Not built for the demo; the Talk button and Space key stay the way in.
 
 ---
 
