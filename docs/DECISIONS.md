@@ -17,6 +17,12 @@ Add a dated row whenever something changes. If code disagrees with the docs, eit
 | D11 | 4 Oct | **Memory Corner is P1**, after P0 is green. | It's the emotional "connection not replacement" proof, but it isn't core. | Codex: "add after core works". Same. |
 | D12 | 4 Oct | **Judge sandbox:** one isolated seeded household per visitor (`/try`, 48 h expiry), a visible demo clock, and caps on voice and calls. | Usability is judged without a walkthrough, and judges must not collide with each other. | New. |
 
+| D13 | 4 Oct | **Each household's care state is one JSONB document**, locked with `SELECT … FOR UPDATE` for every command or tick. Events, outbox, call sessions and voice sessions are separate tables. Raw SQL via `postgres`; Drizzle is not used. | Every engine transition is serialised per household, and the state survives restarts unchanged. Far less mapping code than 15 tables. | Replaces the per-entity tables in TRD §4 (the entities are the same, but nested in the document). |
+| D14 | 4 Oct | **On-screen controls post to one validated endpoint, `/api/command`** (a zod discriminated union, sources limited to button/keyboard/switch), instead of one route per action. | Same engine path as voice, with less surface. | TRD §8 routes collapsed. |
+| D15 | 4 Oct | **Text agents use `claude-opus-5-5`** (effort `low` for call turns and chat, `medium` for extraction) with server-side refusal fallbacks (`fallbacks: "default"`) and schema-constrained output (`betaZodOutputFormat`). This replaces Sonnet 5.5. | Current default model. Forced `tool_choice` isn't supported, so structured outputs are used instead. | Updates D4. |
+| D16 | 4 Oct | **The clinic simulator gets the free slots injected into its prompt from the deterministic calendar**, instead of a tool loop. | One LLM call per turn, so faster. The verifier's `exists_in_clinic_calendar` check still catches any invented slot. | AGENTS.md §5 tools are replaced by injected availability. |
+| D17 | 4 Oct | **The voice path is wired for OpenAI Realtime first** (raw WebRTC, session config minted server-side). Gemini Live stays a fallback behind the same UI if the Hindi bake-off favours it. A text mode (Claude plus browser speech) always works. | Lowest integration risk; the bake-off still happens once keys arrive. | Refines D3. |
+
 ## Open questions for the team lead
 
 Each one has a default we will use if there's no answer.
