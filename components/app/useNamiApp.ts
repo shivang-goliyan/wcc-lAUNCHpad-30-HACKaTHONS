@@ -175,7 +175,10 @@ export function useNamiApp() {
         setVoice(st);
         if (st === 'error') setVoiceError(detail ?? 'error');
       },
-      onUserText: (text, final) => addCaption('meera', text, final),
+      onUserText: (text, final) => {
+        addCaption('meera', text, final);
+        if (final && text) void post('/api/safety', { text }).then((r) => r?.matched && mutate());
+      },
       onNamiText: (text, final) => addCaption('nami', text, final),
       onToolResult: () => void mutate(),
       onRemoteStream: async (stream) => {
@@ -222,6 +225,7 @@ export function useNamiApp() {
     async (text: string) => {
       if (!text.trim()) return;
       addCaption('meera', text, true);
+      void post('/api/safety', { text }).then((r) => r?.matched && mutate());
       if (rt.current?.connected) {
         rt.current.notify(`Meera typed: "${text}"`);
         return;

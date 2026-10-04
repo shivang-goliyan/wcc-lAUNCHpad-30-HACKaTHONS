@@ -333,3 +333,13 @@ it('a 3-day simulated run with random responses never violates invariants', () =
   const occKeys = h.s.occurrences.map((o) => `${o.scheduleId}@${o.dueAt}`);
   expect(new Set(occKeys).size).toBe(occKeys.length);
 });
+
+import { crisisMatch } from '../lib/verify/crisis';
+it('crisis safety net matches explicit phrases in en/hi/Hinglish only', () => {
+  expect(crisisMatch('Ab jeene ka mann nahi karta')).toBeTruthy();
+  expect(crisisMatch('मुझे सीने में दर्द है')).toBeTruthy();
+  expect(crisisMatch('I fell down in the bathroom')).toBeTruthy();
+  expect(crisisMatch('I fell asleep early')).toBeNull();
+  expect(crisisMatch('dawai gir gayi')).toBeNull();
+  expect(crisisMatch('aaj mausam accha hai')).toBeNull();
+});
