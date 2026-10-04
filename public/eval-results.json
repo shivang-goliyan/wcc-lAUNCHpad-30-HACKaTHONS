@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-10-04T11:19:11.239Z",
+  "generatedAt": "2026-10-04T14:14:32.276Z",
   "engine": {
     "passed": 28,
     "total": 28,
     "suite": "eval/engine.scenarios.test.ts",
-    "ranAt": "2026-10-04T11:18:54.327Z"
+    "ranAt": "2026-10-04T14:14:30.918Z"
   },
   "calls": {
     "passed": 5,
     "total": 5,
     "suite": "eval/calls.run.ts",
-    "ranAt": "2026-10-04T11:02:09.475Z",
-    "note": "0 false confirmations · 0 disclosure violations · scripted dialogue (no LLM key)"
+    "ranAt": "2026-10-04T14:13:38.502Z",
+    "note": "0 false confirmations · 0 disclosure violations · LLM caller + clinic simulator"
   }
 }

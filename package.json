@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "eval:calls": "tsx eval/calls.run.ts",
     "eval:intents": "tsx eval/intents.run.ts",
-    "eval:engine": "vitest run --reporter=default --reporter=json --outputFile.json=eval/results/engine.json",
+    "eval:engine": "vitest run eval/engine.scenarios.test.ts --reporter=default --reporter=json --outputFile.json=eval/results/engine.json",
     "eval:publish": "node scripts/publish-evals.mjs"
   },
   "dependencies": {
