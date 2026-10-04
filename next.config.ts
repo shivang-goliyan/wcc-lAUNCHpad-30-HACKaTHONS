@@ -1,7 +1,9 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'standalone',
+  serverExternalPackages: ['postgres', 'twilio'],
+  outputFileTracingIncludes: { '/*': ['./lib/db/schema.sql'] },
 };
 
 export default nextConfig;
