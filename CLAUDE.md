@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # CLAUDE.md — Nami Care (WCC Launchpad 30, Agentic AI track)
 
 **Deadline:** submit by Mon 5 Oct 2026, 13:30 IST (it closes at 14:00). Feature freeze is 10:00.
