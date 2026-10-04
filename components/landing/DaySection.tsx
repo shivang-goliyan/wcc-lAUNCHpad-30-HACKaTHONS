@@ -1,5 +1,6 @@
 import { InView } from './InView';
 import { NamiSlot } from './NamiSlot';
+import { SceneLife } from './SceneLife';
 import type { PoseName } from '@/lib/nami/poses';
 
 type Moment = {
@@ -84,7 +85,8 @@ export function DaySection() {
             {i > 0 && <NamiSlot id={`day-walk-${m.id}`} pose="walk" path walk className="absolute inset-x-0 -top-14 h-[150px] sm:-top-16 xl:h-[170px]" />}
             <InView amount={0.25}>
               <figure className="lp-rise relative mx-auto max-w-[1440px] px-0 sm:px-6">
-                <div className="relative overflow-hidden sm:rounded-[28px]">
+                <div className="relative isolate overflow-hidden sm:rounded-[28px]">
+                  <div className="sl-drift">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/scenes/${m.scene}.webp`}
@@ -94,6 +96,8 @@ export function DaySection() {
                     loading="lazy"
                     className="aspect-[16/9] w-full object-cover sm:aspect-[21/9]"
                   />
+                  <SceneLife scene={m.scene} />
+                  </div>
                   <div aria-hidden className={`absolute inset-y-0 ${m.side === 'left' ? 'left-0 bg-gradient-to-r' : 'right-0 bg-gradient-to-l'} w-1/2 from-black/25 to-transparent`} />
                 </div>
                 <figcaption

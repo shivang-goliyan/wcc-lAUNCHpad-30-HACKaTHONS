@@ -232,3 +232,26 @@
   .hz-steam, .hz-fall, .hz-sway, .sb-sway { animation: none; }
   .hz-fall { opacity: 0; }
 }
+
+/* day scenes */
+@keyframes sl-fly { from { transform: translateX(-120px); } to { transform: translateX(2080px); } }
+.sl-fly { animation: sl-fly linear infinite; }
+@keyframes sl-flap { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(-0.4); } }
+.sl-flap { transform-box: fill-box; transform-origin: center; animation: sl-flap 0.9s ease-in-out infinite; }
+@keyframes sl-mote { 0%, 100% { transform: translate(0, 0); opacity: 0; } 30%, 70% { opacity: 0.8; } 50% { transform: translate(14px, -26px); } }
+.sl-mote { animation: sl-mote ease-in-out infinite; }
+@keyframes sl-breathe { 0%, 100% { opacity: 0.55; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
+.sl-breathe { transform-box: fill-box; transform-origin: center; animation: sl-breathe 7s ease-in-out infinite; }
+@keyframes sl-flicker { 0%, 100% { opacity: 0.85; } 20% { opacity: 0.6; } 35% { opacity: 0.95; } 60% { opacity: 0.7; } 80% { opacity: 1; } }
+.sl-flicker { animation: sl-flicker 2.6s ease-in-out infinite; }
+@keyframes sl-beam { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.sl-beam { animation: sl-beam 9s ease-in-out infinite; mix-blend-mode: screen; }
+@keyframes sl-firefly { 0%, 100% { transform: translate(0, 0); opacity: 0; } 25% { opacity: 1; } 50% { transform: translate(30px, -40px); opacity: 0.3; } 75% { opacity: 1; transform: translate(-10px, -70px); } }
+.sl-firefly { animation: sl-firefly ease-in-out infinite; filter: drop-shadow(0 0 6px #ffd96b); }
+/* the painting drifts very slowly, like a held camera */
+@keyframes sl-drift { from { transform: scale(1.02) translate(0, 0); } to { transform: scale(1.08) translate(-1.2%, -0.8%); } }
+.sl-drift { animation: sl-drift 26s ease-in-out infinite alternate; will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-fly, .sl-flap, .sl-mote, .sl-breathe, .sl-flicker, .sl-beam, .sl-firefly, .sl-drift { animation: none; }
+}
