@@ -28,8 +28,6 @@ import { NamiSvg } from '@/components/nami/NamiSvg';
 import type { PoseName } from '@/lib/nami/poses';
 import { useNamiApp, post, type Snap } from './useNamiApp';
 
-const TERMINAL = ['resolved_user_responded', 'resolved_human_reported', 'cancelled_mistake'];
-
 function cx(...c: Array<string | false | null | undefined>) {
   return c.filter(Boolean).join(' ');
 }
@@ -48,9 +46,12 @@ export default function AppScreen() {
   const [ackPose, setAckPose] = useState(false);
   useEffect(() => {
     if (!app.ack) return;
-    setAckPose(true);
-    const id = setTimeout(() => setAckPose(false), 1100);
-    return () => clearTimeout(id);
+    const on = setTimeout(() => setAckPose(true), 0);
+    const off = setTimeout(() => setAckPose(false), 1100);
+    return () => {
+      clearTimeout(on);
+      clearTimeout(off);
+    };
   }, [app.ack]);
   const effectivePose: PoseName = interaction === 'help' ? 'help' : ackPose ? 'acknowledged' : pose === 'greeting' ? 'greeting' : (interaction as PoseName);
 

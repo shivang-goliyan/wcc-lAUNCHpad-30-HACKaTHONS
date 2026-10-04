@@ -3,9 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 declare global {
-  // eslint-disable-next-line no-var
   var __namiSql: ReturnType<typeof postgres> | undefined;
-  // eslint-disable-next-line no-var
   var __namiMigrated: Promise<void> | undefined;
 }
 

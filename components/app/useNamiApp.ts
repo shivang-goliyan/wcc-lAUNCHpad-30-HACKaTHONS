@@ -42,10 +42,13 @@ export function useNamiApp() {
   const t = STRINGS[lang];
 
   useEffect(() => {
-    try {
-      const l = localStorage.getItem('nami_lang');
-      if (l === 'en' || l === 'hi') setLang(l);
-    } catch {}
+    const id = setTimeout(() => {
+      try {
+        const l = localStorage.getItem('nami_lang');
+        if (l === 'en' || l === 'hi') setLang(l);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
   const switchLang = useCallback((l: UILang) => {
     setLang(l);

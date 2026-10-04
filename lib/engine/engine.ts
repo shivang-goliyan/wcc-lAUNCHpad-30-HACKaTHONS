@@ -728,7 +728,8 @@ function appointmentPropose(ctx: Ctx, cmd: Extract<Command, { type: 'appointment
   if (!ctx.consent('clinic_calls') || !ctx.consent('appointment_booking'))
     throw new EngineReject('no_consent', 'Missing consent', 'You have not given me permission to call clinics yet. You can turn it on in Settings.');
   const today = dateIso(now, tz);
-  let { dateFrom, dateTo } = cmd;
+  let dateFrom = cmd.dateFrom;
+  const dateTo = cmd.dateTo;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateFrom) || !/^\d{4}-\d{2}-\d{2}$/.test(dateTo)) throw new EngineReject('bad_dates', 'Bad date format');
   if (dateFrom < today) dateFrom = today;
   if (dateTo < dateFrom) throw new EngineReject('bad_range', 'Date range is backwards', 'Which days would suit you?');
