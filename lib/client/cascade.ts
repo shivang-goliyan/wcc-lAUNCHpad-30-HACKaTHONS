@@ -1,6 +1,6 @@
 'use client';
-// Voice without a speech-to-speech model: the browser listens (Web Speech API,
-// hi-IN or en-IN), the text agent answers through /api/chat, and Nami speaks the
+// Voice without a speech-to-speech model: Deepgram Nova-3 listens (Hindi and
+// English mixed; the browser's own recognition if Deepgram is unavailable), the text agent answers through /api/chat, and Nami speaks the
 // reply sentence by sentence through /api/tts (Fish Audio), prefetching the next
 // sentence while one plays. If the server voice is slow or missing, the browser's
 // own voice takes over, so she is never silent. She never listens while she
@@ -8,6 +8,7 @@
 
 import { createLipSync } from '@/components/nami/lipsync';
 import { speak, stopSpeaking } from './speak';
+import { deepgramListen, type Listen } from './deepgram';
 import type { VoiceState } from './realtime';
 
 type Rec = {
@@ -23,7 +24,8 @@ type Rec = {
 
 type W = Window & { SpeechRecognition?: new () => Rec; webkitSpeechRecognition?: new () => Rec };
 
-export const cascadeSupported = () => typeof window !== 'undefined' && !!((window as W).SpeechRecognition || (window as W).webkitSpeechRecognition);
+const browserSR = () => typeof window !== 'undefined' && !!((window as W).SpeechRecognition || (window as W).webkitSpeechRecognition);
+export const cascadeSupported = () => browserSR() || (typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia);
 
 export type CascadeHandlers = {
   onState: (st: VoiceState, detail?: string) => void;
@@ -46,6 +48,9 @@ export function sentences(text: string) {
 export class CascadeVoice {
   connected = false;
   private rec: Rec | null = null;
+  private dg: Listen | null = null;
+  private useDeepgram = true;
+  private dgFailures = 0;
   private audio: HTMLAudioElement | null = null;
   private stopLip: (() => void) | null = null;
   private turn = 0;
@@ -64,6 +69,8 @@ export class CascadeVoice {
     this.turn++;
     this.rec?.abort();
     this.rec = null;
+    this.dg?.abort();
+    this.dg = null;
     this.hush();
     this.h.onState('off');
   }
@@ -76,6 +83,8 @@ export class CascadeVoice {
   /** stop talking now (barge-in) and listen again */
   interrupt() {
     this.turn++;
+    this.dg?.abort();
+    this.dg = null;
     this.hush();
     if (this.connected) this.listen();
   }
@@ -90,6 +99,39 @@ export class CascadeVoice {
   }
 
   private listen() {
+    if (!this.connected) return;
+    if (this.useDeepgram) return void this.listenDeepgram();
+    this.listenBrowser();
+  }
+
+  private async listenDeepgram() {
+    const turn = this.turn;
+    this.h.onState('listening');
+    let l: Listen | null = null;
+    try {
+      l = await deepgramListen((text) => this.h.onUserText(text, false));
+    } catch {
+      // mic refused or Deepgram unreachable
+      l = null;
+    }
+    if (!l) {
+      // a blip uses the browser for this turn only; two in a row and we stop trying Deepgram
+      if (++this.dgFailures >= 2) this.useDeepgram = false;
+      if (browserSR()) return this.listenBrowser();
+      if (this.useDeepgram) return void setTimeout(() => this.connected && this.listen(), 800);
+      return this.h.onState('error', 'mic_unavailable');
+    }
+    this.dgFailures = 0;
+    if (!this.connected || turn !== this.turn) return l.abort();
+    this.dg = l;
+    const text = await l.done;
+    if (this.dg !== l || !this.connected || turn !== this.turn) return;
+    this.dg = null;
+    if (text) void this.respond(text);
+    else this.listen();
+  }
+
+  private listenBrowser() {
     if (!this.connected) return;
     const Ctor = (window as W).SpeechRecognition || (window as W).webkitSpeechRecognition;
     if (!Ctor) return;
@@ -115,7 +157,7 @@ export class CascadeVoice {
       if (this.rec !== rec || !this.connected) return;
       const text = final.trim();
       if (text) void this.respond(text);
-      else setTimeout(() => this.connected && this.rec === rec && this.listen(), 250);
+      else setTimeout(() => this.connected && this.rec === rec && this.listenBrowser(), 250);
     };
     this.rec = rec;
     this.h.onState('listening');
