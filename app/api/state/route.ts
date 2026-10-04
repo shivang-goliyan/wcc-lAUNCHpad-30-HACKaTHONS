@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const hh = await currentHousehold();
     if (!hh) return json({ ok: false, error: 'no_household' }, 401);
-    const snap = await appSnapshot(hh, { origin: req.nextUrl.origin });
+    const snap = await appSnapshot(hh, { origin: process.env.APP_URL?.replace(/\/$/, '') || req.nextUrl.origin });
     if (!snap) return json({ ok: false, error: 'no_household' }, 401);
     return json({ ok: true, ...snap });
   } catch (e) {

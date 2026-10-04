@@ -27,5 +27,6 @@ export async function GET(req: NextRequest) {
   );
   await setHouseholdCookie(id);
   const next = q.get('next') === '/console' ? '/console' : '/app';
-  return NextResponse.redirect(new URL(next, req.url), 303);
+  // behind Caddy req.url is the container's own address (localhost:3000), so go via the public URL
+  return NextResponse.redirect(new URL(next, process.env.APP_URL || req.url), 303);
 }
