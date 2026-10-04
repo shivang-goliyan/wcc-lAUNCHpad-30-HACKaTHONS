@@ -341,6 +341,10 @@ it('crisis safety net matches explicit phrases in en/hi/Hinglish only', () => {
   expect(crisisMatch('I fell down in the bathroom')).toBeTruthy();
   expect(crisisMatch('I fell asleep early')).toBeNull();
   expect(crisisMatch('dawai gir gayi')).toBeNull();
+  // Hinglish falls without "main" (missed before; found by the intent eval)
+  expect(crisisMatch('Madad chahiye, gir gayi hoon')).toBeTruthy();
+  expect(crisisMatch('bathroom mein gir padi hoon')).toBeTruthy();
+  expect(crisisMatch('चश्मा गिर गया')).toBeNull();
   expect(crisisMatch('aaj mausam accha hai')).toBeNull();
 });
 
