@@ -255,3 +255,9 @@
 @media (prefers-reduced-motion: reduce) {
   .sl-fly, .sl-flap, .sl-mote, .sl-breathe, .sl-flicker, .sl-beam, .sl-firefly, .sl-drift { animation: none; }
 }
+
+/* conversation replay */
+.rp-out { opacity: 0; transform: translateY(10px); }
+.rp-in { opacity: 1; transform: none; transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.rp-tick { transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1); transition-delay: calc(var(--i) * 170ms + 150ms); }
+[data-shown='0'] .rp-tick { opacity: 0; transform: scale(0.4); }

@@ -1,5 +1,5 @@
 import { Check, Phone } from 'lucide-react';
-import { InView } from './InView';
+import { Replay } from './Replay';
 import { NamiSlot } from './NamiSlot';
 
 type Who = 'meera' | 'nami' | 'clinic';
@@ -45,10 +45,9 @@ export function ThreadSection() {
 
         <div className="relative mt-12">
           <NamiSlot id="thread-lane" pose="listening" say="Listening to the clinic. Plain code checks what they say." className="absolute top-24 hidden h-[168px] w-[168px] xl:block xl:left-[calc(100%+40px)]" />
-          <InView amount={0.15}>
-            <ol className="space-y-5">
+          <Replay typing={THREAD.map((m) => m.kind === 'call' || m.kind === 'done' || (m.kind === 'say' && m.who !== 'meera'))} right={THREAD.map((m) => m.kind === 'say' && m.who === 'meera')}>
               {THREAD.map((m, i) => (
-                <li key={i} className="lp-rise" style={{ ['--d' as string]: `${i * 380}ms` }}>
+                <div key={i}>
                   {m.kind === 'say' && (
                     <div className={`flex items-end gap-3 ${m.who === 'meera' ? 'flex-row-reverse text-right' : ''}`}>
                       <Avatar who={m.who} />
@@ -92,11 +91,11 @@ export function ThreadSection() {
                   )}
                   {m.kind === 'checks' && (
                     <div className="ml-14 rounded-md border border-dashed border-teal-900/25 bg-white/60 p-4">
-                      <p className="text-[13px] font-semibold tracking-wide text-teal-700 uppercase">Verifier · plain code, no AI</p>
+                      <p className="font-hand text-[18px] text-teal-900">checked by plain code, no AI</p>
                       <ul className="mt-2 grid gap-x-6 gap-y-1 text-[14.5px] text-ink-900 sm:grid-cols-2">
-                        {CHECKS.map((c) => (
+                        {CHECKS.map((c, k) => (
                           <li key={c} className="flex items-center gap-2">
-                            <Check className="h-4 w-4 shrink-0 text-[#1f7a4c]" aria-hidden /> {c}
+                            <Check className="rp-tick h-4 w-4 shrink-0 text-[#1f7a4c]" style={{ ['--i' as string]: k }} aria-hidden /> {c}
                           </li>
                         ))}
                       </ul>
@@ -112,10 +111,9 @@ export function ThreadSection() {
                       </p>
                     </div>
                   )}
-                </li>
+                </div>
               ))}
-            </ol>
-          </InView>
+          </Replay>
         </div>
       </div>
     </section>

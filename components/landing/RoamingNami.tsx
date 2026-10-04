@@ -27,7 +27,7 @@ import { useReducedMotionSafe } from './useReducedMotionSafe';
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useMotionValue, useScroll } from 'motion/react';
+import { AnimatePresence, animate, motion, useMotionValue, useScroll } from 'motion/react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { clsx } from 'clsx';
 import { NamiImage } from '@/components/nami/NamiImage';
@@ -240,6 +240,7 @@ export function RoamingNami() {
     actUntil: 0,
     nextActAt: 0,
     cheerUntil: 0,
+    op: -1,
   });
 
   const apply = useCallback(() => {
@@ -248,12 +249,18 @@ export function RoamingNami() {
     r.frame = f;
     if (!f) {
       opacity.set(0);
+      r.op = 0;
       return;
     }
     x.set(f.x);
     y.set(f.y);
     scale.set(f.size / BASE);
-    opacity.set(f.opacity);
+    // never parked half-transparent: she is either there or not, and fades between the two in time, not with the scroll
+    const op = f.opacity > 0.5 ? 1 : 0;
+    if (op !== r.op) {
+      r.op = op;
+      animate(opacity, op, { duration: op ? 0.28 : 0.2, ease: 'easeOut' });
+    }
     const now = performance.now();
     let p = f.pose;
     if (f.heroHold) p = now < r.greetUntil ? 'greeting' : 'idle';
