@@ -1,5 +1,5 @@
 import { ArrowRight, Activity } from 'lucide-react';
-import { NamiSvg } from '@/components/nami/NamiSvg';
+import { NamiImage } from '@/components/nami/NamiImage';
 
 export function NoHousehold() {
   return (
@@ -7,7 +7,7 @@ export function NoHousehold() {
       <div className="pointer-events-none absolute -top-40 -right-40 size-[520px] rounded-full bg-sea-500/15 blur-3xl" aria-hidden />
       <div className="relative w-full max-w-lg text-center">
         <div className="mx-auto flex size-36 items-center justify-center overflow-hidden rounded-full bg-sea-200/20 ring-1 ring-white/15">
-          <NamiSvg pose="greeting" className="mt-[14%] h-[115%] w-[115%]" title="Nami waving" />
+          <NamiImage pose="greeting" className="mt-[14%] h-[115%] w-[115%]" title="Nami waving" />
         </div>
         <p className="mt-6 inline-flex items-center gap-2 text-[13px] font-bold tracking-[.18em] text-sea-500 uppercase">
           <Activity className="size-4" aria-hidden />

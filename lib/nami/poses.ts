@@ -15,7 +15,8 @@
  * are measured from the rest pose (arm hanging straight down).
  */
 
-export type PoseName =
+/** Poses the SVG rig can draw. */
+export type RigPose =
   | "idle"
   | "greeting"
   | "listening"
@@ -30,6 +31,9 @@ export type PoseName =
   | "peek"
   | "point-left"
   | "point-right";
+
+/** Painted-only poses; the SVG rig shows idle for these. */
+export type PoseName = RigPose | "walk" | "walk-left" | "celebrate" | "hop" | "heart";
 
 export const POSE_NAMES: readonly PoseName[] = [
   "idle",
@@ -46,6 +50,11 @@ export const POSE_NAMES: readonly PoseName[] = [
   "peek",
   "point-left",
   "point-right",
+  "walk",
+  "walk-left",
+  "celebrate",
+  "hop",
+  "heart",
 ];
 
 export type MouthShape = "closed-smile" | "small" | "wide" | "round" | "soft-o";
@@ -326,7 +335,7 @@ function onProp(prop: PropPose, dx: number, dy: number): Pt {
   );
 }
 
-export const POSES: Record<PoseName, Pose> = {
+export const POSES: Record<RigPose, Pose> = {
   idle: pose({}),
 
   greeting: pose({
@@ -465,7 +474,7 @@ export const POSES: Record<PoseName, Pose> = {
 };
 
 export function getPose(name: PoseName): Pose {
-  return POSES[name] ?? POSES.idle;
+  return POSES[name as RigPose] ?? POSES.idle;
 }
 
 /** DESIGN.md §7 thresholds (single frame; the 140 ms wide/round alternation is applied by the renderer). */

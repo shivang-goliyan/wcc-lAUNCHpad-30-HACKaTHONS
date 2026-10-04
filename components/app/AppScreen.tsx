@@ -24,7 +24,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { NamiSvg } from '@/components/nami/NamiSvg';
+import { NamiImage } from '@/components/nami/NamiImage';
 import type { PoseName } from '@/lib/nami/poses';
 import { useNamiApp, post, type Snap } from './useNamiApp';
 
@@ -76,7 +76,7 @@ export default function AppScreen() {
     return (
       <main className="grid min-h-screen place-items-center p-6">
         <div className="max-w-md rounded-[20px] bg-card p-8 text-center shadow-[0_8px_30px_rgba(23,61,56,.1)]">
-          <NamiSvg pose="greeting" className="mx-auto h-40 w-40" title="Nami waving" />
+          <NamiImage pose="greeting" className="mx-auto h-40 w-40" title="Nami waving" />
           <h1 className="mt-4 font-display text-3xl text-teal-900">Meet Nami</h1>
           <p className="mt-2 text-ink-600">Start a private demo household as Meera ji. Nothing real is called unless you set it up.</p>
           <a href="/try" className="mt-6 inline-flex rounded-full bg-teal-900 px-6 py-3 text-lg font-semibold text-ivory-50">Start the demo</a>
@@ -87,7 +87,7 @@ export default function AppScreen() {
   if (!data?.ok || !app.derived) {
     return (
       <main className="grid min-h-screen place-items-center">
-        <NamiSvg pose="thinking" className="h-40 w-40 opacity-80" title="Loading" />
+        <NamiImage pose="thinking" className="h-40 w-40 opacity-80" title="Loading" />
       </main>
     );
   }
@@ -132,7 +132,7 @@ export default function AppScreen() {
               </div>
               <div className="relative flex items-end justify-center">
                 <motion.div layout className="w-[240px] sm:w-[280px]">
-                  <NamiSvg pose={effectivePose} mouth={app.mouth} lookAt={look} reducedMotion={d.recipient.prefs.reducedMotion} title={`Nami — ${statusText}`} className="h-auto w-full drop-shadow-[0_18px_24px_rgba(23,61,56,.18)]" />
+                  <NamiImage pose={effectivePose} mouth={app.mouth} lookAt={look} reducedMotion={d.recipient.prefs.reducedMotion} title={`Nami — ${statusText}`} className="h-auto w-full drop-shadow-[0_18px_24px_rgba(23,61,56,.18)]" />
                 </motion.div>
               </div>
             </div>
@@ -167,7 +167,7 @@ function Header({ app, d }: { app: App; d: Snap }) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-4 py-3 lg:px-6">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-sea-200">
-            <NamiSvg pose="idle" className="h-12 w-12 translate-y-1" blink="off" reducedMotion />
+            <NamiImage pose="idle" className="h-12 w-12 translate-y-1" blink="off" reducedMotion />
           </span>
           <span className="font-display text-2xl font-semibold text-teal-900">Nami Care</span>
         </Link>

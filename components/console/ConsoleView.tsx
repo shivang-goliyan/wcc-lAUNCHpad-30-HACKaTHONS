@@ -21,7 +21,7 @@ import {
   WifiOff,
   type LucideIcon,
 } from 'lucide-react';
-import { NamiSvg } from '@/components/nami/NamiSvg';
+import { NamiImage } from '@/components/nami/NamiImage';
 import type { PoseName } from '@/lib/nami/poses';
 import type { ConsoleState } from './types';
 import { actorView, humanize, istTime, KIND_CHIP, LIVE_CALL_STATES, nodesForCall, nodesForEvent, type NodeId } from './format';
@@ -223,7 +223,7 @@ export function ConsoleView() {
             <AgentGraph active={active} live={live} recipientFirst={recipientFirst} caregivers={caregivers} clinicMode={clinicMode} />
             <aside className="flex flex-row items-center gap-4 rounded-2xl bg-ivory-50 p-4 lg:flex-col lg:items-stretch lg:text-center">
               <div className="mx-auto flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sea-200/60 ring-1 ring-sea-500/40 lg:size-32">
-                <NamiSvg pose={poseFor(lead, helpOpen)} className="mt-[14%] h-[115%] w-[115%]" title={`Nami, ${poseFor(lead, helpOpen)} pose`} />
+                <NamiImage pose={poseFor(lead, helpOpen)} className="mt-[14%] h-[115%] w-[115%]" title={`Nami, ${poseFor(lead, helpOpen)} pose`} />
               </div>
               <div className="min-w-0 flex-1 text-left lg:text-center">
                 <p className="text-[12px] font-bold tracking-[.14em] text-ink-600 uppercase">Latest step</p>

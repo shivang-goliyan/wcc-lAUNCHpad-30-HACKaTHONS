@@ -4,7 +4,7 @@
  * NamiStage: the app → animation adapter (docs/DESIGN.md §5–6).
  *
  * Takes the binding `NamiProps` contract, applies the visual state priority,
- * maps the state to a pose and renders NamiSvg plus accessible status text
+ * maps the state to a pose and renders NamiImage plus accessible status text
  * OUTSIDE the SVG (aria-live). Care logic never lives here: this only reflects
  * state that the app already owns.
  */
@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import type { MotionValue } from "motion/react";
 import { Mic, MicOff, Phone, RefreshCw, WifiOff } from "lucide-react";
 import { clsx } from "clsx";
-import { NamiSvg } from "./NamiSvg";
+import { NamiImage } from "./NamiImage";
 import type { PoseName } from "@/lib/nami/poses";
 
 export type InteractionState =
@@ -284,7 +284,7 @@ export function NamiStage({
       data-nami-pose={pose}
     >
       <div style={{ width: px, height: px }}>
-        <NamiSvg
+        <NamiImage
           pose={pose}
           mouth={mouth}
           lookAt={lookAt}

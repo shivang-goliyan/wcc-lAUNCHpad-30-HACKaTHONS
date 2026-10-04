@@ -1,0 +1,1 @@
+The second attached image is the END pose. Generate the single in-between animation frame exactly HALFWAY from the master pose to the end pose: her arm is halfway extended toward the viewer's left, head turned halfway in that direction. Everything that does not move (face, body, legs, tail, scarf) stays exactly as in the master.

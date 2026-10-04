@@ -1,0 +1,1 @@
+The second attached image is the END pose. Generate the single in-between animation frame exactly HALFWAY from the master pose to the end pose: her paw is lifted halfway into the explanatory gesture, mouth slightly parted. Everything that does not move (face, body, legs, tail, scarf) stays exactly as in the master.

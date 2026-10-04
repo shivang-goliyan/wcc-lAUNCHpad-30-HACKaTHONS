@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotionValue } from "motion/react";
 import { clsx } from "clsx";
-import { NamiSvg } from "@/components/nami/NamiSvg";
+import { NamiImage } from "@/components/nami/NamiImage";
 import {
   NamiStage,
   type CaseStatus,
@@ -177,7 +177,7 @@ export function MascotLab() {
         <p className="text-sm font-semibold uppercase tracking-widest text-[#80A99B]">Nami Care · dev</p>
         <h1 className="mt-1 text-3xl font-semibold">Mascot lab</h1>
         <p className="mt-2 max-w-2xl text-[#4A5552]">
-          Every pose of the SVG rig, the app state contract (<code>NamiStage</code>), the mouth thresholds and a
+          Every painted pose, the app state contract (<code>NamiStage</code>), the mouth thresholds and a
           speech-synthesis lip-sync test. Move the pointer and she follows it with her eyes.
         </p>
       </header>
@@ -290,7 +290,7 @@ export function MascotLab() {
               className="flex flex-col items-center rounded-[20px] border border-[#DCD6C8] p-2"
               style={{ background: BG[bg] }}
             >
-              <NamiSvg
+              <NamiImage
                 pose={p}
                 reducedMotion={reduced}
                 lookAt={follow ? look : null}
