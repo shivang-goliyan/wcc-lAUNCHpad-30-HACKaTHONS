@@ -84,39 +84,29 @@ radius: 20px cards, 999px pills · shadow: 0 8px 30px rgba(23,61,56,.10)
 - A call transcript viewer showing verifier checks.
 - The eval results card.
 
-## 4. Asset list for designers (deliver to `public/nami/`)
+## 4. Mascot build: SVG rig (built by Claude, `DECISIONS.md` D10)
 
-Every asset uses the same 1024×1024 transparent canvas, the same baseline (feet at y = 900) and the same scale. Export WebP and PNG at @1x (512) and @2x (1024).
+Nami is a single React SVG component, `components/nami/NamiSvg.tsx`, drawn on a 400×400 viewBox with the feet baseline at y = 370. The style is a soft 2.5D vector look: radial gradients for the fur volume, a cream muzzle and belly, a soft rim light, and a sea-green scarf with a knot. The Codex concept (`design/reference/concept-000.png`) is the identity reference.
 
-**A. Seated rig layers** (the app plus most of the landing; this is what makes her feel alive). Each layer is exported separately, aligned on the same canvas, with hidden areas painted in:
-- `rig/body.png` (torso, legs, belly)
-- `rig/tail.png` (pivot at its base)
-- `rig/head.png` (head base, ears, muzzle, nose)
-- `rig/brows.png`
-- `rig/eye-whites.png`, `rig/pupil-l.png`, `rig/pupil-r.png` (the pupils move ±12 px for cursor tracking)
-- `rig/lids-closed.png` (for blinking)
-- `rig/mouth-closed.png`, `rig/mouth-small.png`, `rig/mouth-wide.png`, `rig/mouth-round.png` (for lip-sync)
-- `rig/arm-l.png`, `rig/arm-r.png` (pivot at the shoulder; the right arm waves), `rig/scarf-tail.png` (sways gently)
+**Named groups**, each with its own `transform-origin` pivot:
+- `tail` (base), `body`, `belly`, `legs`
+- `arm-l`, `arm-r` (shoulder), `paw-l`, `paw-r`
+- `head` (neck), `ear-l`, `ear-r`
+- `eye-l`, `eye-r` (whites + iris + pupil + highlight), `lid-l`, `lid-r` (blink scaleY), `brow-l`, `brow-r`
+- `muzzle`, `nose`, `whiskers`
+- `mouth`, which switches between 5 shapes: `closed-smile`, `small`, `wide`, `round`, `soft-o`
+- `scarf-knot`, `scarf-tail`
+- `prop` slot: `phone`, `clock-card`, `notebook`, `heart`, `sign`
 
-**B. Full poses** (crossfaded and kept on the same baseline):
-`listening`, `thinking` (notebook), `reminder` (holding a blank clock card), `calling` (phone to ear), `help` (paw extended, calm), `nod`, `quiet` (curled up, eyes closed), `point-left`, `point-right`, `swim` (floating on her back, holding a blank card, which is iconic otter behaviour), `peek` (head and paws over an edge), `wave`.
+**Poses are data**, not separate art. Each pose is a table of part transforms (`lib/nami/poses.ts`). The poses are:
+`idle`, `greeting` (wave), `listening` (head tilt, paw to ear), `thinking` (notebook, eyes up), `speaking` (open-handed gesture), `reminder` (clock card at chest), `acknowledged` (nod), `calling` (phone to ear), `help` (upright, paw extended), `quiet` (eyes closed, curled), `swim` (on her back, holding a card), `peek` (cropped by the container edge), `point-left`, `point-right`.
 
-**C. Optional Rive file `nami.riv`**, if your animator can rig it in time. The required inputs are in §6, and it replaces A and B without any code change.
-
-**D. Scene art.** The hero lake background (layered: sky, mountains, mist, water, rock) and a wave divider SVG.
-
-**E. Release checks** (from the source doc): no extra limbs, the scarf is consistent, the transparency is real (not a painted checkerboard), there is no text inside the art, she is readable at 180 px, and she looks right on both ivory and teal backgrounds.
-
-**Deadlines:**
-- Master neutral approved by **18:00 Sun**.
-- Rig layers plus 6 poses by **23:00 Sun**.
-- The rest by **04:00 Mon**.
-- Developers integrate placeholder art until then.
+**Release checks:** readable at 120 px; looks right on ivory and teal; no part gaps during any transition; reduced-motion static frames look intentional; rendered and visually checked through Playwright screenshots for every pose (`design/renders/`).
 
 ## 5. Rendering implementation
 
-- `NamiStage` takes a `NamiProps` contract (§6) and picks `RiveRig` if `/nami/nami.riv` exists, otherwise `PoseRig`.
-- **`PoseRig`** stacks the rig layers in one SVG/`div` and animates them with `motion`:
+- `NamiStage` takes a `NamiProps` contract (§6) and renders `NamiSvg` with the pose for the state.
+- **`NamiSvg`** animates its part groups with `motion` (springs between pose tables):
   - **Breathing:** body `scaleY` 1 → 1.015 over 5 s, eased.
   - **Blinking:** irregular, every 3–7 s, lids visible for 120 ms.
   - **Tail:** sway ±4° over 6 s.
@@ -124,7 +114,7 @@ Every asset uses the same 1024×1024 transparent canvas, the same baseline (feet
   - **Head:** tilt (listening = 6°).
   - **Pupils:** follow the pointer (landing) or the focused UI element (app).
   - **Mouth:** swap images by the `mouthOpen` thresholds (§7).
-  - **Full poses:** crossfade over 200 ms with a 0.98 → 1 scale and the same anchor.
+  - **Pose changes:** spring-interpolate every part transform over about 250 ms, so there is no crossfade and no jump.
 - **`RoamingNami`** (landing only) is a fixed-position layer.
   - `useScroll` → progress → keyframes along an SVG path per section, with a pose per segment (swim on wave dividers, peek at section edges, point at cards).
   - On mobile she only peeks and points.
@@ -154,7 +144,6 @@ type NamiProps = {
 
 - An open help case is never visually replaced. The `calling` status shows as a chip instead.
 - The connection badge is shown independently.
-- **Mapping to Rive inputs:** a number `state` (index in the order above), a number `mouth` (0–100), booleans `reduced`, `blink` (trigger), `wave` (trigger), `nod` (trigger), and numbers `lookX` / `lookY` (−1..1).
 
 ## 7. Lip-sync (`components/nami/lipsync.ts`)
 

@@ -17,13 +17,13 @@ With 3 people, P's work is split between D and L.
 
 | IST | L (backend/agents) | F (frontend/voice) | D (design/mascot) | P (product/evidence) |
 |---|---|---|---|---|
-| **16:30–17:30** | Accounts: Vercel, Supabase, QStash, Anthropic, OpenAI and/or Gemini, Bolna (+ verified numbers). Scaffold Next.js, deploy "hello" to the live URL. | Voice spike: the minimal Talk button with both providers | Approve the master Nami neutral (from the concept art) | Send interview requests; publish the survey (§6) |
+| **16:30–17:30** | Scaffold Next.js + worker + Docker Compose; deploy "hello" to the VM over HTTPS. Keys: Anthropic, OpenAI and/or Gemini, Twilio (+ verified numbers). | Voice spike: the minimal Talk button with both providers | Approve the master Nami neutral (from the concept art) | Send interview requests; publish the survey (§6) |
 | **17:30–18:00** | Hindi **bake-off** with F (D3). Lock the provider. | Bake-off | Start the rig layers | Interviews |
 | **18:00–21:00** | `lib/db/schema.ts`, seed, the engine for reminders and appointments, verifiers, vitest for tests 1, 2, 9–12, 15 | `/app` layout, buttons and keyboard, My Day, `/api/state` polling, `NamiStage` with placeholder art, captions | Rig layers (A) | Interviews; landing copy EN/HI; data cards |
 | **21:00–00:00** | `/api/voice/session` + tool routes; caller + clinic sim + extractor; outbox | Realtime client + tool bridge + interruption; ApprovalCard; live call transcript; lip-sync | Poses (B): listening, thinking, reminder, calling, help, nod | Landing build with D: hero, sections, roaming path |
 | **00:00–03:00** | Check-in and help engine, contact tokens, caregiver API, demo clock + skip, tests 3–8, 13, 14 | Help banner, caregiver page + QR, Activity panel, EN/हिं i18n, settings | Remaining poses (swim, peek, point, wave, quiet) + hero scene | Survey analysis; slide-worthy numbers; README draft |
 | **03:00–05:00** | Sleep rotation: 2 people sleep at a time for 2 h. Before sleeping, deploy and run the end-to-end smoke test (`TRD.md` §14). | | | |
-| **05:00–08:00** | Bolna adapter + webhooks + real calls to the verified phones; cost caps; `eval:intents`, `eval:calls` | Integrate final art; reduced motion; accessibility pass; text-mode fallback; `/console` | Polish the landing animation; app micro-interactions | Memory Corner (P1) with L, if P0 is green |
+| **05:00–08:00** | Twilio adapter (Say/Gather loop) + real calls to the verified phones; cost caps; `eval:intents`, `eval:calls` | Integrate final art; reduced motion; accessibility pass; text-mode fallback; `/console` | Polish the landing animation; app micro-interactions | Memory Corner (P1) with L, if P0 is green |
 | **08:00–10:00** | Bug bash, eval results to README, architecture diagram | Bug bash on mobile and incognito | Thumbnail, video graphics | Script and shot list (`PRD.md` §9); rehearse |
 | **10:00** | **FEATURE FREEZE.** Only bug fixes after this. | | | |
 | **10:00–12:00** | Record the video with real phones ringing (clinic and Arjun) using the `video` household | Monitor the prod build | Edit the video (≤ 3 min) | Direct; voice-over |
@@ -52,7 +52,7 @@ With 3 people, P's work is split between D and L.
 - [ ] README: problem, demo link, video, architecture, agents, eval, setup, honest limitations.
 
 ## 3. Branching and deploys
-- Merge `main` → Vercel production only after the smoke test passes. Feature branches merge through short PRs, or direct pushes if the team agrees.
+- Deploy `main` to the VM (`git pull && docker compose up -d --build`) only after the smoke test passes. Feature branches merge through short PRs, or direct pushes if the team agrees.
 - Never commit `.env*`. Run `git secrets` or a `grep` for keys before making the repo public.
 
 ## 4. Repo README outline

@@ -8,9 +8,9 @@ The prompts here are the source of truth. Code copies them into `lib/agents/prom
 | # | Agent | Kind | Model | Job | Can it change state? |
 |---|---|---|---|---|---|
 | A1 | **Nami** (conversation) | Realtime voice LLM | D3 (`gpt-realtime-2.1` or `gemini-3.8-live`) | Talks with Meera and calls tools | No. It calls tools, and the engine decides. |
-| A2 | **Caller** | Text LLM in a loop (sim) / Bolna agent prompt (phone) | `claude-sonnet-5-5` / Bolna | Speaks to the clinic *for* Meera, within the permitted disclosure | No. It only produces a transcript. |
+| A2 | **Caller** | Text LLM, turn by turn (the same agent for sim and Twilio) | `claude-sonnet-5-5` | Speaks to the clinic *for* Meera, within the permitted disclosure | No. It only produces a transcript. |
 | A3 | **Clinic simulator** | Text LLM + calendar tools | `claude-sonnet-5-5` | Plays the receptionist using a deterministic calendar (sim mode only, labelled) | Changes only the sim calendar |
-| A4 | **Family alert** | Bolna agent prompt (phone) / link (sim) | Bolna | Tells a contact the facts and asks for an explicit yes or no | No |
+| A4 | **Family alert** | Text LLM over a Twilio call (phone) / scoped link and QR (always) | `claude-sonnet-5-5` | Tells a contact the facts and asks for an explicit yes or no | No |
 | A5 | **Extractor** | Text LLM, tool-forced structured output | `claude-sonnet-5-5` | Transcript → `{slot, confirmed, accepted, quotes}` | No. The output goes to the verifier. |
 | A6 | **Verifier** | **Plain TypeScript** | — | Checks slot, affirmation and disclosure (`TRD.md` §7.3) | Gate only |
 | A7 | **Workflow engine** | **Plain TypeScript** | — | Owns the state machines, permissions, timers and the outbox | **Yes, and it is the only thing that can** |
@@ -128,9 +128,9 @@ Its tools are `lookup_slots(date_from, date_to, window)`, `hold_slot(slot_id)` a
 3. The UI polls `/api/calls/:id`. Optionally, each turn is spoken with distinct browser voices (the clinic is labelled "Simulated clinic voice").
 4. **End**: when the caller says goodbye, the extractor runs.
 
-## 6. A4 Family alert (Bolna agent "Nami Family Alert")
+## 6. A4 Family alert (runs over the Twilio turn loop)
 
-The `user_data` variables are `contact_name`, `recipient_name`, `case_kind`, `facts`, `link_hint`.
+The template variables are `contact_name`, `recipient_name`, `case_kind`, `facts`, `link_hint`.
 
 ```
 You are Nami, an automated AI assistant for {{recipient_name}}. Speak Hindi or English, matching the person.
@@ -174,4 +174,4 @@ The form asks for "agents/chains/eval", so these numbers go into the README, `/c
 
 ## 9. Form answer draft: "Prompt architecture and AI workflow"
 
-> A realtime voice agent (Nami) talks with the user in Hindi, English or Hinglish and acts only through 12 schema-validated tools. Consequential tools are two-phase (propose → confirm), and the confirmation is checked against the user's actual transcript by a deterministic affirmation verifier. A Caller agent phones the clinic (real calls via Bolna, or an AI clinic simulator backed by a deterministic calendar). An Extractor turns transcripts into quoted, structured facts. A deterministic Verifier checks slot validity and data disclosure. A deterministic workflow engine is the only component that can change care state. It runs the reminder, check-in, help and appointment state machines with idempotent commands, a transactional outbox and a virtual clock. Eval: 18 engine scenarios, 60 multilingual intent cases, and 30 simulated clinic calls measuring false confirmations and disclosure violations.
+> A realtime voice agent (Nami) talks with the user in Hindi, English or Hinglish and acts only through 12 schema-validated tools. Consequential tools are two-phase (propose → confirm), and the confirmation is checked against the user's actual transcript by a deterministic affirmation verifier. A Caller agent phones the clinic (real calls via Twilio, or an AI clinic simulator backed by a deterministic calendar). An Extractor turns transcripts into quoted, structured facts. A deterministic Verifier checks slot validity and data disclosure. A deterministic workflow engine is the only component that can change care state. It runs the reminder, check-in, help and appointment state machines with idempotent commands, a transactional outbox and a virtual clock. Eval: 18 engine scenarios, 60 multilingual intent cases, and 30 simulated clinic calls measuring false confirmations and disclosure violations.

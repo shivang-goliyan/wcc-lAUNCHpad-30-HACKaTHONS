@@ -94,7 +94,7 @@ All links are in `research/connection-research.md`.
 | F10 | **Memory Corner.** A family photo → Nami invites a story → Meera reviews it → it's sent to family as a text summary and audio | P1 |
 | F11 | **Memory control.** "What Nami remembers about me" with delete and export | P1 |
 | F12 | **Single-switch scanning mode** (one key cycles focus, another selects) | P1 |
-| F13 | **Real phone calls through Bolna** to verified team numbers (for the video) | P1 (the simulated clinic is P0) |
+| F13 | **Real phone calls through Twilio** (US number) to verified team numbers (for the video and live proof) | P1 (the simulated clinic is P0) |
 | F14 | Wake word ("Nami") | P2 |
 | F15 | Electron floating desktop window, WhatsApp, more languages | P2 |
 

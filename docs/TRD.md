@@ -10,7 +10,7 @@
 ## 1. Architecture
 
 ```
- Browser (Next.js client)                          Vercel (Next.js server)                      External
+ Browser (Next.js client)                          Your VM (Docker Compose)                      External
  ┌──────────────────────────────┐   ephemeral   ┌───────────────────────────────┐
  │ Landing  /   (Nami roams)    │◄──token───────│ /api/voice/session            │──────► Realtime voice model
  │ App      /app (Meera)        │               │   caps, rate limits, prompt   │        (WebRTC direct from browser)
@@ -25,11 +25,11 @@
                                                 │  lib/agents  (caller, sim     │──────► LLM (text, structured)
                                                 │     clinic, extractor)        │
                                                 │  lib/verify  (deterministic)  │
-                                                │  outbox dispatcher ───────────┼──────► Calling: Sim | Bolna
-                                                │  /api/webhooks/bolna ◄────────┼─────── call results
-                                                │  /api/cron/tick ◄─────────────┼─────── QStash (every minute)
+                                                │  outbox dispatcher ───────────┼──────► Calling: Sim | Twilio
+                                                │  /api/twilio/* ◄──────────────┼─────── Twilio voice webhooks
+                                                │  worker: tick loop every 5 s ─┼─────── (no external cron)    
                                                 └──────────────┬────────────────┘
-                                                               │ Postgres (Supabase)
+                                                               │ Postgres 16 (Docker)
                                                                ▼
                                      households, care_recipients, contacts, consents, clinics,
                                      reminder_schedules/occurrences, cases, contact_attempts,
@@ -44,20 +44,20 @@ These are locked unless `DECISIONS.md` says otherwise.
 |---|---|
 | App | Next.js (App Router), TypeScript strict, pnpm |
 | UI | Tailwind CSS v4, `motion` (Framer Motion), Radix primitives, `lucide-react` icons |
-| Mascot | `@rive-app/react-canvas` if a `.riv` is delivered; otherwise a layered PNG/SVG rig animated with `motion` (`DESIGN.md` §5) |
+| Mascot | Layered SVG rig in React (`NamiSvg`), animated with `motion` (`DESIGN.md` §4–5) |
 | i18n | Simple dictionary: `lib/i18n/{en,hi}.ts`; fonts Noto Sans + Noto Sans Devanagari |
-| Data | Supabase Postgres, Drizzle ORM, `postgres` driver (`prepare: false` for the pooler) |
-| Storage | Supabase Storage (Memory Corner photos and audio) — P1 |
-| Scheduling | Upstash QStash schedule → `/api/cron/tick` every minute, plus client ticks while the app is open, plus demo skip |
-| Live updates | SWR polling (1.5 s app, 2 s caregiver). No websockets, which keeps things robust on Vercel. |
+| Data | Postgres 16 in Docker on the VM, Drizzle ORM, `postgres` driver |
+| Storage | Docker volume `./data/uploads` served by an authenticated route (Memory Corner) — P1 |
+| Scheduling | A `worker` process (same codebase, `tsx worker/index.ts`) ticks every 5 s and dispatches the outbox. Client heartbeats and demo skip also tick. |
+| Live updates | SWR polling (1.5 s app, 2 s caregiver). Simple and robust. |
 | Voice | Realtime speech-to-speech in the browser behind a `VoiceAdapter`: OpenAI `gpt-realtime-2.1` (WebRTC) **or** Gemini `gemini-3.8-live` (WebSocket). The Hindi bake-off at 17:30 picks one (`DECISIONS.md` D3). |
 | Text LLM | Claude via the Anthropic SDK (`@anthropic-ai/sdk`): `claude-sonnet-5-5` for the caller, sim clinic, extractor and text-mode chat; `claude-haiku-4-5-20251001` for bulk eval and summaries. Output is constrained by tool schemas and validated with zod (D4). |
-| Phone | `CallingAdapter` with `sim` (default) and `bolna` (real +91 calls to allow-listed numbers) |
+| Phone | `CallingAdapter` with `sim` (default) and `twilio` (real calls from a US Twilio number to allow-listed, Twilio-verified numbers) |
 | Email | Resend (caregiver link). Needs a verified domain (D7). |
 | Auth | Sandbox household = signed httpOnly cookie. Caregiver = HMAC-signed scoped token (`jose`). Admin = env password for `/console?admin`. |
 | Validation | `zod` on every API input, tool argument and LLM structured output |
 | Tests | `vitest` (engine + verifier), `eval/` runner scripts |
-| Deploy | Vercel (production branch `main`), custom `.xyz` domain |
+| Deploy | The team's VM: Docker Compose (`caddy` with automatic HTTPS, `web` Next.js standalone, `worker`, `db`). Domain is `.xyz` or `<ip>.sslip.io`. HTTPS is required for the mic and Twilio. |
 
 ## 3. Repository layout
 
@@ -77,7 +77,7 @@ app/
     reminders/[id]/outcome/route.ts
     checkin/respond/route.ts    help/route.ts             help/[caseId]/mistake/route.ts
     appointments/route.ts       appointments/[id]/permit/route.ts   appointments/[id]/approve/route.ts
-    calls/[id]/route.ts         webhooks/bolna/route.ts
+    calls/[id]/route.ts         twilio/{voice,gather,status}/route.ts
     care/[token]/state/route.ts care/[token]/action/route.ts  care/[token]/memory/route.ts
     settings/route.ts
 components/
@@ -88,7 +88,7 @@ lib/
   engine/          types.ts, reminder.ts, checkin.ts, help.ts, appointment.ts, tick.ts, commands.ts, policy.ts
   verify/          slot.ts, affirmation.ts, disclosure.ts
   agents/          prompts/*.md, tools.ts (zod schemas), caller.ts, clinicSim.ts, extractor.ts, memory.ts
-  adapters/        calling/{index,sim,bolna}.ts, voice/{index,<provider>}.ts, email.ts
+  adapters/        calling/{index,sim,twilio}.ts, voice/{index,<provider>}.ts, email.ts
   db/              schema.ts, client.ts, repo.ts (load snapshot / persist result in one tx)
   outbox.ts  clock.ts  ids.ts  auth.ts  limits.ts  seed.ts  i18n/
 eval/
@@ -118,7 +118,7 @@ The source of truth is `lib/db/schema.ts`. Rules for every table:
 | `cases` | `id`, `type` (`checkin` / `help`), `state` (§5.2), `opened_at`, `deadline_at`, `step int`, `owner_contact_id`, `evidence jsonb`, `resolution`, `resolved_at`, `version`. **Partial UNIQUE(household_id, type) WHERE state not terminal** |
 | `contact_attempts` | `id`, `case_id`, `contact_id` (null if the recipient), `channel` (`page` / `phone` / `link` / `email`), `state`, `call_id`, `outcome`, `evidence jsonb`, `idempotency_key UNIQUE`, `timeout_at` |
 | `appointment_requests` | `id`, `clinic_id`, `state` (§5.3), `constraints jsonb` {date_from, date_to, window, reason}, `disclosure jsonb`, `request_key UNIQUE`, `offered_slot jsonb`, `verification jsonb` [{check, pass, detail}], `approved_at`, `approval_quote`, `confirmed_at`, `confirmation_evidence jsonb`, `failure_reason`, `version` |
-| `call_sessions` | `id`, `purpose` (`clinic_availability` / `clinic_confirm` / `contact_alert` / `recipient_checkin`), `adapter` (`sim` / `bolna`), `provider_call_id UNIQUE`, `state` (`queued` / `ringing` / `in_progress` / `completed` / `no_answer` / `busy` / `voicemail` / `failed`), `transcript jsonb` [{speaker, text, lang, t}], `extracted jsonb`, `raw jsonb`, `started_at`, `ended_at`, `related_id` |
+| `call_sessions` | `id`, `purpose` (`clinic_availability` / `clinic_confirm` / `contact_alert` / `recipient_checkin`), `adapter` (`sim` / `twila`), `provider_call_id UNIQUE`, `state` (`queued` / `ringing` / `in_progress` / `completed` / `no_answer` / `busy` / `voicemail` / `failed`), `transcript jsonb` [{speaker, text, lang, t}], `extracted jsonb`, `raw jsonb`, `started_at`, `ended_at`, `related_id` |
 | `pending_actions` | `id`, `kind` (`permit_clinic_call` / `approve_slot` / `call_family` / `send_memory`), `payload`, `state` (`open` / `confirmed` / `declined` / `expired`), `expires_at`, `turn_id` |
 | `memories` | `id`, `kind` (`preference` / `story`), `text`, `source_quote`, `consented_at`, `deleted_at` |
 | `memory_prompts` (P1) | `id`, `from_contact_id`, `photo_path`, `prompt`, `state` (`new` / `story_recorded` / `awaiting_review` / `sent` / `kept_private`), `story_text`, `audio_path`, `sent_at` |
@@ -196,7 +196,7 @@ The states are:
 - `now(h) = Date.now() + h.clock_offset_ms`. All engine logic takes `now` as a parameter, so it never calls `Date.now()` directly.
 - **Demo skip** (`POST /api/demo/skip`) sets the offset so that `now = next_wake_at − 3 s`, waits for that moment, then ticks. The UI always shows "Demo time" with a ⏩ badge.
 - **Tick sources:**
-  1. QStash schedule every minute → `/api/cron/tick` (signature verified). This processes households where `next_wake_at <= now(h)`, at most 50 per run.
+  1. The `worker` loop every 5 s processes households where `next_wake_at <= now(h)` (at most 50 per loop), then dispatches due outbox items.
   2. The open `/app` posts `/api/heartbeat` every 10 s, which also ticks that household.
   3. Demo skip.
 - **The tick is idempotent.** Running it twice at the same `now` produces no new effects.
@@ -249,7 +249,7 @@ Every input is validated with zod. The household comes from the signed cookie, a
 | `POST /api/checkin/respond` · `POST /api/help` · `POST /api/help/:caseId/mistake` | Buttons and keyboard |
 | `POST /api/appointments/:id/permit` · `POST /api/appointments/:id/approve` | `{decision: yes or no, source}` (button path) |
 | `GET /api/calls/:id` | Transcript and state, for live streaming by polling |
-| `POST /api/webhooks/bolna` | Bolna does not sign webhooks, so verify the custom header `x-nami-secret` (set in the agent's Extractions tab) and optionally the source IPs (13.203.39.153, 13.126.9.249, 13.202.133.53). Upsert `call_sessions` by `execution_id`. Bolna POSTs on every status change; only `completed`, `busy`, `no-answer`, `failed` and `balance-low` are terminal (`call-disconnected` arrives first with an empty extraction, so ignore it). Terminal → extractor → `call.result` command |
+| `POST /api/twilio/voice?callId=` · `POST /api/twilio/gather?callId=` · `POST /api/twilio/status?callId=` | Twilio webhooks (signature checked with `X-Twilio-Signature`). `voice`/`gather` return TwiML for the next turn; `status` records `completed / no-answer / busy / failed` plus `AnsweredBy` (voicemail detection). Idempotent by `CallSid` + `CallStatus`. |
 | `GET /api/care/:token/state` · `POST /api/care/:token/action` | `{caseId, action: accept / decline / spoke / still_needs_help, note}` |
 | `POST /api/care/:token/memory` (P1) | Photo upload and prompt |
 | `POST /api/settings` | Preferences, contacts, sharing toggles (writes consent rows) |
@@ -277,7 +277,7 @@ Every input is validated with zod. The household comes from the signed cookie, a
 interface CallingAdapter {
   start(req: { callId; purpose; to: E164 | 'sim'; script: CallerBrief; lang: 'hi'|'en' }): Promise<{ providerCallId }>;
   cancel(providerCallId): Promise<void>;
-  // results arrive via webhook (bolna) or are written directly as the sim dialogue progresses
+  // the Caller agent is the SAME for both: sim writes turns directly; twilio drives it turn by turn from webhooks
 }
 ```
 
@@ -287,15 +287,18 @@ interface CallingAdapter {
 - Each turn is appended to `call_sessions.transcript` so the UI streams it.
 - A sandbox scenario knob (`?clinic=busy|evening_only|voicemail|cooperative`) drives failure demos and the eval.
 
-### `bolna` adapter (real phone calls; P1, for the video)
-- `POST https://api.bolna.ai/call` with `{agent_id, recipient_phone_number, user_data}` and a Bearer API key.
-- There are two Bolna agents:
-  - **Nami Clinic Caller** (Hindi/English) handles availability, then confirmation.
-  - **Nami Family Alert** informs the contact and asks for an explicit yes or no.
-- Results arrive at our webhook. If no terminal webhook has arrived after 4 min, the tick polls `GET https://api.bolna.ai/executions/{execution_id}` (fields: `status`, `transcript`, `extracted_data`, `answered_by_voice_mail`, `telephony_data.hangup_reason`, `telephony_data.recording_url`). `answered_by_voice_mail = true` means outcome `voicemail`, never acknowledgement.
-- Trial: $5 credit, **verified numbers only** (User Profile → Verified Numbers), 2 concurrent calls, shared +91 caller ID, about 6¢/min. Bolna's own `extracted_data` is informational only; **our extractor and verifier are authoritative**.
-- Transcript → extractor → the same verifier path as sim.
-- **Only numbers in `PHONE_ALLOWLIST` can be dialled.** Everything else is refused in code.
+### `twilio` adapter (real phone calls, for the video and the live proof)
+- **Number:** the team's Twilio US number. Recipients see an international call, which is acceptable for the demo. On a trial account Twilio plays its trial notice first and the callee presses a key, and only **Twilio-verified numbers** can be called.
+- **Start:** `client.calls.create({to, from: TWILIO_FROM, url: APP_URL/api/twilio/voice?callId=…, statusCallback: …/status?callId=…, statusCallbackEvent: ['initiated','ringing','answered','completed'], machineDetection: 'Enable', timeout: 25})`.
+- **Turn loop (v1, robust):**
+  1. `/voice` speaks the Caller agent's opening line with `<Say language="hi-IN" voice="Google.hi-IN-Chirp3-HD-…">` (any available hi-IN voice; set by `TWILIO_VOICE_HI`).
+  2. It then opens `<Gather input="speech" language="hi-IN" speechTimeout="auto" action="/gather?callId=…">`.
+  3. `/gather` appends the callee's `SpeechResult` to the transcript, asks the Caller agent for the next line, and returns `<Say>` + `<Gather>`, or `<Say>` + `<Hangup>` when the Caller ends the call.
+  4. That is about 2 s per turn. The same Caller prompt (`AGENTS.md` §4) and the same transcript format are used as in sim mode.
+- **Upgrade (v2, only if time allows):** Twilio ConversationRelay over a websocket on the `worker`, which gives lower latency and interruption. Same Caller agent.
+- **Family alert calls** use the same loop with the Family alert prompt (`AGENTS.md` §6). A spoken "haan" with its quote counts as acceptance only after the extractor and verifier agree; voicemail (`AnsweredBy=machine_*`) never does.
+- On completion: transcript → extractor → verifier → engine `call.result`. If no status callback has arrived after 4 min, the worker fetches the call via the REST API.
+- **Only numbers in `PHONE_ALLOWLIST` can be dialled.** Everything else is refused in code. Sandboxes default to sim.
 
 ## 11. Security, privacy and cost limits
 
@@ -320,15 +323,14 @@ interface CallingAdapter {
 ## 12. Environment variables
 
 ```
-DATABASE_URL=                 # Supabase pooled
-SUPABASE_URL= SUPABASE_SERVICE_ROLE_KEY=     # storage (P1)
+DATABASE_URL=postgres://nami:nami@db:5432/nami
+UPLOAD_DIR=/data/uploads
 VOICE_PROVIDER=openai|gemini   OPENAI_API_KEY=   GEMINI_API_KEY=
 VOICE_MODEL=gpt-realtime-2.1 | gpt-realtime-2.1-mini | gemini-3.8-live   VOICE_NAME=
 ANTHROPIC_API_KEY=            # text agents (D4)
 LLM_MODEL=claude-sonnet-5-5   LLM_FAST_MODEL=claude-haiku-4-5-20251001
-BOLNA_API_KEY=   BOLNA_CLINIC_AGENT_ID=   BOLNA_ALERT_AGENT_ID=   BOLNA_WEBHOOK_SECRET=
+TWILIO_ACCOUNT_SID=   TWILIO_AUTH_TOKEN=   TWILIO_FROM=+1XXXXXXXXXX   TWILIO_VOICE_HI=   TWILIO_VOICE_EN=
 PHONE_ALLOWLIST=+91XXXXXXXXXX,+91YYYYYYYYYY
-QSTASH_CURRENT_SIGNING_KEY=   QSTASH_NEXT_SIGNING_KEY=
 RESEND_API_KEY=  EMAIL_FROM=
 APP_URL=  COOKIE_SECRET=  CONTACT_TOKEN_SECRET=  ADMIN_PASSWORD=
 VOICE_MAX_SESSION_SEC=300  VOICE_SESSIONS_PER_IP_PER_HOUR=4  VOICE_DAILY_MINUTES_CAP=600
@@ -363,13 +365,15 @@ The details are in `AGENTS.md` §8. Results are written to `eval/results/` and s
 | 14 | Help "pressed by mistake" | `cancelled_mistake`; reached contacts notified |
 | 15 | Tick run twice at the same `now` | No new effects |
 
-## 14. Deployment
+## 14. Deployment (the team's VM)
 
-1. Create the Vercel project from the GitHub repo (public). Production = `main`. Feature work happens on branches, merging to `main` via PR.
-2. Run the Supabase migration with `drizzle-kit push`. The seed runs per sandbox via `/try`, and a `video` household is seeded by script for recording.
-3. Create a QStash schedule: `* * * * *` → `https://<domain>/api/cron/tick`.
-4. Set the Bolna agent webhook to `https://<domain>/api/webhooks/bolna` with the header `x-nami-secret`, and add the teammates' phones as Verified Numbers.
-5. **Smoke test** after each deploy:
+1. On the VM, install Docker and open ports 80 and 443. Point the domain (or use `<ip>.sslip.io`) at it.
+2. `git clone` the repo, `cp .env.example .env`, fill in the keys, then `docker compose up -d --build`. This starts `caddy` (TLS), `web` (Next.js on :3000), `worker` (tick, outbox and call loop) and `db` (Postgres 16 with a volume).
+3. Run `docker compose exec web pnpm db:migrate` and `pnpm seed:video` (the `video` household for recording). Judge sandboxes are seeded on demand by `/try`.
+4. In Twilio: verify the teammates' numbers under Verified Caller IDs and set `TWILIO_FROM`. No console webhooks are needed, because the URLs are passed per call.
+5. To update: `git pull && docker compose up -d --build web worker`.
+6. **Smoke test** after each deploy:
    1. `/try` → talk → reminder ack.
    2. Book through the sim clinic → approve → confirmed.
    3. Skip → check-in escalation → caregiver QR accept → resolve.
+   4. With `video` mode, one real Twilio call to the clinic phone.
