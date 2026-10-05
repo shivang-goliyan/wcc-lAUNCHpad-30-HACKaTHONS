@@ -1,21 +1,14 @@
 // Text mode: same prompt, same tools, the model drives the tool loop server-side.
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
-import { anthropic, compatChat, CHAT_MODEL, LLM_MODEL, llmAvailable, usingCompat, type CompatMessage } from '@/lib/agents/llm';
+import { anthropic, LLM_MODEL, llmAvailable, usingCompat } from '@/lib/agents/llm';
+import { namiReply, replyLanguage, SORRY } from '@/lib/agents/namiTurn';
 import { namiInstructions } from '@/lib/agents/namiPrompt';
 import { executeTool, toolJsonSchemas } from '@/lib/agents/tools';
 import { currentHousehold } from '@/lib/server/session';
 import { handleError, json } from '@/lib/server/http';
 
 const Body = z.object({ history: z.array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().max(2000) })).max(20), message: z.string().min(1).max(1000) });
-
-// tool hints come back in the household's language; the reply should still follow what was just said
-const HINGLISH = /\b(hai|hain|kar|karo|kya|mera|meri|mujhe|aaj|kal|haan|nahi|nahin|theek|dawai|ji|aap|bata|chahiye)\b/i;
-function replyLanguage(text: string) {
-  if (/[\u0900-\u097F]/.test(text)) return '\n\nThe last message is in Hindi. Reply in simple Hindi (Devanagari).';
-  if (HINGLISH.test(text)) return '\n\nThe last message is in Hinglish. Reply in Hinglish (Roman script).';
-  return '\n\nThe last message is in English. Reply in simple English, even if tool hints are in Hindi.';
-}
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +17,7 @@ export async function POST(req: Request) {
     if (!llmAvailable()) return json({ ok: false, error: 'llm_not_configured' }, 503);
     const b = Body.parse(await req.json());
     const system = (await namiInstructions(hh, 'text')) + replyLanguage(b.message);
-    if (usingCompat()) return json(await compatLoop(hh, system, b));
+    if (usingCompat()) return json(await namiReply(hh, system, b.history, b.message, 'text'));
     const tools: Anthropic.Beta.BetaTool[] = toolJsonSchemas().map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool['input_schema'] }));
     const messages: Anthropic.Beta.BetaMessageParam[] = [...b.history.map((h) => ({ role: h.role, content: h.text })), { role: 'user', content: b.message }];
     const toolLog: { name: string; ok: boolean; status: string }[] = [];
@@ -60,31 +53,5 @@ export async function POST(req: Request) {
   }
 }
 
-const SORRY = 'Sorry, I cannot help with that. If this is an emergency, please call 112.';
 
 /** The same loop for an OpenAI-compatible provider. */
-async function compatLoop(hh: string, system: string, b: z.infer<typeof Body>) {
-  const tools = toolJsonSchemas().map((t) => ({ type: 'function' as const, function: { name: t.name, description: t.description, parameters: t.parameters } }));
-  const messages: CompatMessage[] = [{ role: 'system', content: system }, ...b.history.map((h) => ({ role: h.role, content: h.text })), { role: 'user', content: b.message }];
-  const toolLog: { name: string; ok: boolean; status: string }[] = [];
-  let lastHint = '';
-  for (let i = 0; i < 5; i++) {
-    const c = await compatChat({ messages, tools, max_tokens: 2000 }, { model: CHAT_MODEL });
-    if (c.finish_reason === 'content_filter') return { ok: true, text: SORRY, tools: toolLog };
-    const calls = c.message.tool_calls ?? [];
-    // some models end a tool turn with no words; then say what the last tool said, never nothing
-    if (!calls.length) return { ok: true, text: (c.message.content ?? '').trim() || lastHint || 'Done. Please check the screen.', tools: toolLog };
-    messages.push({ role: 'assistant', content: c.message.content, tool_calls: calls });
-    for (const call of calls) {
-      let input: unknown = {};
-      try {
-        input = JSON.parse(call.function.arguments || '{}');
-      } catch {}
-      const reply = await executeTool(hh, call.function.name, input, { source: 'text', lastUserTranscript: b.message });
-      toolLog.push({ name: call.function.name, ok: reply.ok, status: reply.status });
-      if (reply.sayHint) lastHint = reply.sayHint;
-      messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(reply) });
-    }
-  }
-  return { ok: true, text: 'I have done what I can for now, please check the screen.', tools: toolLog };
-}
