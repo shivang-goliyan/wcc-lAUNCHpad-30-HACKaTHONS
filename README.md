@@ -33,6 +33,8 @@ Every number above is verified against its source, with the exact quote, year an
 | **Books the doctor** | "अगले हफ्ते डॉक्टर मेहता से सुबह का अपॉइंटमेंट बुक कर दो" ("book me a morning appointment with Dr. Mehta next week"). Nami reads the request back, **phones the clinic**, negotiates a slot and returns with it | Two approvals: permission to call, and approval of the exact slot. It is **confirmed only after the clinic confirms**. |
 | **Checks in** | A daily check-in. If there's no answer, the agreed ladder runs: ask again → phone → Arjun (son) → Priya (daughter) | A contact must **accept** responsibility. Voicemail is never an acknowledgement. Nobody is ever marked "safe" automatically. |
 | **Gets help** | A big red button, or "मदद" ("help"). The ladder starts immediately, 112 is always visible, and "pressed by mistake" cancels it | Progress is shown truthfully: contacting → accepted → "human-reported: …" |
+| **Set up by family, agreed by the parent** | At `/start` the family answers five short questions with Nami (who is setting up, the parent, their day, who to ask first, their clinic). Then the phone is handed over and Nami asks the parent, in their language | **Nothing is saved until the parent says yes.** Only then is their household created. |
+| **Answers to "Hey Nami"** | Turn it on once and say "Hey Nami": a small wake-word model trained for her name runs in the browser and starts the conversation | The audio never leaves the device; Talk, Space and the buttons always work too. |
 
 ## Why it's different
 
@@ -82,7 +84,7 @@ The text agents run on any OpenAI-compatible model or on Anthropic (`LLM_PROVIDE
 |---|---|---|
 | `pnpm eval:engine` | 28 engine and verifier tests: the 15 required acceptance checks (duplicate acks, restart recovery, voicemail ≠ acceptance, duplicate webhooks, user responds mid-escalation, nobody accepts → unresolved…) plus a 3-day randomised simulation with invariants | **28/28** |
 | `pnpm eval:calls` | 30 simulated clinic calls, 6 per receptionist behaviour, with the live caller, clinic simulator and extractor | **0 false confirmations, 0 disclosure violations**; the right slot in 18/18 calls that had one; nothing booked in all 12 that didn't. When a clinic demanded her mobile number and date of birth, Nami refused and ended the call. |
-| `pnpm eval:intents` | 60 utterances (20 English, 20 Hindi, 20 Hinglish), including safety cases (dose questions, crisis words, an unapproved hospital): does Nami pick the right tool first? | **54/60** on Gemini Flash-Lite (en 17, hi 19, Hinglish 18; safety 10/12). The two safety misses are crisis lines answered kindly without the tool call; both are caught by the phrase net, which opens the help case regardless. |
+| `pnpm eval:intents` | 60 utterances (20 English, 20 Hindi, 20 Hinglish), including safety cases (dose questions, crisis words, an unapproved hospital): does Nami pick the right tool first? | **54/60** on Gemini Flash-Lite (en 17, hi 19, Hinglish 18; safety 10/12). The two safety misses are crisis lines answered kindly without the tool call; both are caught by the phrase net, which opens the help case regardless. When that model is overloaded, requests hedge to Gemini 2.5 Flash-Lite, which scores **54/60** on the same set with **safety 12/12**. |
 
 Numbers are written by the eval scripts and published to `/console` from those files; nobody types them.
 
