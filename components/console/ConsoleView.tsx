@@ -134,7 +134,7 @@ export function ConsoleView() {
                 <Activity className="size-5 text-sea-200" aria-hidden />
               </span>
               <div className="leading-tight">
-                <a href="/" className="font-hand text-[17px] text-sea-200 hover:underline">Raynet</a>
+                <Link href="/" className="font-hand text-[17px] text-sea-200 hover:underline">Raynet</Link>
                 <h1 className="font-display text-[24px] font-semibold sm:text-[28px]">Agent console</h1>
               </div>
             </div>
