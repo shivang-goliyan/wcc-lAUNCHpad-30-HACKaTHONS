@@ -1,5 +1,5 @@
 import { InView } from './InView';
-import { NamiSlot } from './NamiSlot';
+import { NamiCue } from './NamiCue';
 import { SceneLife } from './SceneLife';
 import type { PoseName } from '@/lib/nami/poses';
 
@@ -81,8 +81,7 @@ export function DaySection() {
       <ol className="mt-12 space-y-16 sm:space-y-20">
         {MOMENTS.map((m, i) => (
           <li key={m.id} className="relative">
-            {/* she walks across the strip between two moments */}
-            {i > 0 && <NamiSlot id={`day-walk-${m.id}`} pose="walk" path walk className="absolute inset-x-0 -top-14 h-[150px] sm:-top-16 xl:h-[170px]" />}
+            <NamiCue pose={m.pose} say={m.say} side={m.side === 'left' ? 'right' : 'left'} />
             <InView amount={0.25}>
               <figure className="lp-rise relative mx-auto max-w-[1440px] px-0 sm:px-6">
                 <div className="relative isolate overflow-hidden sm:rounded-[28px]">
@@ -109,13 +108,7 @@ export function DaySection() {
                   <p className="mt-2 text-[16px] leading-relaxed text-ink-600">{m.body}</p>
                   {m.chip && <p className={`mt-3 inline-block rounded-md px-2.5 py-1 text-[13.5px] font-semibold ${CHIP[m.chip.tone]}`}>{m.chip.text}</p>}
                 </figcaption>
-                {/* where she stands in this moment */}
-                <NamiSlot
-                  id={`day-${m.id}`}
-                  pose={m.pose}
-                  say={m.say}
-                  className={`absolute bottom-[4%] hidden h-[200px] w-[200px] sm:block xl:h-[230px] xl:w-[230px] ${m.side === 'left' ? 'right-[12%]' : 'left-[12%]'}`}
-                />
+                
               </figure>
             </InView>
           </li>

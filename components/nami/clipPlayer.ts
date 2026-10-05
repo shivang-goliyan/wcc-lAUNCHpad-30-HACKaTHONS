@@ -28,6 +28,7 @@ export class ClipPlayer {
   private queue: { ref: ClipRef; loop: boolean }[] = [];
   private cur: HTMLVideoElement | null = null;
   private curLoop = false;
+  private rate = 1;
   private drewCur = false;
   /** true while something is on the canvas that should cover the still */
   showing = false;
@@ -113,6 +114,12 @@ export class ClipPlayer {
     this.next();
   }
 
+  /** playback speed of looping clips (a walk cycle matched to how fast she moves) */
+  setRate(r: number) {
+    this.rate = Math.max(0.25, Math.min(2.5, r));
+    if (this.cur && this.curLoop) this.cur.playbackRate = this.rate;
+  }
+
   /** stop everything; the caller shows the still again */
   stop() {
     this.queue = [];
@@ -136,6 +143,7 @@ export class ClipPlayer {
     v.onended = n.loop ? null : () => this.next();
     this.cur = v;
     this.curLoop = n.loop;
+    v.playbackRate = n.loop ? this.rate : 1;
     this.drewCur = false;
     v.play().catch(() => this.next());
   }

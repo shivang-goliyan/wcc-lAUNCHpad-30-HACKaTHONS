@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { NamiImage } from '@/components/nami/NamiImage';
+import type { PoseName } from '@/lib/nami/poses';
+import { useReducedMotionSafe } from './useReducedMotionSafe';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 
 const DAY = [
@@ -110,5 +113,80 @@ export function CheerLink({ href, className, children }: { href: string; classNa
     <a href={href} className={className} onMouseEnter={cheer} onFocus={cheer}>
       {children}
     </a>
+  );
+}
+
+const HERO_ACTS: PoseName[] = ['heart', 'greeting', 'celebrate'];
+
+/**
+ * Nami on the hero desk: waves hello, follows the cursor with her eyes, cheers
+ * when the main button is hovered, reacts when poked, and does small things on
+ * her own. The walking Nami takes over once she has scrolled out of view.
+ */
+export function HeroNami() {
+  const reduce = useReducedMotionSafe();
+  const [pose, setPose] = useState<PoseName>('greeting');
+  const [look, setLook] = useState<{ x: number; y: number } | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const until = useRef(0);
+
+  // greet, then settle; small acts every so often
+  useEffect(() => {
+    if (reduce) return;
+    let n = 0;
+    const t0 = setTimeout(() => setPose('idle'), 2600);
+    const id = setInterval(() => {
+      if (document.hidden || performance.now() < until.current) return;
+      const act = HERO_ACTS[n++ % HERO_ACTS.length];
+      until.current = performance.now() + 3000;
+      setPose(act);
+      setTimeout(() => setPose('idle'), 2800);
+    }, 11000);
+    const cheer = () => {
+      until.current = performance.now() + 2400;
+      setPose('celebrate');
+      setTimeout(() => setPose('idle'), 2300);
+    };
+    window.addEventListener('nami:cheer', cheer);
+    return () => {
+      clearTimeout(t0);
+      clearInterval(id);
+      window.removeEventListener('nami:cheer', cheer);
+    };
+  }, [reduce]);
+
+  // eyes follow the mouse
+  useEffect(() => {
+    if (reduce) return;
+    let raf = 0;
+    const on = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' || raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const r = box.current?.getBoundingClientRect();
+        if (!r || r.bottom < 0) return;
+        const lx = Math.round(Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (window.innerWidth * 0.45))) * 20) / 20;
+        const ly = Math.round(Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height * 0.35)) / (window.innerHeight * 0.45))) * 20) / 20;
+        setLook((o) => (o && o.x === lx && o.y === ly ? o : { x: lx, y: ly }));
+      });
+    };
+    window.addEventListener('pointermove', on, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', on);
+      cancelAnimationFrame(raf);
+    };
+  }, [reduce]);
+
+  const poke = () => {
+    until.current = performance.now() + 2400;
+    setPose('celebrate');
+    setTimeout(() => setPose('idle'), 2300);
+  };
+
+  return (
+    <div ref={box} data-hero-nami="" className="relative z-10 aspect-square w-full">
+      <span aria-hidden onClick={poke} className="absolute inset-[18%_22%_8%_22%] z-10 cursor-pointer rounded-full" />
+      <NamiImage pose={pose} lookAt={look} reducedMotion={reduce} className="h-full w-full" />
+    </div>
   );
 }

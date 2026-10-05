@@ -23,6 +23,8 @@ const FADE_MS = 120;
 type Props = NamiSvgProps & {
   /** stills only, no clip player (galleries, thumbnails) */
   still?: boolean;
+  /** speed of looping clips, 1 = as rendered */
+  speed?: number;
 };
 
 export function NamiImage({
@@ -32,6 +34,7 @@ export function NamiImage({
   blink = "auto",
   reducedMotion = false,
   still = false,
+  speed = 1,
   className,
   style,
   title,
@@ -167,6 +170,11 @@ export function NamiImage({
     };
     r.paint(performance.now());
   }, []);
+
+  // walk cycles follow how fast she is actually moving
+  useEffect(() => {
+    rt.current.player?.setRate(speed);
+  }, [speed]);
 
   // the clip player lives as long as this Nami animates
   useEffect(() => {

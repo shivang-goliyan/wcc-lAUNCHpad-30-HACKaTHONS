@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { InView } from './InView';
-import { NamiSlot } from './NamiSlot';
+import { NamiCue } from './NamiCue';
 
 // every number here is in research/evidence-2026.md with its source, year and n
 const FACTS = [
@@ -22,6 +22,7 @@ const PROMISES = [
 export function NotesSection() {
   return (
     <section id="why" aria-labelledby="why-title" className="sb-paper relative py-20 sm:py-24">
+      <NamiCue pose="celebrate" say="Try it yourself! You'll be Meera ji." side="right" />
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
         <p className="font-hand text-[20px] text-cocoa-500">why this matters</p>
         <h2 id="why-title" className="mt-2 max-w-[17em] font-display text-[clamp(2rem,4vw,3.2rem)] leading-[1.06] font-medium text-teal-900 text-balance">
@@ -48,7 +49,6 @@ export function NotesSection() {
             </ul>
           </div>
           <div className="relative">
-            <NamiSlot id="why-nami" pose="celebrate" say="Try it yourself! You'll be Meera ji." className="relative mx-auto aspect-square w-[min(70%,260px)]" />
             <div className="mt-2 text-center">
               <p className="font-display text-[clamp(1.6rem,2.6vw,2.2rem)] leading-tight text-teal-900">Spend a morning as Meera ji.</p>
               <p className="mt-2 text-[16px] text-ink-600">No sign-up. Your own private demo home, with a simulated clinic.</p>

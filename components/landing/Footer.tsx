@@ -1,6 +1,6 @@
 import { ArrowRight, BadgeInfo, CheckCheck, MicOff, PhoneCall, Stethoscope } from 'lucide-react';
 import { Logo } from './Hero';
-import { NamiSlot } from './NamiSlot';
+import { NamiCue } from './NamiCue';
 import { Container } from './ui';
 
 const TRUST = [
@@ -45,6 +45,7 @@ const STARS = Array.from({ length: 42 }, (_, i) => {
 export function Footer() {
   return (
     <footer className="relative overflow-hidden bg-teal-900 text-ivory-50">
+      <NamiCue pose="quiet" say="Time for my nap. Try the demo whenever you like!" side="right" />
       {/* night sky, mirrored from the hero's morning */}
       <svg aria-hidden className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
         {STARS.map((s, i) => (
@@ -72,7 +73,6 @@ export function Footer() {
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
             </a>
           </div>
-          <NamiSlot id="footer-side" pose="quiet" say="Time for my nap. Try the demo whenever you like!" className="relative -mb-4 h-[150px] w-[150px] justify-self-end sm:h-[200px] sm:w-[200px]" />
         </div>
 
         <div className="mt-16 flex flex-col gap-6 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between">
