@@ -15,6 +15,15 @@ export function replyLanguage(text: string) {
 
 export type Turn = { role: 'user' | 'assistant'; text: string };
 
+// she is read aloud and shown as captions, so markdown from the model would show up as stars
+export const plain = (t: string) =>
+  t
+    .replace(/\*\*|__|`/g, '')
+    .replace(/^\s*(?:[*•-]|#{1,6})\s+/gm, '')
+    .replace(/[ \t]+\*[ \t]+/g, ' ')
+    .replace(/(^|\s)\*(?=\S)|(?<=\S)\*(?=\s|$)/g, '$1')
+    .trim();
+
 export async function namiReply(hh: string, system: string, history: Turn[], message: string, source: 'text' | 'voice' = 'text') {
   const tools = toolJsonSchemas().map((t) => ({ type: 'function' as const, function: { name: t.name, description: t.description, parameters: t.parameters } }));
   const messages: CompatMessage[] = [{ role: 'system', content: system }, ...history.map((h) => ({ role: h.role, content: h.text })), { role: 'user', content: message }];
@@ -25,7 +34,7 @@ export async function namiReply(hh: string, system: string, history: Turn[], mes
     if (c.finish_reason === 'content_filter') return { ok: true, text: SORRY, tools: toolLog };
     const calls = c.message.tool_calls ?? [];
     // some models end a tool turn with no words; then say what the last tool said, never nothing
-    if (!calls.length) return { ok: true, text: (c.message.content ?? '').trim() || lastHint || 'Done. Please check the screen.', tools: toolLog };
+    if (!calls.length) return { ok: true, text: plain(c.message.content ?? '') || lastHint || 'Done. Please check the screen.', tools: toolLog };
     messages.push({ role: 'assistant', content: c.message.content, tool_calls: calls });
     for (const call of calls) {
       let input: unknown = {};
