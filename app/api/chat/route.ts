@@ -1,7 +1,7 @@
 // Text mode: same prompt, same tools, the model drives the tool loop server-side.
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
-import { anthropic, compatChat, LLM_MODEL, llmAvailable, usingCompat, type CompatMessage } from '@/lib/agents/llm';
+import { anthropic, compatChat, CHAT_MODEL, LLM_MODEL, llmAvailable, usingCompat, type CompatMessage } from '@/lib/agents/llm';
 import { namiInstructions } from '@/lib/agents/namiPrompt';
 import { executeTool, toolJsonSchemas } from '@/lib/agents/tools';
 import { currentHousehold } from '@/lib/server/session';
@@ -69,7 +69,7 @@ async function compatLoop(hh: string, system: string, b: z.infer<typeof Body>) {
   const toolLog: { name: string; ok: boolean; status: string }[] = [];
   let lastHint = '';
   for (let i = 0; i < 5; i++) {
-    const c = await compatChat({ messages, tools, max_tokens: 2000 });
+    const c = await compatChat({ messages, tools, max_tokens: 2000 }, { model: CHAT_MODEL });
     if (c.finish_reason === 'content_filter') return { ok: true, text: SORRY, tools: toolLog };
     const calls = c.message.tool_calls ?? [];
     // some models end a tool turn with no words; then say what the last tool said, never nothing

@@ -22,6 +22,8 @@ const COMPAT_KEY = COMPAT_KEYS[0] ?? '';
 const FALLBACK_MODELS = (process.env.LLM_FALLBACK_MODELS || '').split(',').map((m) => m.trim()).filter(Boolean);
 
 // compat providers name models differently, so there is no default there: set LLM_MODEL
+/** Nami's own conversation can run on a faster model than the call agents (CHAT_MODEL). */
+export const CHAT_MODEL = process.env.CHAT_MODEL || '';
 export const LLM_MODEL = process.env.LLM_MODEL || (OPENAI_COMPAT ? '' : 'claude-opus-5-5');
 
 export function llmAvailable() {
@@ -105,12 +107,13 @@ async function askModel(model: string, body: object, routed: object, until: numb
   throw new Error(`LLM provider said ${last}`);
 }
 
-export async function compatChat(body: { messages: CompatMessage[]; tools?: CompatTool[]; response_format?: unknown; max_tokens?: number }) {
+export async function compatChat(body: { messages: CompatMessage[]; tools?: CompatTool[]; response_format?: unknown; max_tokens?: number }, opts: { model?: string } = {}) {
+  const head = opts.model || LLM_MODEL;
   const openrouter = COMPAT_BASE.includes('openrouter.ai');
-  const routed = openrouter && FALLBACK_MODELS.length ? { models: [LLM_MODEL, ...FALLBACK_MODELS] } : {};
+  const routed = openrouter && FALLBACK_MODELS.length ? { models: [head, ...FALLBACK_MODELS] } : {};
   // OpenRouter falls back by itself. Elsewhere we hedge: if the main model is slow or failing,
   // the next one is asked too and the first good answer wins, so an overloaded model costs seconds, not the turn.
-  const models = openrouter ? [LLM_MODEL] : [LLM_MODEL, ...FALLBACK_MODELS];
+  const models = openrouter ? [head] : [head, ...[LLM_MODEL, ...FALLBACK_MODELS].filter((m, i, all) => m !== head && all.indexOf(m) === i)];
   const until = Date.now() + 40_000;
   const r: Response | null = await new Promise((resolve) => {
     let pending = 0;
@@ -188,7 +191,7 @@ export async function firstDecision(
       messages: [{ role: 'system', content: system }, { role: 'user', content: userText }],
       tools: tools.map((t) => ({ type: 'function' as const, function: t })),
       max_tokens: 1500,
-    });
+    }, { model: CHAT_MODEL });
     const tc = c.message.tool_calls?.[0];
     let input: Record<string, unknown> = {};
     try {

@@ -1,7 +1,7 @@
 // Tool-routing eval: 60 utterances (English, Hindi, Hinglish) → Nami (text mode, same prompt + tools).
 // Records only the model's FIRST decision; nothing is executed. Writes eval/results/intents.json.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { firstDecision, LLM_MODEL, llmAvailable } from '../lib/agents/llm';
+import { firstDecision, CHAT_MODEL, LLM_MODEL, llmAvailable } from '../lib/agents/llm';
 import { buildInstructions } from '../lib/agents/namiPrompt';
 import { toolJsonSchemas } from '../lib/agents/tools';
 import { decide, tick } from '../lib/engine/engine';
@@ -48,7 +48,7 @@ async function main() {
   };
   const safety = results.filter((r) => r.safety);
   const summary = {
-    model: LLM_MODEL,
+    model: CHAT_MODEL || LLM_MODEL,
     ranAt: new Date().toISOString(),
     passed: results.filter((r) => r.pass).length,
     total: results.length,
