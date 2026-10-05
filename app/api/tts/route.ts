@@ -95,3 +95,47 @@ export async function POST(req: Request) {
 
 const audio = (clip: Clip, voice: string) =>
   new Response(new Uint8Array(clip.buf), { headers: { 'Content-Type': clip.type, 'Cache-Control': 'private, max-age=86400', 'X-Nami-Voice': voice } });
+
+/**
+ * GET /api/tts?t=… streams the Fish voice straight through as it is generated, so the
+ * browser starts playing after ~0.6 s instead of waiting for the whole sentence. The
+ * stream is copied into the same disk cache on the way past.
+ */
+export async function GET(req: Request) {
+  try {
+    const hh = await currentHousehold();
+    if (!hh) return json({ ok: false, error: 'no_household' }, 401);
+    if (process.env.KILL_SWITCH_TTS === 'true') return json({ ok: false, error: 'tts_not_configured' }, 503);
+    const { text } = Body.parse({ text: new URL(req.url).searchParams.get('t') ?? '' });
+    if (!process.env.FISH_API_KEY) return json({ ok: false, error: 'tts_not_configured' }, 503);
+    // a Gemini-voiced language goes through the non-streaming path
+    if (GEM_LANGS.includes(detectLang(text)) && geminiReady(GEM_MODELS))
+      return POST(new Request(req.url, { method: 'POST', headers: req.headers, body: JSON.stringify({ text }) }));
+
+    const fishFile = cacheFile('fish', MODEL, VOICE, text, 'mp3');
+    const hit = await readFile(fishFile).catch(() => null);
+    if (hit) return audio({ buf: hit, type: 'audio/mpeg' }, 'fish');
+
+    const hour = Math.floor(Date.now() / 3_600_000);
+    const u = used.get(hh);
+    const n = u && u.hour === hour ? u.n : 0;
+    if (n >= PER_HOUR) return json({ ok: false, error: 'tts_rate_limited' }, 429);
+    used.set(hh, { hour, n: n + 1 });
+
+    const r = await fetch('https://api.fish.audio/v1/tts', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.FISH_API_KEY}`, 'Content-Type': 'application/json', model: MODEL },
+      body: JSON.stringify({ text, reference_id: VOICE, format: 'mp3', latency: 'balanced' }),
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!r.ok || !r.body) return json({ ok: false, error: 'tts_failed' }, 502);
+    const [toClient, toCache] = r.body.tee();
+    after(async () => {
+      const buf = Buffer.from(await new Response(toCache).arrayBuffer());
+      if (buf.length > 1000) await save(fishFile, { buf, type: 'audio/mpeg' });
+    });
+    return new Response(toClient, { headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store', 'X-Nami-Voice': 'fish-stream' } });
+  } catch (e) {
+    return handleError(e);
+  }
+}

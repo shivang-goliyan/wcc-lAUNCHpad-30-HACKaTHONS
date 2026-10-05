@@ -181,19 +181,20 @@ export class CascadeVoice {
     if (turn === this.turn && this.connected) this.listen();
   }
 
-  /** speak with the server voice, sentence by sentence; falls back to the browser voice */
+  /** speak with the server voice, sentence by sentence, each one streaming in as it is made;
+   *  the next sentence starts loading while this one plays. Falls back to the browser voice. */
   async say(text: string, turn = ++this.turn) {
     if (this.muted) return;
     const parts = sentences(text);
     this.h.onState('speaking');
-    let next = parts.length ? fetchTts(parts[0]) : null;
+    let next = parts.length ? streamTts(parts[0]) : null;
     for (let i = 0; i < parts.length; i++) {
       if (turn !== this.turn) return;
-      const blob = await Promise.race([next, wait(4500).then(() => null)]);
-      next = i + 1 < parts.length ? fetchTts(parts[i + 1]) : null;
+      const a = next!;
+      next = i + 1 < parts.length ? streamTts(parts[i + 1]) : null;
+      const ok = await this.play(a);
       if (turn !== this.turn) return;
-      if (blob) await this.play(blob);
-      else {
+      if (!ok) {
         // server voice unavailable: say the rest with the browser voice
         await browserSay(parts.slice(i).join(' '), this.h.onMouth);
         break;
@@ -202,40 +203,47 @@ export class CascadeVoice {
     this.h.onMouth(0);
   }
 
-  private play(blob: Blob) {
-    return new Promise<void>((resolve) => {
-      const a = new Audio(URL.createObjectURL(blob));
+  /** plays one streamed sentence; false if it never started (so the caller can fall back) */
+  private play(a: HTMLAudioElement) {
+    return new Promise<boolean>((resolve) => {
       this.audio = a;
+      let started = false;
       try {
         this.stopLip = createLipSync(a, this.h.onMouth);
       } catch {
         this.stopLip = null;
       }
-      const done = () => {
+      const finish = (ok: boolean) => {
+        clearTimeout(giveUp);
         this.stopLip?.();
         this.stopLip = null;
-        URL.revokeObjectURL(a.src);
-        resolve();
+        resolve(ok);
       };
-      a.onended = done;
-      a.onerror = done;
-      a.onpause = done;
-      a.play().catch(done);
+      // nothing after 6 s: give up on the server voice for this reply
+      const giveUp = setTimeout(() => {
+        if (!started) {
+          a.pause();
+          finish(false);
+        }
+      }, 6000);
+      a.onplaying = () => (started = true);
+      a.onended = () => finish(true);
+      a.onerror = () => finish(started);
+      a.onpause = () => started && finish(true);
+      a.play().catch(() => finish(false));
     });
   }
 }
 
-async function fetchTts(text: string): Promise<Blob | null> {
-  try {
-    const r = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
-    if (!r.ok || !r.headers.get('content-type')?.includes('audio')) return null;
-    return await r.blob();
-  } catch {
-    return null;
-  }
+/** an audio element already loading the sentence from the streaming endpoint */
+function streamTts(text: string) {
+  const a = new Audio();
+  a.preload = 'auto';
+  a.src = `/api/tts?t=${encodeURIComponent(text)}`;
+  a.load();
+  return a;
 }
 
-const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 function browserSay(text: string, onMouth: (v: number) => void) {
   return new Promise<void>((resolve) => {
