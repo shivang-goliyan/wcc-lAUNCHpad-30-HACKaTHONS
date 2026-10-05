@@ -114,6 +114,15 @@ pnpm test         # engine acceptance tests
 
 Without API keys the app still runs. The simulated clinic switches to a scripted dialogue (labelled), and every action works through the buttons.
 
+## Team
+
+Team GOLIYANSHIVANG07, WCC Launchpad 30.
+
+- **Shivang Goliyan**: product and research, the agent system (Nami, the Caller, the Extractor, the clinic simulator), the workflow engine and verifiers, voice and phone calls, evals, deployment, and the demo film.
+- **Vansh Khewal**: design and front end.
+
+We worked side by side on one laptop, so every commit in this repository is under one git identity. The split above is the real one.
+
 ## Docs
 
 [`docs/PRD.md`](docs/PRD.md) · [`docs/TRD.md`](docs/TRD.md) · [`docs/AGENTS.md`](docs/AGENTS.md) · [`docs/DESIGN.md`](docs/DESIGN.md) · [`docs/DECISIONS.md`](docs/DECISIONS.md) · [`docs/BUILD-PLAN.md`](docs/BUILD-PLAN.md)
