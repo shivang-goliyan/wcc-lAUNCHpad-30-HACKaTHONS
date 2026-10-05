@@ -49,7 +49,6 @@ export class WakeWord {
   private mel: Float32Array[] = [];
   private emb: Float32Array[] = [];
   private busy = false;
-  private hot = 0;
   private coolUntil = 0;
   private stopped = false;
 
@@ -124,10 +123,8 @@ export class WakeWord {
         const score = (out[m.ww.outputNames[0]].data as Float32Array)[0];
         this.opts.onLevel?.(score);
         const now = performance.now();
-        // two frames in a row over the line, then a short cool-down so one phrase fires once
-        this.hot = score >= (this.opts.threshold ?? 0.5) ? this.hot + 1 : 0;
-        if (this.hot >= 2 && now > this.coolUntil) {
-          this.hot = 0;
+        // over the line once, then a short cool-down so one phrase fires once
+        if (score >= (this.opts.threshold ?? 0.5) && now > this.coolUntil) {
           this.coolUntil = now + 2500;
           this.opts.onWake(score);
         }
