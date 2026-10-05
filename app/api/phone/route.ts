@@ -31,6 +31,7 @@ export async function POST(req: Request) {
     const recent = (byIp.get(ip) ?? []).filter((t) => now - t < 3_600_000);
     if (recent.length >= 4) return json({ ok: false, error: 'Too many calls from here this hour. Please try again later.' }, 429);
     const to = normalise(parsed.data.to);
+    if (!/^\+91[6-9]\d{9}$|^\+1[2-9]\d{9}$/.test(to)) return json({ ok: false, error: 'Nami can’t call right now: only Indian mobile and US numbers can be called.' }, 409);
     if (!hh) {
       hh = await createHousehold({ startAt: '08:55' });
       await setHouseholdCookie(hh);
