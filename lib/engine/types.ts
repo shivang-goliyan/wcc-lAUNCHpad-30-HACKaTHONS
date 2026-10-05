@@ -281,7 +281,7 @@ export type HouseholdState = {
 
 // ---- Effects (written to the outbox in the same transaction) ----
 
-export type CallPurpose = 'clinic_availability' | 'clinic_confirm' | 'contact_alert' | 'recipient_checkin' | 'family_request';
+export type CallPurpose = 'clinic_availability' | 'clinic_confirm' | 'contact_alert' | 'recipient_checkin' | 'family_request' | 'companion';
 
 export type StartCallEffect = {
   kind: 'start_call';
