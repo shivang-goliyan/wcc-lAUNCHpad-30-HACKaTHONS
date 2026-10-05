@@ -26,7 +26,7 @@ function ContactLink({ c }: { c: ConsoleContact }) {
         <QRCodeSVG value={c.careUrl} size={112} fgColor="#173D38" bgColor="#FFFDF8" level="M" title={`QR code: caregiver view for ${c.name}`} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="w-fit rounded-full bg-[#f3e6dc] px-2 py-0.5 text-[11px] font-bold tracking-[.08em] text-cocoa-500 uppercase">{c.priority === 1 ? 'Primary' : `Backup ${c.priority - 1}`}</span>
+        <span className="w-fit rounded-full bg-[#f3e6dc] px-2 py-0.5 text-[12px] font-semibold text-cocoa-500">{c.priority === 1 ? 'Primary' : `Backup ${c.priority - 1}`}</span>
         <p className="mt-1.5 font-display text-[20px] font-semibold text-teal-900">{c.name}</p>
         <p className="text-[13px] text-ink-600">{c.relation}</p>
         <div className="mt-auto flex flex-wrap gap-2 pt-3">

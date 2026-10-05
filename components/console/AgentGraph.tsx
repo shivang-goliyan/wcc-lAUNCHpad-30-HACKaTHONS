@@ -217,7 +217,7 @@ const CHIP: Record<NodeKind, string> = {
 function Flow({ title, ids, defs, active }: { title: string; ids: NodeId[]; defs: Record<NodeId, NodeDef>; active: Set<NodeId> }) {
   return (
     <div>
-      <p className="text-[12px] font-bold uppercase tracking-[.14em] text-ink-600">{title}</p>
+      <p className="text-[13px] font-semibold text-ink-600">{title}</p>
       <ol className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-2">
         {ids.map((id, i) => {
           const n = defs[id];

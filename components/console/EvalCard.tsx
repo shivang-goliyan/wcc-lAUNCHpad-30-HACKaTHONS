@@ -49,7 +49,7 @@ export function EvalCard() {
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="grid gap-3 lg:grid-cols-3">
       {entries.map(([k, v]) => {
         const pct = v.total ? v.passed / v.total : 0;
         return (

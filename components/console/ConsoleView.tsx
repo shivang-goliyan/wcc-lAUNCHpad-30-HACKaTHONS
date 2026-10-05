@@ -134,7 +134,7 @@ export function ConsoleView() {
                 <Activity className="size-5 text-sea-200" aria-hidden />
               </span>
               <div className="leading-tight">
-                <p className="text-[12px] font-bold tracking-[.18em] text-sea-500 uppercase">Raynet</p>
+                <a href="/" className="font-hand text-[17px] text-sea-200 hover:underline">Raynet</a>
                 <h1 className="font-display text-[24px] font-semibold sm:text-[28px]">Agent console</h1>
               </div>
             </div>
@@ -162,7 +162,7 @@ export function ConsoleView() {
 
           <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-end">
             <div>
-              <p className="text-[13px] font-bold tracking-[.18em] text-sea-500 uppercase">The rule every agent follows</p>
+              <p className="font-hand text-[20px] text-sea-200">the rule every agent follows</p>
               <p className="mt-2 font-display text-[40px] leading-[1.02] font-semibold tracking-[-0.02em] sm:text-[56px] lg:text-[64px]">
                 LLMs propose,
                 <br />
@@ -226,7 +226,7 @@ export function ConsoleView() {
                 <NamiImage pose={poseFor(lead, helpOpen)} className="mt-[14%] h-[115%] w-[115%]" title={`Nami, ${poseFor(lead, helpOpen)} pose`} />
               </div>
               <div className="min-w-0 flex-1 text-left lg:text-center">
-                <p className="text-[12px] font-bold tracking-[.14em] text-ink-600 uppercase">Latest step</p>
+                <p className="font-hand text-[17px] text-cocoa-500">latest step</p>
                 {latest ? (
                   <>
                     <p className="mt-1.5 flex flex-wrap items-center gap-1.5 lg:justify-center">
@@ -263,7 +263,7 @@ export function ConsoleView() {
         </div>
 
         {/* ------------------------------------------------------------ eval + links */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-8">
+        <div className="grid gap-6 lg:gap-8">
           <Card title="Eval results" icon={FlaskConical}>
             <EvalCard />
           </Card>
