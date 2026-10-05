@@ -82,8 +82,13 @@ export class WakeWord {
   }
 
   /** resume after a page gesture if the browser started the audio suspended */
-  resume() {
-    if (this.ctx?.state === 'suspended') void this.ctx.resume();
+  resume(): Promise<void> {
+    return this.ctx?.state === 'suspended' ? this.ctx.resume().catch(() => {}) : Promise.resolve();
+  }
+
+  /** true while the browser keeps the audio paused until the page is touched */
+  get waiting() {
+    return this.ctx?.state === 'suspended';
   }
 
   private async step(m: Models) {

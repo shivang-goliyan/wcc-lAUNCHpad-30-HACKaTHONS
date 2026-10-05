@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { WakeWord, wakeWordSupported } from '@/lib/client/wakeword';
+import { chime } from '@/lib/client/speak';
 
-export type WakeStatus = 'unavailable' | 'off' | 'loading' | 'listening' | 'paused' | 'error';
+export type WakeStatus = 'unavailable' | 'off' | 'loading' | 'tap' | 'listening' | 'paused' | 'heard' | 'error';
 
 /**
  * "Hey Nami": while it's on and no voice session is running, the page listens on the device.
@@ -47,6 +48,10 @@ export function useWakeWord({ voiceOn, start }: { voiceOn: boolean; start: () =>
       onWake: () => {
         w.stop();
         if (ww.current === w) ww.current = null;
+        // let her be heard to have heard: a chime and the pill says so, then the voice loop starts
+        chime();
+        setStatus('heard');
+        setTimeout(() => setStatus((x) => (x === 'heard' ? 'loading' : x)), 2200);
         startRef.current();
       },
     });
@@ -55,10 +60,12 @@ export function useWakeWord({ voiceOn, start }: { voiceOn: boolean; start: () =>
     // eslint-disable-next-line react-hooks/set-state-in-effect -- status mirrors the listener we just started
     setStatus('loading');
     w.start()
-      .then(() => live && setStatus('listening'))
+      .then(() => live && setStatus(w.waiting ? 'tap' : 'listening'))
       .catch(() => live && setStatus('error'));
     // browsers may start audio suspended until the page is touched
-    const wake = () => w.resume();
+    const wake = () => {
+      void w.resume().then(() => live && !w.waiting && setStatus((s) => (s === 'tap' ? 'listening' : s)));
+    };
     window.addEventListener('pointerdown', wake);
     return () => {
       live = false;
@@ -77,6 +84,6 @@ export function useWakeWord({ voiceOn, start }: { voiceOn: boolean; start: () =>
     });
   }, []);
 
-  const shown: WakeStatus = !shipped ? 'unavailable' : !on ? 'off' : voiceOn ? 'paused' : status;
+  const shown: WakeStatus = !shipped ? 'unavailable' : !on ? 'off' : voiceOn ? (status === 'heard' ? 'heard' : 'paused') : status === 'heard' ? 'loading' : status;
   return { status: shown, toggle };
 }

@@ -479,7 +479,7 @@ function Controls({ app }: { app: App }) {
           <button
             onClick={wake.toggle}
             aria-pressed={wake.status !== 'off'}
-            className={cx('flex min-h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold ring-1', wake.status === 'listening' ? 'bg-[#e7f1ec] text-teal-900 ring-sea-500/50' : 'bg-[#fffaf0] text-teal-900 ring-[#e3d5bd] hover:bg-[#fffdf8]')}
+            className={cx('flex min-h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold ring-1', wake.status === 'listening' || wake.status === 'heard' ? 'bg-[#e7f1ec] text-teal-900 ring-sea-500/50' : 'bg-[#fffaf0] text-teal-900 ring-[#e3d5bd] hover:bg-[#fffdf8]')}
           >
             <span className={cx('h-2.5 w-2.5 rounded-full', wake.status === 'listening' ? 'animate-pulse bg-sea-500' : wake.status === 'error' ? 'bg-help-600' : 'bg-cocoa-300')} aria-hidden />
             {wake.status === 'off'
@@ -490,7 +490,11 @@ function Controls({ app }: { app: App }) {
                   ? app.lang === 'hi' ? 'माइक नहीं मिला · फिर कोशिश करें' : 'No microphone · tap to retry'
                   : wake.status === 'paused'
                     ? app.lang === 'hi' ? 'बात चल रही है' : 'In a conversation'
-                    : app.lang === 'hi' ? 'बोलिए “Hey Nami” · यहीं फ़ोन पर सुनती हूँ' : 'Say “Hey Nami” · listening on this device only'}
+                    : wake.status === 'heard'
+                      ? app.lang === 'hi' ? 'सुन लिया! बोलिए…' : 'Heard you! Go ahead…'
+                      : wake.status === 'tap'
+                        ? app.lang === 'hi' ? 'सुनना शुरू करने के लिए कहीं भी छुएँ' : 'Tap anywhere to start listening'
+                        : app.lang === 'hi' ? 'बोलिए “Hey Nami” · यहीं फ़ोन पर सुनती हूँ' : 'Say “Hey Nami” · listening on this device only'}
           </button>
         ) : (
           <span />
