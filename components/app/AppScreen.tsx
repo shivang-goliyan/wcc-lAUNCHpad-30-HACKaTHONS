@@ -719,6 +719,8 @@ function JudgesPanel({ d, app, onClose }: { d: Snap; app: App; onClose: () => vo
         </button>
       </div>
 
+      <PhoneCard app={app} />
+
       <div className="mt-4 rounded-2xl bg-[#fbe9a6]/55 p-4">
         <h3 className={h3}>Move the demo clock</h3>
         <p className="mt-0.5 text-[14px] text-ink-600">
@@ -857,5 +859,76 @@ function SkipChip({ app }: { app: App }) {
       <FastForward className="h-4 w-4" aria-hidden />
       <span className="hidden lg:inline">{app.t.skip}</span>
     </button>
+  );
+}
+
+/** A judge plays the elder: Nami phones their own number and they just talk. */
+function PhoneCard({ app }: { app: App }) {
+  const [to, setTo] = useState('');
+  const [lang, setLang] = useState<'en' | 'hi'>(app.lang === 'hi' ? 'hi' : 'en');
+  const [mine, setMine] = useState(false);
+  const [state, setState] = useState<{ kind: 'idle' | 'calling' | 'placed' | 'error'; msg?: string }>({ kind: 'idle' });
+  const call = async () => {
+    setState({ kind: 'calling' });
+    const r = await post('/api/phone', { to, lang, mine: true });
+    if (r?.ok) setState({ kind: 'placed' });
+    else setState({ kind: 'error', msg: r?.error ?? 'Something went wrong. Please try again.' });
+  };
+  return (
+    <div className="mt-4 rounded-2xl bg-[#e7f1ec] p-4">
+      <h3 className="flex items-center gap-2 text-[16px] font-semibold text-teal-900">
+        <PhoneCall className="h-4 w-4" aria-hidden /> Talk to Nami on your phone
+      </h3>
+      <p className="mt-0.5 text-[14px] text-ink-600">Be Meera ji for a few minutes. Nami calls you; ask about your day, say you took your tablet, or ask her to book Dr. Mehta. It all shows up on this screen.</p>
+      {state.kind === 'placed' ? (
+        <p className="mt-3 rounded-xl bg-white/80 p-3 text-[15px] font-semibold text-teal-900" role="status">
+          Calling you now. Pick up and talk to Nami. The call ends by itself after 3 minutes.
+        </p>
+      ) : (
+        <form
+          className="mt-3 space-y-2.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (mine && to.trim()) void call();
+          }}
+        >
+          <label className="block text-[13px] font-semibold text-ink-900" htmlFor="judge-phone">
+            Your mobile number
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="judge-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="98765 43210 or +1 …"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="min-h-12 w-full rounded-xl border border-[#e3d5bd] bg-white px-3 text-[16px] text-ink-900 outline-none focus:border-teal-700"
+            />
+            <select aria-label="Language for the call" value={lang} onChange={(e) => setLang(e.target.value as 'en' | 'hi')} className="min-h-12 rounded-xl border border-[#e3d5bd] bg-white px-2 text-[15px]">
+              <option value="en">English</option>
+              <option value="hi">हिंदी</option>
+            </select>
+          </div>
+          <label className="flex items-start gap-2 text-[13.5px] text-ink-600">
+            <input type="checkbox" checked={mine} onChange={(e) => setMine(e.target.checked)} className="mt-0.5 size-4 accent-teal-900" />
+            This is my own phone, and Nami may call it once for this demo. Indian and US numbers only.
+          </label>
+          <button
+            type="submit"
+            disabled={!mine || !to.trim() || state.kind === 'calling'}
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-teal-900 px-4 text-[17px] font-semibold text-ivory-50 hover:bg-teal-700 disabled:opacity-50"
+          >
+            <Phone className="h-5 w-5" aria-hidden /> {state.kind === 'calling' ? 'Placing the call…' : 'Call me now'}
+          </button>
+          {state.kind === 'error' && (
+            <p className="text-[14px] font-semibold text-help-600" role="alert">
+              {state.msg}
+            </p>
+          )}
+        </form>
+      )}
+    </div>
   );
 }
