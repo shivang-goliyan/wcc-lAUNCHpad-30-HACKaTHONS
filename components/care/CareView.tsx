@@ -9,6 +9,7 @@ import { MemorySection } from './MemorySection';
 import { AppointmentsSection, FamilyRequestsSection, NoticesSection, PastCasesSection, RemindersSection } from './Sections';
 import { InvalidLink } from './InvalidLink';
 import { NamiAvatar } from './NamiAvatar';
+import './paper.css';
 import { isOpenCase, time24 } from './format';
 
 type CareResponse = CareSnapshot & { ok: true };
@@ -81,26 +82,29 @@ export function CareView({ token }: { token: string }) {
   const closed = data.cases.filter((c) => !isOpenCase(c.state));
   const lastSeen = data.device.lastSeen;
 
+  const first = data.recipient.name.split(' ')[0];
+  // the painted portrait belongs to the demo persona only; anyone else gets their initial
+  const photo = first === 'Meera' ? '/people/meera-480.webp' : null;
+
   return (
-    <main className="flex min-h-dvh flex-1 flex-col bg-ivory-50">
-      <header className="relative overflow-hidden bg-teal-900 pb-16 text-ivory-50">
-        <Waves />
-        <div className="relative mx-auto w-full max-w-[640px] px-4 pt-5 sm:px-6 sm:pt-7 lg:max-w-[1120px]">
+    <main className="pp-paper flex min-h-dvh flex-1 flex-col">
+      <header className="relative">
+        <div className="mx-auto w-full max-w-[640px] px-4 pt-4 sm:px-6 sm:pt-6 lg:max-w-[1120px]">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <NamiAvatar className="size-11" />
-              <div className="leading-tight">
-                <p className="font-display text-[19px] font-semibold">Raynet</p>
-                <p className="text-[13px] text-sea-200">For {data.contact.name} · {data.contact.relation}</p>
-              </div>
+            <div className="flex items-baseline gap-2 leading-none">
+              <span className="font-display text-[24px] font-semibold tracking-tight text-teal-900">Raynet</span>
+              <span className="font-hand text-[16px] text-cocoa-500">
+                for {data.contact.name}
+                <span className="hidden sm:inline"> · {data.contact.relation}</span>
+              </span>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-white/10 px-3 py-1 text-[13px] font-semibold text-ivory-50 ring-1 ring-white/15">
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#fbe9a6]/70 px-3 py-1.5 text-[14px] font-semibold text-[#6d4a12] ring-1 ring-warn-600/30">
                 <Clock className="size-3.5" aria-hidden />
                 Demo time {data.time}
               </span>
               {error ? (
-                <span className="inline-flex items-center gap-1.5 text-[12px] text-[#f3c9a4]" role="status">
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-bad-600" role="status">
                   <WifiOff className="size-3.5" aria-hidden />
                   Reconnecting…
                 </span>
@@ -108,76 +112,82 @@ export function CareView({ token }: { token: string }) {
             </div>
           </div>
 
-          <p className="mt-7 text-[13px] font-bold uppercase tracking-[.18em] text-sea-500">You’re in {data.recipient.name.split(' ')[0]}’s circle</p>
-          <h1 className="mt-1.5 font-display text-[34px] leading-[1.05] font-semibold tracking-[-0.015em] sm:text-[42px]">
-            {data.recipient.name}
-            <span className="text-sea-500"> · </span>
-            <span className="inline-flex items-center gap-1 text-[0.8em] font-medium text-sea-200">
-              <MapPin className="size-[0.75em]" aria-hidden />
-              {data.recipient.city}
+          <div className="lg:grid lg:grid-cols-2 lg:items-end lg:gap-6">
+          <div className="mt-6 flex items-center gap-4 sm:mt-8 sm:gap-5">
+            <span className="relative shrink-0 rotate-[-3deg] bg-white p-1.5 pb-4 shadow-[0_10px_24px_rgba(70,45,20,.18)]">
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="" className="size-[76px] object-cover sm:size-[92px]" />
+              ) : (
+                <span className="grid size-[76px] place-items-center bg-sea-200 font-display text-[34px] font-semibold text-teal-900 sm:size-[92px]">{first.slice(0, 1)}</span>
+              )}
             </span>
-          </h1>
+            <div className="min-w-0">
+              <p className="font-hand text-[18px] leading-tight text-cocoa-500">You&rsquo;re in {first}&rsquo;s circle</p>
+              <h1 className="mt-0.5 font-display text-[32px] leading-[1.05] font-semibold tracking-[-0.015em] text-teal-900 sm:text-[40px]">{data.recipient.name}</h1>
+              <p className="mt-1 flex items-center gap-1.5 text-[16px] text-ink-600">
+                <MapPin className="size-4 text-cocoa-500" aria-hidden />
+                {data.recipient.city}
+              </p>
+            </div>
+          </div>
 
-          <dl className="mt-5 grid grid-cols-2 gap-2.5 lg:max-w-[560px]">
-            <div className="rounded-2xl bg-white/[.08] px-4 py-3 ring-1 ring-white/10">
-              <dt className="flex items-center gap-1.5 text-[13px] text-sea-200">
-                <CircleCheck className="size-3.5" aria-hidden />
+          <dl className="mt-5 grid grid-cols-2 gap-3">
+            <div className="pp-card rounded-2xl px-4 py-3 ring-1 ring-[#e3d5bd]">
+              <dt className="flex items-center gap-1.5 text-[14px] leading-tight text-ink-600">
+                <CircleCheck className="size-4 shrink-0 text-teal-700" aria-hidden />
                 Last explicit response
               </dt>
-              <dd className="mt-0.5 font-display text-[24px] font-semibold tabular-nums">{data.device.lastExplicitResponse ?? '—'}</dd>
+              <dd className="mt-1.5 font-display text-[26px] leading-none font-semibold tabular-nums text-teal-900">{data.device.lastExplicitResponse ?? <span className="text-[18px] font-medium text-ink-600">None today</span>}</dd>
             </div>
-            <div className="rounded-2xl bg-white/[.08] px-4 py-3 ring-1 ring-white/10">
-              <dt className="flex items-center gap-1.5 text-[13px] text-sea-200">
-                <Eye className="size-3.5" aria-hidden />
+            <div className="pp-card rounded-2xl px-4 py-3 ring-1 ring-[#e3d5bd]">
+              <dt className="flex items-center gap-1.5 text-[14px] leading-tight text-ink-600">
+                <Eye className="size-4 shrink-0 text-teal-700" aria-hidden />
                 Nami page last seen
               </dt>
-              <dd className="mt-0.5 font-display text-[24px] font-semibold tabular-nums">{lastSeen ?? <span className="text-[17px] font-medium text-sea-200">Not today</span>}</dd>
+              <dd className="mt-1.5 font-display text-[26px] leading-none font-semibold tabular-nums text-teal-900">{lastSeen ?? <span className="text-[18px] font-medium text-ink-600">Not today</span>}</dd>
             </div>
           </dl>
+          </div>
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto -mt-10 w-full max-w-[640px] px-4 pb-10 sm:px-6 lg:max-w-[1120px]">
-        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-6">
-        <div className="flex flex-col gap-5 lg:sticky lg:top-6">
-        {last && !open.some((c) => c.id === last.caseId) ? (
-          <p role="status" className="flex items-start gap-3 rounded-[22px] border border-ok-600/25 bg-[#eef5ef] p-4 text-[16px] font-medium text-ok-600 shadow-[0_14px_40px_rgba(23,61,56,.12)]">
-            <CircleCheck className="mt-0.5 size-5 shrink-0" aria-hidden />
-            <span className="flex-1">{last.message}</span>
-            <button onClick={() => setLast(null)} className="-m-2 min-h-11 min-w-11 rounded-full text-[14px] font-semibold text-ink-600 hover:bg-ok-600/10" aria-label="Dismiss">
-              ✕
-            </button>
-          </p>
-        ) : null}
-        {open.length ? (
-          open.map((c) => <CaseCard key={c.id} c={c} me={me} recipientName={name} onAction={onAction} />)
-        ) : (
-          <div className="flex items-center gap-4 rounded-[22px] border border-line bg-card p-5 shadow-[0_14px_40px_rgba(23,61,56,.12)]">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-sea-200/70 text-teal-700">
-              <ShieldCheck className="size-6" aria-hidden />
-            </span>
-            <div>
-              <p className="text-[18px] font-semibold text-ink-900">Nothing needs you right now</p>
-              <p className="mt-0.5 text-[15px] leading-snug text-ink-600">No open check-in or help request. If one opens, it appears here first.</p>
-            </div>
-          </div>
-        )}
+      <div className="relative mx-auto mt-6 w-full max-w-[640px] px-4 pb-10 sm:px-6 lg:mt-8 lg:max-w-[1120px]">
+        {/* two balanced columns on wide screens; one reading order on phones */}
+        <div className="flex flex-col gap-5 lg:block lg:columns-2 lg:gap-6 lg:[&>*]:mb-6 lg:[&>*]:break-inside-avoid">
+            {last && !open.some((c) => c.id === last.caseId) ? (
+              <p role="status" className="flex items-start gap-3 rounded-[22px] border border-ok-600/25 bg-[#eef5ef] p-4 text-[16px] font-medium text-ok-600 shadow-[0_10px_26px_rgba(70,45,20,.1)]">
+                <CircleCheck className="mt-0.5 size-5 shrink-0" aria-hidden />
+                <span className="flex-1">{last.message}</span>
+                <button onClick={() => setLast(null)} className="-m-2 min-h-11 min-w-11 rounded-full text-[14px] font-semibold text-ink-600 hover:bg-ok-600/10" aria-label="Dismiss">
+                  ✕
+                </button>
+              </p>
+            ) : null}
+            {open.length ? (
+              open.map((c) => <CaseCard key={c.id} c={c} me={me} recipientName={name} onAction={onAction} />)
+            ) : (
+              <div className="pp-note pp-tape relative mt-2 flex items-center gap-4 rounded-md p-5 sm:p-6" style={{ ['--tilt' as string]: '-0.6deg' }}>
+                <NamiAvatar className="size-16" />
+                <div>
+                  <p className="font-display text-[22px] leading-tight font-semibold text-teal-900">Nothing needs you right now</p>
+                  <p className="mt-1 text-[16px] leading-snug text-ink-600">No open check-in or help request. If one opens, it shows up here first.</p>
+                </div>
+              </div>
+            )}
 
-        <FamilyRequestsSection requests={data.familyRequests} recipientName={name} />
-        <MemorySection token={token} data={data} onDone={() => void mutate()} />
-        </div>
-        <div className="flex flex-col gap-5">
-        <NoticesSection notices={data.notices} />
-        <RemindersSection reminders={data.reminders} />
-        <AppointmentsSection appointments={data.appointments} />
-        <PastCasesSection cases={closed} me={me} recipientName={name} />
-        </div>
+            <FamilyRequestsSection requests={data.familyRequests} recipientName={name} />
+            <NoticesSection notices={data.notices} />
+            <RemindersSection reminders={data.reminders} />
+            <AppointmentsSection appointments={data.appointments} />
+            <PastCasesSection cases={closed} me={me} recipientName={name} />
+            <MemorySection token={token} data={data} onDone={() => void mutate()} />
         </div>
 
-        <footer className="mt-8 flex flex-col items-center gap-2 px-2 pt-2 text-center text-[14px] leading-relaxed text-ink-600">
+        <footer className="mt-10 flex flex-col items-center gap-2 px-2 text-center text-[14px] leading-relaxed text-ink-600">
           <p className="flex items-center gap-2">
-            <ShieldCheck className="size-4 text-teal-700" aria-hidden />
-            Shared by {data.recipient.name.split(' ')[0]} with your consent · Nami is an AI assistant
+            <ShieldCheck className="size-4 shrink-0 text-teal-700" aria-hidden />
+            Shared by {first} with your consent · Nami is an AI assistant
           </p>
           <p className="text-[13px]">Times are demo time ({data.time}) · updates every few seconds · last update {time24(data.now)}</p>
         </footer>
@@ -186,22 +196,13 @@ export function CareView({ token }: { token: string }) {
   );
 }
 
-function Waves() {
-  return (
-    <svg className="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden>
-      <path d="M0 64c120 22 240 34 360 26S600 50 720 46s240 16 360 26 240 10 360-6v54H0z" fill="#24564f" opacity=".55" />
-      <path d="M0 84c160 18 320 22 480 12s320-34 480-30 320 26 480 26v28H0z" fill="#80a99b" opacity=".18" />
-    </svg>
-  );
-}
-
 function CareSkeleton({ offline }: { offline: boolean }) {
   return (
-    <main className="flex min-h-dvh flex-1 flex-col bg-ivory-50" aria-busy="true">
-      <div className="h-[290px] bg-teal-900" />
-      <div className="mx-auto -mt-10 flex w-full max-w-[640px] flex-col gap-5 px-4 sm:px-6">
-        <div className="h-72 animate-pulse rounded-[24px] bg-card shadow-[0_14px_40px_rgba(23,61,56,.10)]" />
-        <div className="h-40 animate-pulse rounded-[22px] bg-card/80" />
+    <main className="pp-paper flex min-h-dvh flex-1 flex-col" aria-busy="true">
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 px-4 pt-6 sm:px-6">
+        <div className="h-7 w-40 animate-pulse rounded-full bg-[#ebdfca]" />
+        <div className="h-28 animate-pulse rounded-[22px] bg-[#efe5d3]" />
+        <div className="h-72 animate-pulse rounded-[24px] bg-[#fffaf0] shadow-[0_10px_26px_rgba(70,45,20,.1)]" />
         <p className="text-center text-[15px] text-ink-600" role="status">
           {offline ? 'Can’t reach Nami right now, retrying…' : 'Loading the latest from Nami…'}
         </p>

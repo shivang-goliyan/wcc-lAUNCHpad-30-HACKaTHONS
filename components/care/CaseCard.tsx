@@ -198,7 +198,7 @@ function NoteForm({
         onSubmit(note.trim());
       }}
     >
-      <div className="mt-1 rounded-2xl border border-line bg-ivory-50 p-4">
+      <div className="mt-1 rounded-2xl border border-[#e3d5bd] bg-[#f6efe2] p-4">
         <label htmlFor={id} className="block text-[17px] font-semibold text-ink-900">
           {label}
         </label>
@@ -268,13 +268,13 @@ export function CaseCard({
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-[24px] border bg-card shadow-[0_14px_40px_rgba(23,61,56,.14)] ${help ? 'border-help-600/40' : 'border-line'}`}
+      className={`relative overflow-hidden rounded-[24px] border bg-[#fffaf0] shadow-[0_16px_40px_rgba(70,45,20,.16)] ${help ? 'border-help-600/40' : 'border-[#e3d5bd]'}`}
       aria-labelledby={`case-${c.id}`}
     >
       <div className={`h-1.5 w-full ${help ? 'bg-help-600' : sv.tone === 'ok' ? 'bg-ok-600' : 'bg-warn-600'}`} aria-hidden />
       <div className="p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={`inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-[.14em] ${help ? 'text-help-600' : 'text-cocoa-500'}`}>
+          <span className={`inline-flex items-center gap-2 text-[15px] font-semibold ${help ? 'text-help-600' : 'text-cocoa-500'}`}>
             {help ? <LifeBuoy className="size-4" aria-hidden /> : <CalendarClock className="size-4" aria-hidden />}
             {help ? 'Help request' : 'Daily check-in'}
           </span>
@@ -303,23 +303,8 @@ export function CaseCard({
           </a>
         ) : null}
 
-        <section className="mt-5" aria-label="What Nami knows">
-          <h3 className="text-[13px] font-bold uppercase tracking-[.14em] text-ink-600">Facts Nami recorded</h3>
-          <ul className="mt-2.5 grid gap-x-5 rounded-2xl bg-ivory-50 px-4 py-2 sm:grid-cols-2">
-            {facts.map((f) => (
-              <li key={f.text} className="flex items-center gap-3 border-b border-line/70 py-2.5 text-[16px] leading-snug text-ink-900 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
-                <span className={`flex size-7 shrink-0 items-center justify-center rounded-full ${f.tone === 'help' ? 'bg-help-600/10 text-help-600' : 'bg-sea-200/80 text-teal-700'}`}>
-                  <f.icon className="size-[15px]" aria-hidden />
-                </span>
-                {f.text}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2.5 text-[14px] leading-snug text-ink-600">These are facts only. Nami does not guess how she is. A person checks.</p>
-        </section>
-
         {/* ---------------- actions ---------------- */}
-        <div className="mt-6 space-y-3">
+        <div className="mt-5 space-y-3">
           {canAccept ? (
             <>
               <p className="text-[17px] leading-snug text-ink-900">
@@ -394,14 +379,14 @@ export function CaseCard({
           ) : null}
 
           {c.state === 'owner_accepted' && !iOwn ? (
-            <p className="flex items-start gap-3 rounded-2xl bg-ivory-50 p-4 text-[16px] leading-snug text-ink-900">
+            <p className="flex items-start gap-3 rounded-2xl bg-[#f6efe2] p-4 text-[16px] leading-snug text-ink-900">
               <UserCheck className="mt-0.5 size-5 shrink-0 text-ok-600" aria-hidden />
               {c.ownerName ?? 'A family member'} accepted and is following up. You will see their report here.
             </p>
           ) : null}
 
           {trying ? (
-            <p className="flex items-start gap-3 rounded-2xl bg-ivory-50 p-4 text-[16px] leading-snug text-ink-900">
+            <p className="flex items-start gap-3 rounded-2xl bg-[#f6efe2] p-4 text-[16px] leading-snug text-ink-900">
               <Clock className="mt-0.5 size-5 shrink-0 text-[#8a5a12]" aria-hidden />
               Nami is still trying {recipientName} directly. If she doesn’t respond by the agreed deadline, you’ll be asked here.
             </p>
@@ -423,6 +408,21 @@ export function CaseCard({
           </AnimatePresence>
         </div>
 
+        <section className="mt-6 border-t border-[#e3d5bd] pt-5" aria-label="What Nami knows">
+          <h3 className="text-[16px] font-semibold text-ink-900">What Nami recorded</h3>
+          <ul className="mt-2.5 grid gap-x-5 rounded-2xl bg-[#f6efe2] px-4 py-1.5 sm:grid-cols-2">
+            {facts.map((f) => (
+              <li key={f.text} className="flex items-center gap-3 border-b border-line/70 py-2 text-[15.5px] leading-snug text-ink-900 last:border-b-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
+                <span className={`flex size-7 shrink-0 items-center justify-center rounded-full ${f.tone === 'help' ? 'bg-help-600/10 text-help-600' : 'bg-sea-200/80 text-teal-700'}`}>
+                  <f.icon className="size-[15px]" aria-hidden />
+                </span>
+                {f.text}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2.5 text-[14px] leading-snug text-ink-600">These are facts only. Nami does not guess how she is. A person checks.</p>
+        </section>
+
         {c.history.length ? <CaseHistory c={c} me={me} /> : null}
       </div>
     </motion.article>
@@ -432,8 +432,8 @@ export function CaseCard({
 export function CaseHistory({ c, me, title = 'Who has been asked' }: { c: CareCase; me: string; title?: string }) {
   void me;
   return (
-    <section className="mt-6 border-t border-line pt-5" aria-label={title}>
-      <h3 className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[.14em] text-ink-600">
+    <section className="mt-6 border-t border-[#e3d5bd] pt-5" aria-label={title}>
+      <h3 className="flex items-center gap-2 text-[16px] font-semibold text-ink-900">
         <History className="size-4" aria-hidden />
         {title}
       </h3>

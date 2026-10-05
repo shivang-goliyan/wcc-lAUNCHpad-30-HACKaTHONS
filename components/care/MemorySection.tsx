@@ -16,9 +16,9 @@ export function MemorySection({ token, data, onDone }: { token: string; data: Ca
     <Section title="Memory Corner" icon={Images}>
       <ul className="space-y-3">
         {data.memoryPrompts.map((m) => (
-          <li key={m.id} className="flex gap-3 rounded-xl bg-ivory-50 p-3">
+          <li key={m.id} className="flex gap-3 rounded-xl bg-[#f6efe2] p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={m.photoPath} alt="" className="h-16 w-20 shrink-0 rounded-lg object-cover" />
+            <img src={m.photoPath} alt="" className="h-16 w-20 shrink-0 rotate-[-2deg] bg-white object-cover p-1 shadow-[0_4px_10px_rgba(70,45,20,.15)]" />
             <div className="min-w-0 text-[15px]">
               <p className="font-semibold text-ink-900">“{m.caption}”</p>
               {m.state === 'sent' && m.story ? (
@@ -52,13 +52,13 @@ export function MemorySection({ token, data, onDone }: { token: string; data: Ca
           }
         }}
       >
-        <label className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border border-dashed border-line px-4 text-[15px] text-ink-600 hover:bg-ivory-50">
+        <label className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed border-cocoa-300/70 px-4 text-[15px] text-ink-600 hover:bg-[#f6efe2]">
           <ImagePlus className="size-5 text-teal-700" aria-hidden />
           {file ? file.name : 'Choose an old family photo'}
           <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
-        <input value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={140} placeholder={`e.g. “Ma, remember our Shimla trip in 1998?”`} className="min-h-12 w-full rounded-xl border border-line bg-white px-4 text-[16px]" />
-        <button disabled={!file || !caption.trim() || busy} className="min-h-12 w-full rounded-full bg-cocoa-500 px-5 text-[16px] font-semibold text-white disabled:opacity-40">
+        <input value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={140} placeholder={`e.g. “Ma, remember our Shimla trip in 1998?”`} className="min-h-12 w-full rounded-xl border border-[#e3d5bd] bg-white px-4 text-[16px]" />
+        <button disabled={!file || !caption.trim() || busy} className="min-h-12 w-full rounded-full bg-cocoa-500 px-5 text-[16px] font-semibold text-white hover:bg-[#74503a] disabled:opacity-40">
           {busy ? 'Sharing…' : `Share with ${name}`}
         </button>
         {msg && <p className="text-[14px] text-ink-600">{msg}</p>}
