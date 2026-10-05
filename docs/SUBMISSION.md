@@ -25,12 +25,12 @@ appears, and the narration says so.
 The phone-call request in the film was staged so no call was placed while recording; the feature itself is
 live and capped (see D25).
 
-## 2. Form answers (draft — fill in the team details)
+## 2. Form answers
 
 | Field | Answer |
 |---|---|
-| Team name | **(CAPITALS — from the lead)** |
-| Members and roles | **(from the lead)** |
+| Team name | GOLIYANSHIVANG07 |
+| Members and roles | Shivang Goliyan: product, engineering, agents and voice · Vansh Khewal: design and front end |
 | Project name | Raynet (with Nami, the companion) |
 | Live link | https://raynet.in (demo: https://raynet.in/try) |
 | Repository | https://github.com/shivang-goliyan/wcc-lAUNCHpad-30-HACKaTHONS (make public before submitting) |
