@@ -62,7 +62,7 @@ export function ScrapHero() {
             <em className="font-normal text-cocoa-500 italic">Raynet makes sure someone shows&nbsp;up.</em>
           </h1>
           <p className="mt-6 max-w-[33em] text-[18px] leading-relaxed text-ink-600">
-            A gentle AI companion for parents who live alone. She chats in Hindi or English, reminds them, phones the clinic
+            An AI companion for parents who live alone. She chats in Hindi or English, reminds them, phones the clinic
             with their OK, and when something&rsquo;s wrong, makes sure a real person in the family follows up.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
