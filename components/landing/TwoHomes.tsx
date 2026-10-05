@@ -8,7 +8,7 @@ import { NamiSlot } from './NamiSlot';
  */
 export function TwoHomes() {
   return (
-    <section id="family" aria-labelledby="family-title" className="relative bg-[#fbf7ef] py-20 sm:py-28">
+    <section id="family" aria-labelledby="family-title" className="relative bg-[#fbf7ef] py-20 sm:py-24">
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
         <p className="font-hand text-[20px] text-cocoa-500">when she doesn&rsquo;t answer</p>
         <h2 id="family-title" className="mt-2 max-w-[19em] font-display text-[clamp(2rem,4vw,3.3rem)] leading-[1.06] font-medium text-teal-900 text-balance">
@@ -40,7 +40,7 @@ export function TwoHomes() {
             <img src="/scenes/home-bengaluru.webp" alt="Arjun at his desk in Bengaluru, looking at his phone" loading="lazy" className="aspect-[4/5] w-full object-cover sm:aspect-auto sm:h-[620px]" />
             <figcaption className="font-hand absolute top-4 right-4 rounded-sm bg-[#dbe7f0]/95 px-3 py-1 text-[17px] text-ink-900 shadow">Arjun · Bengaluru · 10:31</figcaption>
             <div className="absolute right-4 bottom-6 w-[min(20rem,calc(100%-2rem))] rounded-2xl bg-white/95 p-4 shadow-[0_18px_40px_rgba(20,40,60,0.25)] backdrop-blur sm:right-6">
-              <p className="text-[12px] font-semibold tracking-wide text-ink-600 uppercase">Raynet · now</p>
+              <p className="text-[12.5px] font-semibold text-ink-600">Raynet · just now</p>
               <p className="mt-1 text-[15.5px] leading-snug text-ink-900">Ma hasn&rsquo;t answered her 10:00 check-in. Can you check on her?</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <span className="rounded-lg bg-teal-900 py-2 text-center text-[14px] font-semibold text-ivory-50">I&rsquo;ll check</span>
@@ -68,13 +68,13 @@ export function TwoHomes() {
         </div>
       </InView>
 
-      <div className="mx-auto mt-10 grid max-w-[1080px] gap-4 px-5 sm:grid-cols-3 sm:px-8">
+      <div className="mx-auto mt-8 grid max-w-[1280px] gap-4 px-5 sm:grid-cols-3 sm:px-8">
         {[
           { img: 'arjun', who: 'Arjun · son · Bengaluru', state: 'Asked first. Accepted at 10:31.', ok: true },
           { img: 'priya', who: 'Priya · daughter · Pune', state: 'Asked next, only if Arjun can’t.', ok: false },
           { img: 'meera', who: 'Meera ji', state: 'Answers late? The case closes itself, no fuss.', ok: false },
         ].map((p) => (
-          <div key={p.who} className="flex items-center gap-3 rounded-2xl bg-white/70 p-3 ring-1 ring-line/70">
+          <div key={p.who} className="flex items-center gap-3 rounded-2xl bg-white/80 p-4 shadow-[0_6px_18px_rgba(70,45,20,0.06)] ring-1 ring-line/60">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`/people/${p.img}-160.webp`} alt="" className="h-14 w-14 rounded-[16px] object-cover" />
             <div>
@@ -84,7 +84,7 @@ export function TwoHomes() {
           </div>
         ))}
       </div>
-      <p className="mx-auto mt-6 max-w-[1080px] px-5 text-[15px] text-ink-600 sm:px-8">
+      <p className="mx-auto mt-5 max-w-[1280px] px-5 text-[15px] text-ink-600 sm:px-8">
         In the demo your own phone can be Arjun: scan the QR code on Meera&rsquo;s screen and press &ldquo;I&rsquo;ll check&rdquo;.
       </p>
     </section>

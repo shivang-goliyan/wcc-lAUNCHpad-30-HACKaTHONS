@@ -1,7 +1,7 @@
 import { ArrowRight, BadgeInfo, CheckCheck, MicOff, PhoneCall, Stethoscope } from 'lucide-react';
 import { Logo } from './Hero';
 import { NamiSlot } from './NamiSlot';
-import { Container, LANE_RIGHT } from './ui';
+import { Container } from './ui';
 
 const TRUST = [
   { icon: BadgeInfo, title: 'Says she’s an AI', body: 'In her first hello, on every call, and whenever asked.' },
@@ -51,16 +51,15 @@ export function Footer() {
           <circle key={i} className="lp-twinkle" cx={`${s.x}%`} cy={`${s.y}%`} r={s.r} fill="#F7F3EA" style={{ animationDelay: `${s.d}s` }} />
         ))}
       </svg>
-      <svg aria-hidden viewBox="0 0 60 60" className="absolute top-14 left-[7%] h-12 w-12 opacity-90 sm:top-16 sm:h-16 sm:w-16">
+      <svg aria-hidden viewBox="0 0 60 60" className="absolute top-14 right-[8%] h-12 w-12 opacity-90 sm:top-16 sm:h-16 sm:w-16">
         <path d="M40 8 A24 24 0 1 0 52 44 A20 20 0 1 1 40 8 Z" fill="#F4E9D2" />
       </svg>
       <svg aria-hidden viewBox="0 0 1600 40" preserveAspectRatio="none" className="absolute inset-x-0 top-[-1px] h-[30px] w-full">
         <path d="M0 0 H1600 V14 C1400 30 1200 8 1000 20 C800 32 600 10 400 22 C220 32 100 16 0 24 Z" fill="#F7F3EA" />
       </svg>
 
-      <Container className="pt-28 pb-12 sm:pt-32">
+      <div className="relative mx-auto w-full max-w-[1280px] px-5 pt-28 pb-12 sm:px-8 sm:pt-32">
         <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <NamiSlot id="footer-lane" pose="quiet" say="Time for my nap. Try the demo whenever you like!" className={`${LANE_RIGHT} top-0`} />
           <div>
             <p className="lp-display max-w-[16em] font-display text-[clamp(2rem,4.4vw,3.5rem)] leading-[1.05] font-medium text-balance">
               Nami doesn&rsquo;t replace family. <span className="text-sea-500 italic">She makes sure they show up.</span>
@@ -73,7 +72,7 @@ export function Footer() {
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
             </a>
           </div>
-          <NamiSlot id="footer-side" pose="quiet" className="relative -mb-4 h-[150px] w-[150px] justify-self-end sm:h-[180px] sm:w-[180px] xl:hidden" />
+          <NamiSlot id="footer-side" pose="quiet" say="Time for my nap. Try the demo whenever you like!" className="relative -mb-4 h-[150px] w-[150px] justify-self-end sm:h-[200px] sm:w-[200px]" />
         </div>
 
         <div className="mt-16 flex flex-col gap-6 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between">
@@ -98,7 +97,7 @@ export function Footer() {
           not a medical service and does not give medical advice. In an emergency call 112; for mental-health support, Tele-MANAS
           14416. Personas and phone numbers in the demo are fictional.
         </p>
-      </Container>
+      </div>
     </footer>
   );
 }

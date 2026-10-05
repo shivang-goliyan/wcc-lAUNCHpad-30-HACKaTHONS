@@ -67,7 +67,7 @@ const CHIP = { ok: 'bg-[#e3efe6] text-[#1f5a3b]', wait: 'bg-[#f6ead2] text-[#7a5
 /** A painted day, sunrise to night. Nami walks from one moment to the next as you scroll. */
 export function DaySection() {
   return (
-    <section id="day" aria-labelledby="day-title" className="relative bg-[#fbf7ef] pt-20 pb-10 sm:pt-24">
+    <section id="day" aria-labelledby="day-title" className="relative bg-[#fbf7ef] pt-20 pb-6 sm:pt-24">
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
         <p className="font-hand text-[20px] text-cocoa-500">a day with Nami</p>
         <h2 id="day-title" className="mt-2 max-w-[18em] font-display text-[clamp(2rem,4vw,3.3rem)] leading-[1.06] font-medium text-teal-900 text-balance">

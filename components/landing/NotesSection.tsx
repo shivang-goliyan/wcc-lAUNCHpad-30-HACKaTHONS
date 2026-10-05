@@ -21,14 +21,14 @@ const PROMISES = [
 
 export function NotesSection() {
   return (
-    <section id="why" aria-labelledby="why-title" className="sb-paper relative py-20 sm:py-28">
-      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+    <section id="why" aria-labelledby="why-title" className="sb-paper relative py-20 sm:py-24">
+      <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
         <p className="font-hand text-[20px] text-cocoa-500">why this matters</p>
         <h2 id="why-title" className="mt-2 max-w-[17em] font-display text-[clamp(2rem,4vw,3.2rem)] leading-[1.06] font-medium text-teal-900 text-balance">
           Reminders exist. What nobody does is the follow-through.
         </h2>
 
-        <InView amount={0.2} className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <InView amount={0.2} className="mt-12 grid items-start gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {FACTS.map((f, i) => (
             <figure key={f.big} className={`sb-note lp-rise relative rounded-sm p-5 ${f.tone} ${i % 2 ? 'lg:mt-10' : ''}`} style={{ ['--tilt' as string]: f.tilt, ['--d' as string]: `${i * 120}ms` }}>
               <p className="font-display text-[clamp(2rem,3.4vw,2.7rem)] leading-none font-semibold text-teal-900">{f.big}</p>
@@ -38,7 +38,7 @@ export function NotesSection() {
           ))}
         </InView>
 
-        <div className="mt-16 grid items-start gap-10 lg:grid-cols-[1.1fr_1fr]">
+        <div className="mt-16 grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
           <div className="sb-note sb-tape relative rounded-sm bg-[repeating-linear-gradient(#fffaf0_0_31px,#e9dcc6_31px_32px)] p-6 pt-7" style={{ ['--tilt' as string]: '-0.8deg' }}>
             <p className="font-hand text-[22px] font-bold text-teal-900">Nami&rsquo;s promises</p>
             <ul className="font-hand mt-2 space-y-[3px] text-[20px] leading-[29px] text-ink-900">
