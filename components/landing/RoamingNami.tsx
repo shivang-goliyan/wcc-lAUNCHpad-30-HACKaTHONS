@@ -25,6 +25,7 @@ import { NamiImage } from '@/components/nami/NamiImage';
 import { SayBubble } from './SayBubble';
 import { useReducedMotionSafe } from './useReducedMotionSafe';
 import type { PoseName } from '@/lib/nami/poses';
+import { NAMI_CLIPS, clipRoute } from '@/lib/nami/art';
 
 const POKES = [
   'Hehe! That tickles.',
@@ -39,6 +40,14 @@ const BASE = 200;
 type Spot = { el: HTMLElement; pose: PoseName; say?: string; hero: boolean };
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** how long her clips take to go from one pose to another (getting up before she walks) */
+function transitionMs(from: PoseName | '', to: PoseName) {
+  if (!from || from === to) return 0;
+  const steps = clipRoute(from, to, () => true);
+  const ms = steps.reduce((t, st) => t + (NAMI_CLIPS[st.key].frames / NAMI_CLIPS[st.key].fps) * 1000, 0);
+  return Math.min(1600, ms);
+}
 
 function readSpots(): Spot[] {
   return Array.from(document.querySelectorAll<HTMLElement>('[data-nami-slot]'))
@@ -88,6 +97,7 @@ export function RoamingNami() {
       speed: 1,
       say: '',
       dir: 1,
+      departAt: 0, // she gets up in place before she starts walking
       act: 'heart' as PoseName,
       actUntil: 0,
       nextActAt: performance.now() + 9000,
@@ -128,7 +138,14 @@ export function RoamingNami() {
         return;
       }
       if (!s.target || (best.spot !== s.target && best.d < curD - 80)) {
-        if (s.target) s.attached = false;
+        if (s.target && s.attached) {
+          s.attached = false;
+          // stand up first: hold still while her clips go from this pose to walking
+          const nb = boxOf(best.spot.el);
+          const goingRight = nb ? nb.x > s.x : true;
+          s.departAt = now + transitionMs(s.pose, goingRight ? 'walk' : 'walk-left');
+          s.dir = goingRight ? 1 : -1;
+        }
         s.target = best.spot;
       }
       const tb = boxOf(s.target.el);
@@ -158,7 +175,7 @@ export function RoamingNami() {
         const dx = tx - s.x;
         const dy = ty - s.y;
         const dist = Math.hypot(dx, dy);
-        const want = dist < 2 ? 0 : clamp(dist * 2.4, natural * 0.9, natural * 2.6);
+        const want = dist < 2 || now < s.departAt ? 0 : clamp(dist * 2.4, natural * 0.9, natural * 2.6);
         const acc = natural * 6;
         s.v += clamp(want - s.v, -acc * dt, acc * dt);
         const step = Math.min(dist, s.v * dt);
@@ -180,7 +197,8 @@ export function RoamingNami() {
       y.set(s.y);
       scale.set(s.size / BASE);
 
-      const moving = !s.attached && s.v > 14;
+      const gettingUp = !s.attached && now < s.departAt;
+      const moving = !s.attached && (s.v > 14 || gettingUp);
       if (moving) s.stillSince = now;
       const settled = s.attached && now - s.stillSince > 700;
       let p: PoseName;
@@ -202,7 +220,7 @@ export function RoamingNami() {
         s.pose = p;
         setPose(p);
       }
-      const sp = moving ? clamp(s.v / natural, 0.6, 2.5) : 1;
+      const sp = moving && !gettingUp ? clamp(s.v / natural, 0.6, 2.5) : 1;
       if (Math.abs(sp - s.speed) > 0.08) {
         s.speed = sp;
         setSpeed(Math.round(sp * 10) / 10);
