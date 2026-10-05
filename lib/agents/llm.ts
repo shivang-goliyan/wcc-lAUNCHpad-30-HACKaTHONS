@@ -70,26 +70,76 @@ export type CompatMessage =
 export type CompatToolCall = { id: string; type: 'function'; function: { name: string; arguments: string } };
 export type CompatTool = { type: 'function'; function: { name: string; description: string; parameters: Record<string, unknown> } };
 
-export async function compatChat(body: { messages: CompatMessage[]; tools?: CompatTool[]; response_format?: unknown; max_tokens?: number }) {
-  const routed = COMPAT_BASE.includes('openrouter.ai') && FALLBACK_MODELS.length ? { models: [LLM_MODEL, ...FALLBACK_MODELS] } : {};
-  let r: Response | null = null;
+const HEDGE_MS = Number(process.env.LLM_HEDGE_MS || 4000);
+
+/** One model, walking the keys past rate limits and dead keys. Resolves only with an OK response. */
+async function askModel(model: string, body: object, routed: object, until: number): Promise<Response> {
   const start = nextKey++ % Math.max(1, COMPAT_KEYS.length);
-  for (const key of [...COMPAT_KEYS.slice(start), ...COMPAT_KEYS.slice(0, start)]) {
+  const keys = [...COMPAT_KEYS.slice(start), ...COMPAT_KEYS.slice(0, start)];
+  let last = 'no keys';
+  for (let k = 0; k < keys.length; k++) {
+    const left = until - Date.now();
+    if (left < 2_000) break;
+    let r: Response;
     try {
       r = await fetch(`${COMPAT_BASE}/chat/completions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: JSON.stringify({ model: LLM_MODEL, temperature: 0.3, ...routed, ...body }),
-        signal: AbortSignal.timeout(30_000),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${keys[k]}` },
+        body: JSON.stringify({ model, temperature: 0.3, ...routed, ...body }),
+        signal: AbortSignal.timeout(Math.min(25_000, left)),
       });
     } catch {
-      // a hung request: move on to the next key rather than freezing the conversation
-      r = null;
+      throw new Error(`${model} did not answer`);
+    }
+    if (r.ok) return r;
+    last = `${r.status}: ${(await r.text()).slice(0, 200)}`;
+    // rate-limited, out of credit, or a disabled key: same model, next key
+    if ([401, 402, 403, 429].includes(r.status)) continue;
+    // overloaded upstream: one short retry on another key, then give up on this model
+    if (r.status >= 500 && k === 0) {
+      await new Promise((res) => setTimeout(res, 400));
       continue;
     }
-    // rate-limited, out of credit, or a disabled key: try the next one
-    if (![401, 402, 403, 429].includes(r.status)) break;
+    break;
   }
+  throw new Error(`LLM provider said ${last}`);
+}
+
+export async function compatChat(body: { messages: CompatMessage[]; tools?: CompatTool[]; response_format?: unknown; max_tokens?: number }) {
+  const openrouter = COMPAT_BASE.includes('openrouter.ai');
+  const routed = openrouter && FALLBACK_MODELS.length ? { models: [LLM_MODEL, ...FALLBACK_MODELS] } : {};
+  // OpenRouter falls back by itself. Elsewhere we hedge: if the main model is slow or failing,
+  // the next one is asked too and the first good answer wins, so an overloaded model costs seconds, not the turn.
+  const models = openrouter ? [LLM_MODEL] : [LLM_MODEL, ...FALLBACK_MODELS];
+  const until = Date.now() + 40_000;
+  const r: Response | null = await new Promise((resolve) => {
+    let pending = 0;
+    let done = false;
+    let next = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const launch = () => {
+      if (done || next >= models.length) return;
+      const m = models[next++];
+      pending++;
+      clearTimeout(timer);
+      if (next < models.length) timer = setTimeout(launch, HEDGE_MS);
+      askModel(m, body, routed, until).then(
+        (res) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          resolve(res);
+        },
+        () => {
+          pending--;
+          if (done) return;
+          if (next < models.length) launch();
+          else if (pending === 0) resolve(null);
+        },
+      );
+    };
+    launch();
+  });
   if (!r) throw new Error('LLM provider did not answer');
   if (!r.ok) throw new Error(`LLM provider said ${r.status}: ${(await r.text()).slice(0, 200)}`);
   const data = (await r.json()) as {
