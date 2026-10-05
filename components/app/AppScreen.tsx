@@ -381,7 +381,7 @@ function Controls({ app }: { app: App }) {
         <button
           onClick={wake.toggle}
           aria-pressed={wake.status !== 'off'}
-          className="col-span-full flex items-center justify-center gap-2 text-sm font-semibold text-ink-600 sm:col-span-2 sm:justify-start"
+          className={cx('col-span-full flex items-center justify-center gap-2 justify-self-center rounded-full px-4 py-2 text-[15px] font-semibold ring-1 sm:col-span-2 sm:justify-self-start', wake.status === 'listening' ? 'bg-[#e7f1ec] text-teal-900 ring-sea-500/40' : 'bg-card text-teal-900 ring-line hover:bg-ivory-100')}
         >
           <span className={cx('h-2.5 w-2.5 rounded-full', wake.status === 'listening' ? 'animate-pulse bg-sea-500' : wake.status === 'error' ? 'bg-help-600' : 'bg-line')} aria-hidden />
           {wake.status === 'off'
