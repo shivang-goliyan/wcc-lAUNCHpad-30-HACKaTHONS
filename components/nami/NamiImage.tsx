@@ -20,6 +20,17 @@ import type { NamiSvgProps } from "./NamiSvg";
 
 const FADE_MS = 120;
 
+/** a still that failed (e.g. mid-deploy) tries again a few times instead of showing a broken image */
+function retryImg(e: React.SyntheticEvent<HTMLImageElement>) {
+  const img = e.currentTarget;
+  const n = Number(img.dataset.retry ?? 0);
+  if (n >= 4) return;
+  img.dataset.retry = String(n + 1);
+  const url = new URL(img.src, location.href);
+  url.searchParams.set('r', String(n + 1));
+  setTimeout(() => (img.src = url.toString()), 800 * (n + 1));
+}
+
 type Props = NamiSvgProps & {
   /** stills only, no clip player (galleries, thumbnails) */
   still?: boolean;
@@ -334,7 +345,7 @@ export function NamiImage({
         <div ref={baseRef} style={{ position: "absolute", inset: 0 }}>
           {seen.map((p) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <img onError={retryImg}
               key={p}
               data-p={p}
               src={namiSrc(p)}
@@ -347,15 +358,15 @@ export function NamiImage({
         </div>
         {art.wave && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img ref={waveRef} src={namiSrc(pose, "wave")} alt="" draggable={false} style={{ ...layer, opacity: 0 }} />
+          <img onError={retryImg} ref={waveRef} src={namiSrc(pose, "wave")} alt="" draggable={false} style={{ ...layer, opacity: 0 }} />
         )}
         {art.blink && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img ref={blinkRef} key={`blink-${pose}`} src={namiSrc(pose, "blink")} alt="" draggable={false} style={{ ...layer, opacity: 0 }} />
+          <img onError={retryImg} ref={blinkRef} key={`blink-${pose}`} src={namiSrc(pose, "blink")} alt="" draggable={false} style={{ ...layer, opacity: 0 }} />
         )}
         {(art.mouths ?? []).map((m) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <img onError={retryImg}
             key={`${pose}-${m}`}
             ref={(el) => {
               mouthRefs.current[m] = el;

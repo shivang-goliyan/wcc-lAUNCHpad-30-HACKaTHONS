@@ -19,7 +19,7 @@ const GEM_MODELS = (process.env.GEMINI_TTS_MODELS || 'gemini-3.8-flash-tts,gemin
 const GEM_VOICE = process.env.GEMINI_TTS_VOICE || 'Vindemiatrix';
 // which languages go to Gemini (hi = Devanagari, hing = Roman Hindi, en); "" puts everything on Fish.
 // English stays on Fish by default to save the small free Gemini quota for Hindi.
-const GEM_LANGS = (process.env.TTS_GEMINI_LANGS ?? 'hi,hing').split(',').map((s) => s.trim());
+const GEM_LANGS = (process.env.TTS_GEMINI_LANGS ?? '').split(',').map((s) => s.trim());
 // the client gives up on a sentence after 4.5 s, so Fish has to be ready before that
 const GEM_WAIT = Number(process.env.TTS_GEMINI_WAIT_MS || 3800);
 const FISH_DELAY = 800;
