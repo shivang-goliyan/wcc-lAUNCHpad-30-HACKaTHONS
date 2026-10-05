@@ -30,7 +30,7 @@ live and capped (see D25).
 
 | Field | Answer |
 |---|---|
-| Team name | SMOKEGG (Unstop registration: GOLIYANSHIVANG07) |
+| Team name | GOLIYANSHIVANG07 |
 | Members and roles | Shivang Goliyan: product, engineering, agents and voice · Vansh Khewal: design and front end |
 | Project name | Raynet (with Nami, the companion) |
 | Live link | https://raynet.in (demo: https://raynet.in/try) |
