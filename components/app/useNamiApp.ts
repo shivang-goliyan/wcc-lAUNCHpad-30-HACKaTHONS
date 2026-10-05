@@ -7,7 +7,8 @@ import { chime, stopSpeaking } from '@/lib/client/speak';
 import { CascadeVoice, cascadeSupported } from '@/lib/client/cascade';
 import { STRINGS, type UILang } from '@/lib/client/i18n';
 
-export type Caption = { id: string; who: 'nami' | 'meera' | 'system'; text: string; final: boolean };
+/** `at` is demo-clock time, so captions can be shown in the order things happened. */
+export type Caption = { id: string; who: 'nami' | 'meera' | 'system'; text: string; final: boolean; at: number };
 export type Snap = AppSnapshot & { ok: true };
 
 const fetcher = async (u: string) => {
@@ -44,7 +45,13 @@ export function useNamiApp() {
   const seen = useRef<Set<string>>(new Set());
   const first = useRef(true);
   const history = useRef<{ role: 'user' | 'assistant'; text: string }[]>([]);
+  // demo clock offset, so a caption can be stamped with demo time
+  const offset = useRef(0);
   const t = STRINGS[lang];
+  const clockOffset = data?.ok ? data.clock.offset : undefined;
+  useEffect(() => {
+    if (clockOffset !== undefined) offset.current = clockOffset;
+  }, [clockOffset]);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -76,12 +83,13 @@ export function useNamiApp() {
     } catch {}
   }, []);
 
-  const addCaption = useCallback((who: Caption['who'], text: string, final: boolean, key?: string) => {
+  const addCaption = useCallback((who: Caption['who'], text: string, final: boolean, at?: number) => {
+    const when = at ?? Date.now() + offset.current;
     setCaptions((cs) => {
-      const id = key ?? `${who}-${Date.now()}-${Math.random()}`;
+      const id = `${who}-${Date.now()}-${Math.random()}`;
       const last = cs[cs.length - 1];
       if (last && !last.final && last.who === who) return [...cs.slice(0, -1), { ...last, text, final }].slice(-8);
-      return [...cs, { id, who, text, final }].slice(-8);
+      return [...cs, { id, who, text, final, at: when }].slice(-8);
     });
   }, []);
 
@@ -123,11 +131,11 @@ export function useNamiApp() {
 
   /** Tell Nami about an app event: realtime voice if connected, else a local spoken line + caption. */
   const announce = useCallback(
-    (systemNote: string, local: { en: string; hi: string }) => {
+    (systemNote: string, local: { en: string; hi: string }, at?: number) => {
       if (rt.current?.connected) rt.current.notify(systemNote);
       else {
         const line = lang === 'hi' ? local.hi : local.en;
-        addCaption('nami', line, true);
+        addCaption('nami', line, true, at);
         sayLocal(line);
       }
     },
@@ -149,7 +157,7 @@ export function useNamiApp() {
         announce(`App update (not spoken by ${data.recipient.addressAs}): the reminder "${o.label}" is due now. Gently remind her in her language and ask whether she has done it. Use record_reminder_response with occurrence_id ${o.id} when she answers.`, {
           en: `${data.recipient.addressAs}, it's time for: ${o.label}. Have you done it?`,
           hi: `${data.recipient.addressAs}, ${o.labelHi} का समय हो गया है। क्या आपने ले ली?`,
-        });
+        }, o.notifyAt);
       }
       if (o.state === 'resolved' && o.outcome && ['taken_reported', 'done_reported'].includes(o.outcome) && mark(`ack:${o.id}`)) setAck((n) => n + 1);
     }
@@ -159,20 +167,44 @@ export function useNamiApp() {
         announce(`App update: it is time for the agreed daily check-in. Warmly ask ${data.recipient.addressAs} to just say they are here. When they answer, call respond_to_checkin with their words.`, {
           en: `Good morning ${data.recipient.addressAs}, it's our daily check-in. Just tell me you're here.`,
           hi: `नमस्ते ${data.recipient.addressAs}, आज का चेक-इन है। बस बोल दीजिए "मैं हूँ"।`,
-        });
+        }, c.openedAt);
       }
       if (c.state === 'owner_accepted' && mark(`own:${c.id}:${c.ownerContactId}`)) {
         const who = data.contacts.find((x) => x.id === c.ownerContactId)?.name ?? 'Your contact';
         announce(`App update: ${who} has accepted and is following up with ${data.recipient.addressAs}. Say it kindly. Do not say she is safe.`, {
           en: `${who} has seen it and is checking on you now.`,
           hi: `${who} ने देख लिया है और अभी आपसे संपर्क कर रहे हैं।`,
-        });
+        }, data.now);
+      }
+    }
+    // what the family did on their page, so Meera's own captions don't go stale
+    for (const e of [...data.events].reverse()) {
+      const act = e.action as string;
+      if (act !== 'still_needs_help' && act !== 'human_reported_outcome') continue;
+      if (!mark(`ev:${e.id}`)) continue;
+      const cid = String(e.actor).replace(/^contact:/, '');
+      const who = data.contacts.find((x) => x.id === cid)?.name ?? 'Your contact';
+      const at = new Date(e.at_virtual as string).getTime();
+      if (act === 'still_needs_help') {
+        const c = data.cases.find((x) => x.id === e.record_id);
+        const nextId = c?.attempts.find((a) => a.state === 'active' && a.contactId && a.contactId !== cid)?.contactId;
+        const next = data.contacts.find((x) => x.id === nextId)?.name;
+        announce(
+          `App update: ${who} reported that ${data.recipient.addressAs} still needs help${next ? `, so ${next} is being asked now` : ''}. Tell her kindly. Do not say she is safe. Mention 112 for emergencies.`,
+          {
+            en: next ? `${who} says you still need help, so I'm asking ${next} now. If it's an emergency, call 112.` : `${who} says you still need help. I'm asking the next person. If it's an emergency, call 112.`,
+            hi: next ? `${who} ने बताया कि आपको अब भी मदद चाहिए, इसलिए मैं अब ${next} से पूछ रही हूँ। आपातकाल हो तो 112 पर कॉल करें।` : `${who} ने बताया कि आपको अब भी मदद चाहिए। मैं अगले व्यक्ति से पूछ रही हूँ। आपातकाल हो तो 112 पर कॉल करें।`,
+          },
+          at,
+        );
+      } else {
+        announce(`App update: ${who} spoke with ${data.recipient.addressAs} and reported back. Acknowledge it warmly in one sentence.`, { en: `${who} spoke with you and let me know.`, hi: `${who} ने आपसे बात की और मुझे बता दिया।` }, at);
       }
     }
     for (const p of data.pending) {
       if (p.kind === 'approve_slot' && mark(`pa:${p.id}`)) {
         chime();
-        announce(`App update: the clinic call finished. ${p.readback} Ask ${data.recipient.addressAs} to confirm. If they clearly say yes, call confirm_pending_action with pending_action_id ${p.id} and their exact words.`, { en: p.readback, hi: p.readbackHi });
+        announce(`App update: the clinic call finished. ${p.readback} Ask ${data.recipient.addressAs} to confirm. If they clearly say yes, call confirm_pending_action with pending_action_id ${p.id} and their exact words.`, { en: p.readback, hi: p.readbackHi }, p.createdAt);
       }
     }
     for (const a of data.appointments) {
@@ -181,7 +213,7 @@ export function useNamiApp() {
         announce(`App update: the clinic has confirmed the appointment. Tell ${data.recipient.addressAs} the confirmed time and any instructions, and that reminders are set.`, {
           en: 'The clinic has confirmed your appointment. I have set reminders.',
           hi: 'क्लिनिक ने अपॉइंटमेंट कन्फर्म कर दिया है। मैंने याद दिलाने के लिए रिमाइंडर लगा दिए हैं।',
-        });
+        }, a.confirmedAt ?? data.now);
       }
       if (a.state === 'failed_needs_help' && mark(`aptf:${a.id}`)) {
         announce(`App update: the appointment request could not be completed: ${a.failureReason}. Tell her plainly and offer to try other dates.`, {
@@ -333,7 +365,8 @@ export function useNamiApp() {
   const command = useCallback(
     async (body: Record<string, unknown>) => {
       const r = await post('/api/command', body);
-      if (r?.reply?.sayHint && !rt.current?.connected && body.type !== 'pending.confirm') addCaption('nami', r.reply.sayHint, true);
+      // includes yes-confirmations, so "I have asked Arjun to call you." actually reaches her
+      if (r?.reply?.sayHint && !rt.current?.connected) addCaption('nami', r.reply.sayHint, true);
       await mutate();
       return r;
     },
