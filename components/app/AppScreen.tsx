@@ -257,7 +257,7 @@ export default function AppScreen() {
             setFocusArjun(0);
           }}
         />
-        <GuideBar d={d} app={app} jumping={jumping} onMiss={jumpToFamily} />
+        <GuideBar d={d} app={app} jumping={jumping} onMiss={jumpToFamily} onCall={() => setJudges(true)} />
         <AnimatePresence>{escalation && <HelpBanner d={d} c={escalation} app={app} />}</AnimatePresence>
       </div>
 
@@ -440,7 +440,7 @@ function StepNum({ n, done }: { n: number; done: boolean }) {
 }
 
 /** Slim, always-visible demo script for a judge who just landed here. */
-function GuideBar({ d, app, jumping, onMiss }: { d: Snap; app: App; jumping: boolean; onMiss: () => void }) {
+function GuideBar({ d, app, jumping, onMiss, onCall }: { d: Snap; app: App; jumping: boolean; onMiss: () => void; onCall: () => void }) {
   const first = d.recipient.firstName ?? d.recipient.addressAs;
   const who = first === 'Meera' && d.recipient.city === 'Jaipur' ? 'You’re Meera, 72, in Jaipur.' : `You’re ${first}, in ${d.recipient.city}.`;
   const arjun = d.contacts.find((c) => c.priority === 1);
@@ -484,6 +484,11 @@ function GuideBar({ d, app, jumping, onMiss }: { d: Snap; app: App; jumping: boo
               <ExternalLink className="hidden h-3.5 w-3.5 sm:block" aria-hidden />
             </a>
           )}
+          <button onClick={onCall} className={cx(pill, 'bg-cocoa-500 text-ivory-50 ring-cocoa-500 hover:bg-[#7a4a32]')}>
+            <Phone className="h-3.5 w-3.5" aria-hidden />
+            <span className="sm:hidden">Call me</span>
+            <span className="hidden sm:inline">Nami calls your phone</span>
+          </button>
         </div>
       </div>
     </nav>
@@ -1111,7 +1116,9 @@ function JudgesPanel({ d, app, wake, focusArjun, jumping, onMiss, onClose }: { d
         </button>
       </div>
 
-      <div className="mt-3">
+      <PhoneCard app={app} />
+
+      <div className="mt-4">
         <h3 className={h3}>
           <Num n={1} /> Try a clinic booking
         </h3>
@@ -1190,12 +1197,6 @@ function JudgesPanel({ d, app, wake, focusArjun, jumping, onMiss, onClose }: { d
         </Link>
       </div>
 
-      <div className={sec}>
-        <p className="flex items-center gap-2 text-[13px] font-semibold text-cocoa-500">
-          <Num n={5} /> Bonus
-        </p>
-        <PhoneCard app={app} />
-      </div>
 
       <div className={cx(sec, 'flex flex-wrap items-center justify-between gap-3')}>
         <h3 className={h3}>

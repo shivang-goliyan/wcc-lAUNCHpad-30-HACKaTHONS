@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '@/components/landing/landing.css';
 import { ScrapHero } from '@/components/landing/ScrapHero';
 import { DaySection } from '@/components/landing/DaySection';
+import { CallMe } from '@/components/landing/CallMe';
 import { ThreadSection } from '@/components/landing/ThreadSection';
 import { TwoHomes } from '@/components/landing/TwoHomes';
 import { NotesSection } from '@/components/landing/NotesSection';
@@ -24,6 +25,7 @@ export default function Home() {
   return (
     <main className="relative flex-1 overflow-x-clip bg-[#fbf7ef]">
       <ScrapHero />
+      <CallMe />
       <DaySection />
       <ThreadSection />
       <TwoHomes />

@@ -11,8 +11,8 @@
  *   part of it, taking that spot's pose and saying its line.
  * - When the section changes she gets up and walks to the next spot: a real walk, at a
  *   walking pace, facing where she's going, her walk cycle playing at the speed she
- *   actually moves. If the page runs ahead of her she keeps to the edge of the screen
- *   and catches up. She never fades out or jumps.
+ *   actually moves. If her next spot is off screen she walks off toward it.
+ *   She never fades out or jumps.
  * - On the hero she waves, follows the cursor and cheers at the main button. Left alone
  *   she does small things on her own; poke her and she reacts.
  * - Reduced motion: nothing moves; each spot shows a still Nami instead.
@@ -169,9 +169,10 @@ export function RoamingNami() {
         s.size = tb.size;
         s.v = 0;
       } else {
-        // walk toward the spot, staying on screen while the page runs ahead of her
-        const tx = clamp(tb.x, 0, vw - s.size);
-        const ty = clamp(tb.y, 0, vh - s.size);
+        // walk toward the spot; if it's off screen she walks off toward it rather than
+        // waiting at the edge on top of the page
+        const tx = tb.x;
+        const ty = tb.y;
         const dx = tx - s.x;
         const dy = ty - s.y;
         const dist = Math.hypot(dx, dy);
@@ -186,8 +187,15 @@ export function RoamingNami() {
         }
         // grow or shrink to the spot's size on the way
         s.size += (tb.size - s.size) * Math.min(1, dt * 2.5);
-        const onScreen = tb.y >= -4 && tb.y <= vh - tb.size + 4;
-        if (onScreen && Math.hypot(tb.x - s.x, tb.y - s.y) < 6 && Math.abs(tb.size - s.size) < 6) {
+        const offScreen = tb.y + tb.size < 0 || tb.y > vh;
+        const herOff = s.y + s.size < 0 || s.y > vh;
+        // both out of sight: just be there
+        if (offScreen && herOff) {
+          s.x = tb.x;
+          s.y = tb.y;
+          s.size = tb.size;
+        }
+        if (Math.hypot(tb.x - s.x, tb.y - s.y) < 6 && Math.abs(tb.size - s.size) < 6) {
           s.attached = true;
           s.stillSince = now;
         }

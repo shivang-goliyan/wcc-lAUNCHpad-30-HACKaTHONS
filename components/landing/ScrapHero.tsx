@@ -37,14 +37,17 @@ export function ScrapHero() {
           <ScrollLink to="day" className="hidden rounded-md px-2 py-1 hover:underline sm:inline">
             A day with Nami
           </ScrollLink>
-          <ScrollLink to="family" className="hidden rounded-md px-2 py-1 hover:underline sm:inline">
-            When she doesn&rsquo;t answer
+          <ScrollLink to="call" className="hidden rounded-md px-2 py-1 hover:underline sm:inline">
+            Let Nami call you
           </ScrollLink>
           <a href="/console" className="hidden rounded-md px-2 py-1 hover:underline lg:inline">
             How the agents work
           </a>
-          <a href="/try" className="rounded-full bg-teal-900 px-4 py-2 text-ivory-50 transition hover:bg-teal-700">
-            Try the live demo
+          <a href="/try" className="hidden rounded-md px-2 py-1 hover:underline md:inline">
+            Try the demo
+          </a>
+          <a href="/start" className="rounded-full bg-teal-900 px-4 py-2 text-ivory-50 transition hover:bg-teal-700">
+            Get started
           </a>
         </div>
       </nav>
@@ -62,24 +65,27 @@ export function ScrapHero() {
             An AI companion for parents who live alone. She chats in Hindi or English, reminds them, phones the clinic
             with their OK, and when something&rsquo;s wrong, makes sure a real person in the family follows up.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <CheerLink
-              href="/try"
+              href="/start"
               className="group inline-flex min-h-14 items-center gap-2 rounded-full bg-cocoa-500 px-7 text-[17px] font-semibold text-ivory-50 shadow-[0_12px_28px_rgba(140,80,50,0.28)] transition hover:-translate-y-0.5 hover:bg-[#7a4a32] active:translate-y-0"
             >
-              Try the live demo
+              Get started
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
             </CheerLink>
-            <ScrollLink to="day" className="font-hand text-[19px] text-teal-900 underline decoration-cocoa-300 decoration-2 underline-offset-4 hover:decoration-cocoa-500">
-              or see a day with Nami ↓
-            </ScrollLink>
-          </div>
-          <p className="mt-5 max-w-[34em] text-[14.5px] leading-snug text-ink-600">
-            You&rsquo;ll be <b className="font-semibold text-teal-900">Meera, 72, who lives alone in Jaipur</b>. About 2 minutes, no sign-up. The clinic in the demo is simulated, and labelled that way.{' '}
-            <a href="/start" className="font-semibold text-teal-900 underline decoration-cocoa-300 underline-offset-2 hover:decoration-cocoa-500">
-              Or set Nami up for your own parent.
+            <a
+              href="/try"
+              className="inline-flex min-h-14 items-center gap-2 rounded-full border-2 border-teal-900/80 bg-[#fffaf0]/80 px-6 text-[17px] font-semibold text-teal-900 transition hover:bg-[#fffaf0]"
+            >
+              Try the live demo
             </a>
+          </div>
+          <p className="mt-4 max-w-[34em] text-[14.5px] leading-snug text-ink-600">
+            <b className="font-semibold text-teal-900">Get started</b> sets Nami up for your parent in about 2 minutes. Or try it as <b className="font-semibold text-teal-900">Meera, 72, who lives alone in Jaipur</b>, no sign-up. The clinic in the demo is simulated.
           </p>
+          <ScrollLink to="call" className="font-hand mt-4 inline-flex items-center gap-2 text-[19px] text-teal-900 underline decoration-cocoa-300 decoration-2 underline-offset-4 hover:decoration-cocoa-500">
+            or let Nami call your phone right now ↓
+          </ScrollLink>
         </div>
 
         {/* the notes Nami keeps, and Nami herself, on the open page (never over the photos) */}
