@@ -35,6 +35,7 @@ Every number above is verified against its source, with the exact quote, year an
 | **Gets help** | A big red button, or "मदद" ("help"). The ladder starts immediately, 112 is always visible, and "pressed by mistake" cancels it | Progress is shown truthfully: contacting → accepted → "human-reported: …" |
 | **Set up by family, agreed by the parent** | At `/start` the family answers five short questions with Nami (who is setting up, the parent, their day, who to ask first, their clinic). Then the phone is handed over and Nami asks the parent, in their language | **Nothing is saved until the parent says yes.** Only then is their household created. |
 | **Answers to "Hey Nami"** | Turn it on once and say "Hey Nami": a small wake-word model trained for her name runs in the browser and starts the conversation | The audio never leaves the device; Talk, Space and the buttons always work too. |
+| **Calls your phone** | In the judges panel, enter your own number and Nami phones you as if you were Meera: talk about your day or ask her to book the doctor, and it happens on the screen | Capped in code before any dial (+91/+1 only, per-number, per-demo and daily limits, 3-minute calls, a kill switch); clinics are never called for real in demos. |
 
 ## Why it's different
 
