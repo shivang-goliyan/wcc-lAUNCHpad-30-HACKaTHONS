@@ -85,7 +85,10 @@ export function TwoHomes() {
         ))}
       </div>
       <p className="mx-auto mt-5 max-w-[1280px] px-5 text-[15px] text-ink-600 sm:px-8">
-        In the demo your own phone can be Arjun: scan the QR code on Meera&rsquo;s screen and press &ldquo;I&rsquo;ll check&rdquo;.
+        In the demo your own phone can be Arjun.{' '}
+        <a href="/try" className="font-semibold text-teal-900 underline decoration-cocoa-300 underline-offset-2 hover:decoration-cocoa-500">
+          Try it: be Arjun &rarr;
+        </a>
       </p>
     </section>
   );

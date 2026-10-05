@@ -38,16 +38,13 @@ export function ScrapHero() {
             A day with Nami
           </ScrollLink>
           <ScrollLink to="family" className="hidden rounded-md px-2 py-1 hover:underline sm:inline">
-            For families
+            When she doesn&rsquo;t answer
           </ScrollLink>
           <a href="/console" className="hidden rounded-md px-2 py-1 hover:underline lg:inline">
             How the agents work
           </a>
-          <a href="/start" className="hidden rounded-md px-2 py-1 hover:underline md:inline">
-            Set up for your parent
-          </a>
           <a href="/try" className="rounded-full bg-teal-900 px-4 py-2 text-ivory-50 transition hover:bg-teal-700">
-            Try it
+            Try the live demo
           </a>
         </div>
       </nav>
@@ -70,15 +67,15 @@ export function ScrapHero() {
               href="/try"
               className="group inline-flex min-h-14 items-center gap-2 rounded-full bg-cocoa-500 px-7 text-[17px] font-semibold text-ivory-50 shadow-[0_12px_28px_rgba(140,80,50,0.28)] transition hover:-translate-y-0.5 hover:bg-[#7a4a32] active:translate-y-0"
             >
-              Try the demo as Meera
+              Try the live demo
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
             </CheerLink>
             <ScrollLink to="day" className="font-hand text-[19px] text-teal-900 underline decoration-cocoa-300 decoration-2 underline-offset-4 hover:decoration-cocoa-500">
               or see a day with Nami ↓
             </ScrollLink>
           </div>
-          <p className="mt-5 text-[13px] text-ink-600/90">
-            No sign-up. The clinic in the demo is simulated, and labelled that way.{' '}
+          <p className="mt-5 max-w-[34em] text-[14.5px] leading-snug text-ink-600">
+            You&rsquo;ll be <b className="font-semibold text-teal-900">Meera, 72, who lives alone in Jaipur</b>. About 2 minutes, no sign-up. The clinic in the demo is simulated, and labelled that way.{' '}
             <a href="/start" className="font-semibold text-teal-900 underline decoration-cocoa-300 underline-offset-2 hover:decoration-cocoa-500">
               Or set Nami up for your own parent.
             </a>

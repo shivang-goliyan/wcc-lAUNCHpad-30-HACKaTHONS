@@ -458,7 +458,7 @@ export function StartFlow() {
                     <Chips label="Relation" value={p.relation} onPick={(v) => set('people', d.people.map((x, j) => (j === i ? { ...x, relation: v } : x)))} options={['Son', 'Daughter', 'Neighbour', 'Friend']} />
                     <input id={`f-p${i}rel`} value={p.relation} onChange={(e) => set('people', d.people.map((x, j) => (j === i ? { ...x, relation: e.target.value } : x)))} placeholder="or type it" autoComplete="off" maxLength={40} className={`${inputCls(err(`p${i}rel`))} mt-3`} aria-invalid={!!err(`p${i}rel`)} aria-describedby={err(`p${i}rel`) ? `f-p${i}rel-err` : undefined} />
                   </Field>
-                  <Field id={`f-p${i}phone`} label="Phone (optional)" hint="We never call numbers in the demo." error={err(`p${i}phone`)}>
+                  <Field id={`f-p${i}phone`} label="Phone (optional)" hint="In the demo, family is reached by a link, not a call." error={err(`p${i}phone`)}>
                     <input id={`f-p${i}phone`} type="tel" inputMode="tel" value={p.phone} onChange={(e) => set('people', d.people.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)))} placeholder="+91 98xxx xxxxx" autoComplete="off" className={`${inputCls(err(`p${i}phone`))} max-w-[18rem]`} aria-invalid={!!err(`p${i}phone`)} aria-describedby={`f-p${i}phone-hint${err(`p${i}phone`) ? ` f-p${i}phone-err` : ''}`} />
                   </Field>
                   {i === 1 && (
@@ -488,7 +488,7 @@ export function StartFlow() {
               <p className="mt-6 rounded-xl bg-[#e9efe9] px-4 py-3 text-[16px] leading-relaxed text-teal-900">
                 <span className="font-semibold">Simulated clinic.</span> In this demo Nami books with a pretend version of this clinic. She won&rsquo;t call a real one.
               </p>
-              <Nav onBack={() => go('people')} onNext={() => next('clinic', self ? 'ask' : 'handoff')} nextLabel={self ? 'Next' : 'Ready for their answer'} />
+              <Nav onBack={() => go('people')} onNext={() => next('clinic', self ? 'ask' : 'handoff')} nextLabel={self ? 'Next' : `Next: ask ${them}`} />
             </Card>
           )}
 

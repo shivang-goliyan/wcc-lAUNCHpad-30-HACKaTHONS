@@ -16,7 +16,10 @@ export async function POST(req: Request) {
     if (!hh) return json({ ok: false, error: 'no_household' }, 401);
     if (!llmAvailable()) return json({ ok: false, error: 'llm_not_configured' }, 503);
     const b = Body.parse(await req.json());
-    const system = (await namiInstructions(hh, 'text')) + replyLanguage(b.message);
+    const system =
+      (await namiInstructions(hh, 'text')) +
+      replyLanguage(b.message) +
+      '\n\nHer screen already introduces you as an AI. Do not introduce yourself again unless she asks who or what you are.';
     if (usingCompat()) return json(await namiReply(hh, system, b.history, b.message, 'text'));
     const tools: Anthropic.Beta.BetaTool[] = toolJsonSchemas().map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters as Anthropic.Beta.BetaTool['input_schema'] }));
     const messages: Anthropic.Beta.BetaMessageParam[] = [...b.history.map((h) => ({ role: h.role, content: h.text })), { role: 'user', content: b.message }];

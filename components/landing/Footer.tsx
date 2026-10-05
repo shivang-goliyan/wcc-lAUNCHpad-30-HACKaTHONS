@@ -68,7 +68,7 @@ export function Footer() {
               href="/try"
               className="group mt-8 inline-flex min-h-14 items-center gap-2 rounded-full bg-ivory-50 px-7 text-[17px] font-semibold text-teal-900 transition hover:-translate-y-0.5 hover:bg-white"
             >
-              Try the live demo as Meera
+              Try the live demo
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
             </a>
           </div>
@@ -80,9 +80,12 @@ export function Footer() {
             <Logo tone="dark" />
             <span className="text-[14px] text-sea-200/80">Built for WCC Launchpad 30 · Agentic AI track</span>
           </div>
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-[15px] font-medium">
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-1 text-[15px] font-medium [&>a]:inline-flex [&>a]:min-h-11 [&>a]:items-center">
             <a href="/try" className="text-ivory-50/90 hover:text-ivory-50">
               Live demo
+            </a>
+            <a href="/start" className="text-ivory-50/90 hover:text-ivory-50">
+              Set up for your parent
             </a>
             <a href="/console" className="text-ivory-50/90 hover:text-ivory-50">
               Agent console

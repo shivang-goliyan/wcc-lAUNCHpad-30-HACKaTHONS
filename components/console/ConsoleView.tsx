@@ -139,6 +139,15 @@ export function ConsoleView() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <nav aria-label="Demo screens" className="flex items-center gap-1 rounded-full bg-white/10 p-1 text-[13.5px] font-semibold ring-1 ring-white/15">
+                <a href="/app" className="rounded-full px-3 py-1.5 hover:bg-white/10">{data.recipient.firstName}&rsquo;s screen</a>
+                {data.contacts.find((c) => c.priority === 1)?.careUrl ? (
+                  <a href={data.contacts.find((c) => c.priority === 1)!.careUrl} target="_blank" rel="noreferrer" className="rounded-full px-3 py-1.5 hover:bg-white/10">
+                    {data.contacts.find((c) => c.priority === 1)!.name}&rsquo;s phone
+                  </a>
+                ) : null}
+                <span aria-current="page" className="rounded-full bg-sea-500 px-3 py-1.5 text-teal-900">Agent console</span>
+              </nav>
               <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white/10 px-3.5 text-[14px] font-semibold ring-1 ring-white/15" title="Demo time, skipping fires real engine ticks">
                 <Clock className="size-4 text-sea-200" aria-hidden />
                 Demo time · {data.clock.spokenEn}
@@ -174,7 +183,7 @@ export function ConsoleView() {
             </div>
             <ol className="grid gap-2.5 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
               <Principle n="1" icon={Sparkles} title="Propose" text="LLM agents talk, call and extract facts." />
-              <Principle n="2" icon={ShieldCheck} title="Check" text="Plain-TypeScript verifiers gate every claim." />
+              <Principle n="2" icon={ShieldCheck} title="Check" text="Plain code checks every claim. No AI." />
               <Principle n="3" icon={Cpu} title="Dispose" text="The engine alone writes state, with an audit trail." />
             </ol>
           </div>
@@ -184,7 +193,7 @@ export function ConsoleView() {
             <StateTile
               icon={BellRing}
               label="Open case"
-              value={openCase ? `${openCase.type === 'help' ? 'Help' : 'Check-in'} · ${humanize(openCase.state)}` : 'None'}
+              value={openCase ? `${openCase.type === 'help' ? 'Help' : 'Missed check-in'} · ${owner ? `${owner} is on it` : humanize(openCase.state)}` : 'None'}
               sub={openCase ? (owner ? `${owner} is following up` : stepContact ? `Asking ${stepContact}` : `Opened ${istTime(openCase.openedAt)}`) : 'No check-in or help case open'}
               tone={openCase ? (openCase.state === 'owner_accepted' ? 'ok' : 'warn') : 'idle'}
             />

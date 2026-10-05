@@ -8,7 +8,7 @@ export const SORRY = 'Sorry, I cannot help with that. If this is an emergency, p
 // tool hints come back in the household's language; the reply should still follow what was just said
 const HINGLISH = /\b(hai|hain|kar|karo|kya|mera|meri|mujhe|aaj|kal|haan|nahi|nahin|theek|dawai|ji|aap|bata|chahiye)\b/i;
 export function replyLanguage(text: string) {
-  if (/[ऀ-ॿ]/.test(text)) return '\n\nThe last message is in Hindi. Reply in simple Hindi (Devanagari).';
+  if (/[ऀ-ॿ]/.test(text)) return '\n\nThe last message is in Hindi. Reply in simple Hindi written in Devanagari script, not in Roman letters.';
   if (HINGLISH.test(text)) return '\n\nThe last message is in Hinglish. Reply in Hinglish (Roman script).';
   return '\n\nThe last message is in English. Reply in simple English, even if tool hints are in Hindi.';
 }

@@ -74,7 +74,7 @@ export function DaySection() {
           Meera ji lives in Jaipur. Her children live in Bengaluru and Pune.
         </h2>
         <p className="mt-4 max-w-[38em] text-[18px] leading-relaxed text-ink-600">
-          35% of Indian parents over 60 have no child at home. Here is one ordinary day, and what Nami does in it.
+          1 in 4 Indian elders has no child living at home. Here is one ordinary day, and what Nami does in it.
         </p>
       </div>
 

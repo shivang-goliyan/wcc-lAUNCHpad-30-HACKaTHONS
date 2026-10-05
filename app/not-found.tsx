@@ -19,7 +19,7 @@ export default function NotFound() {
             Back to Raynet
           </Link>
           <a href="/try" className="inline-flex min-h-12 items-center rounded-full bg-card px-6 text-[16px] font-semibold text-teal-900 ring-1 ring-line hover:bg-ivory-100">
-            Try the demo as Meera
+            Try the live demo
           </a>
         </div>
       </div>

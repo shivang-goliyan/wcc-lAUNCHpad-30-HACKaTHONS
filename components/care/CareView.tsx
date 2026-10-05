@@ -6,7 +6,7 @@ import { CircleCheck, Clock, Eye, MapPin, ShieldCheck, WifiOff } from 'lucide-re
 import type { CareSnapshot } from '@/lib/server/snapshot';
 import { CaseCard, type ActionResult, type CareAction } from './CaseCard';
 import { MemorySection } from './MemorySection';
-import { AppointmentsSection, FamilyRequestsSection, NoticesSection, PastCasesSection, RemindersSection } from './Sections';
+import { AppointmentsSection, FamilyRequestsSection, PastCasesSection, RemindersSection } from './Sections';
 import { InvalidLink } from './InvalidLink';
 import { NamiAvatar } from './NamiAvatar';
 import './paper.css';
@@ -136,14 +136,14 @@ export function CareView({ token }: { token: string }) {
             <div className="pp-card rounded-2xl px-4 py-3 ring-1 ring-[#e3d5bd]">
               <dt className="flex items-center gap-1.5 text-[14px] leading-tight text-ink-600">
                 <CircleCheck className="size-4 shrink-0 text-teal-700" aria-hidden />
-                Last explicit response
+                Last heard from her
               </dt>
               <dd className="mt-1.5 font-display text-[26px] leading-none font-semibold tabular-nums text-teal-900">{data.device.lastExplicitResponse ?? <span className="text-[18px] font-medium text-ink-600">None today</span>}</dd>
             </div>
             <div className="pp-card rounded-2xl px-4 py-3 ring-1 ring-[#e3d5bd]">
               <dt className="flex items-center gap-1.5 text-[14px] leading-tight text-ink-600">
                 <Eye className="size-4 shrink-0 text-teal-700" aria-hidden />
-                Nami page last seen
+                Nami&rsquo;s screen last open
               </dt>
               <dd className="mt-1.5 font-display text-[26px] leading-none font-semibold tabular-nums text-teal-900">{lastSeen ?? <span className="text-[18px] font-medium text-ink-600">Not today</span>}</dd>
             </div>
@@ -177,7 +177,6 @@ export function CareView({ token }: { token: string }) {
             )}
 
             <FamilyRequestsSection requests={data.familyRequests} recipientName={name} />
-            <NoticesSection notices={data.notices} />
             <RemindersSection reminders={data.reminders} />
             <AppointmentsSection appointments={data.appointments} />
             <PastCasesSection cases={closed} me={me} recipientName={name} />

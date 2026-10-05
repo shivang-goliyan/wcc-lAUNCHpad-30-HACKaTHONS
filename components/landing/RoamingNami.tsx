@@ -297,11 +297,11 @@ export function RoamingNami() {
         onClick={toggleNarrate}
         aria-pressed={narrate}
         aria-label={narrate ? 'Nami is talking. Turn her voice off' : 'Let Nami talk out loud'}
-        title={narrate ? 'Nami is talking' : 'Let Nami talk'}
+        title={narrate ? 'Nami is talking' : 'Hear Nami'}
         className="fixed bottom-5 left-5 z-40 inline-flex items-center gap-2 rounded-full border border-teal-900/10 bg-card/95 px-3.5 py-2 text-[13.5px] font-semibold text-teal-900 shadow-[0_6px_18px_rgba(23,61,56,0.16)] backdrop-blur hover:bg-card"
       >
         {narrate ? <Volume2 className="h-4 w-4" aria-hidden /> : <VolumeX className="h-4 w-4" aria-hidden />}
-        <span className="hidden sm:inline">{narrate ? 'Nami is talking' : 'Let Nami talk'}</span>
+        <span className="hidden sm:inline">{narrate ? 'Nami is talking' : 'Hear Nami'}</span>
       </button>
       <motion.div
         aria-hidden

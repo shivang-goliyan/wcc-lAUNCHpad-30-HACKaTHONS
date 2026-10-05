@@ -56,7 +56,7 @@ export function NotesSection() {
                 href="/try"
                 className="group mt-5 inline-flex min-h-14 items-center gap-2 rounded-full bg-cocoa-500 px-7 text-[17px] font-semibold text-ivory-50 shadow-[0_12px_28px_rgba(140,80,50,0.28)] transition hover:-translate-y-0.5 hover:bg-[#7a4a32]"
               >
-                Try the demo as Meera
+                Try the live demo
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
               </a>
             </div>

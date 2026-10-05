@@ -17,12 +17,12 @@ function allowed(ip: string) {
   return true;
 }
 
-// the demo clock follows real IST time, except at night when Nami would just be quiet
-function startAt() {
-  const [h, m] = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()).split(':').map(Number);
-  const mins = h * 60 + m;
-  if (mins < 7 * 60 + 30 || mins > 20 * 60 + 30) return '08:55';
-  return `${String(h).padStart(2, '0')}:${String(m - (m % 5)).padStart(2, '0')}`;
+// the demo clock starts a few minutes before the parent's own check-in, so the family
+// can see the first check-in (and what happens if it's missed) right away
+function startAt(checkin: string) {
+  const [h, m] = checkin.split(':').map(Number);
+  const mins = Math.max(0, h * 60 + m - 5);
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 }
 
 export async function POST(req: Request) {
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       const issue = parsed.error.issues[0];
       return json({ ok: false, error: 'invalid_input', message: `Something in the form isn't right (${issue?.path.join('.') || 'body'}: ${issue?.message ?? 'invalid'}).` }, 400);
     }
-    const id = await createHousehold({ profile: parsed.data, startAt: startAt() });
+    const id = await createHousehold({ profile: parsed.data, startAt: startAt(parsed.data.checkinTime) });
     await setHouseholdCookie(id);
     return json({ ok: true, next: '/app' });
   } catch (e) {

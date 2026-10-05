@@ -89,7 +89,7 @@ function attemptView(h: CareCase['history'][number]): { text: string; tone: Tone
 function phoneFallbackText(v: NonNullable<CareCase['evidence']>['phoneFallback']) {
   switch (v) {
     case 'not_configured':
-      return 'Phone fallback not set up';
+      return 'No phone call set up for her';
     case 'no_answer':
       return 'Phone call: no answer';
     case 'voicemail':
@@ -115,10 +115,10 @@ function evidenceFacts(c: CareCase): Fact[] {
   const facts: Fact[] = [];
   facts.push({ icon: CalendarClock, text: c.type === 'help' ? `Help requested at ${c.openedTime}` : `Check-in due ${time24(e.checkinDueAt) ?? c.openedTime}` });
   const seen = time24(e.pageLastSeenAt);
-  facts.push({ icon: e.pageVisible ? Eye : EyeOff, text: seen ? `Nami page last seen ${seen}` : 'Nami page not seen today' });
+  facts.push({ icon: e.pageVisible ? Eye : EyeOff, text: seen ? `Nami’s screen last open ${seen}` : 'Nami’s screen not opened today' });
   if (e.pageVisible !== null) facts.push({ icon: e.pageVisible ? Eye : EyeOff, text: e.pageVisible ? 'Page was open on her screen' : 'Page was not open on her screen' });
   const last = time24(e.lastExplicitResponseAt);
-  facts.push({ icon: MessageSquareText, text: last ? `Last explicit response ${last}` : 'No explicit response today' });
+  facts.push({ icon: MessageSquareText, text: last ? `Last heard from her ${last}` : 'Not heard from her today' });
   if (c.type === 'checkin' && e.promptsShown > 0) facts.push({ icon: RefreshCw, text: `Asked on her screen ${e.promptsShown === 1 ? 'once' : `${e.promptsShown} times`}` });
   facts.push({ icon: Moon, text: e.quietHours ? 'Inside her quiet hours' : 'Not quiet hours' });
   facts.push({ icon: Plane, text: e.plannedAbsence ? 'Planned absence is set' : 'No planned absence' });
@@ -331,9 +331,9 @@ export function CaseCard({
               <div className="flex items-start gap-3 rounded-2xl border border-ok-600/25 bg-ok-600/[.07] p-4">
                 <HeartHandshake className="mt-0.5 size-6 shrink-0 text-ok-600" aria-hidden />
                 <div>
-                  <p className="text-[18px] font-semibold text-ink-900">You are following up, please report back</p>
+                  <p className="text-[18px] font-semibold text-ink-900">You&rsquo;re on it</p>
                   <p className="mt-0.5 text-[15px] leading-snug text-ink-600">
-                    Nothing is marked as resolved until you tell Nami what happened.
+                    When you&rsquo;ve spoken to her, tell Nami how she is. Nothing closes until you do.
                   </p>
                 </div>
               </div>
