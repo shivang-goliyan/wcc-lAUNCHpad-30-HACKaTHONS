@@ -3,23 +3,27 @@
 Everything here uses only verified numbers (`research/evidence-2026.md`) and machine-written eval results
 (`public/eval-results.json`). Anything simulated is said to be simulated.
 
-## 1. The 3-minute demo video
+## 1. The demo film (2:32)
 
-Record at 1440×900 in Chrome, sound on. Open a **fresh** demo first (`/try` in an incognito window) so the
-household starts at 08:55. Have a phone ready to scan the caregiver QR (it plays Arjun).
+A launch film cut from screen recordings of the live site (raynet.in, recorded on 5 Oct), with narration
+in one voice and every statistic sourced on screen. The clinic is labelled "Simulated clinic" whenever it
+appears, and the narration says so.
 
-| Time | On screen | Voice-over (calm, one speaker) |
+| Time | Beat | What is on screen |
 |---|---|---|
-| 0:00–0:15 | raynet.in hero: the scrapbook, Nami waves. Slow scroll to the first day moment. | "In India, one in four people over 60 have no child at home. Their children love them, from Bengaluru, Pune, Dubai." |
-| 0:15–0:35 | Keep scrolling: Nami walks from sunrise to the breakfast table; her bubble says "BP tablet after breakfast". Tap Nami once. | "This is Nami, an AI companion. She always says she's an AI. She reminds, she chats in Hindi or English, and she gets things done." |
-| 0:35–0:55 | `/try` → Meera's screen. Press **Talk to Nami**: "Nami, aaj mera din kaisa hai?" Nami answers aloud, lip-synced. | "Meera ji just talks. Nami listens, answers in her language, and reads her day back." |
-| 0:55–1:45 | Say: "Agle hafte Dr. Mehta ke yahan subah ka appointment book kar do." Nami reads it back, asks permission → "Haan, kar do." Switch to `/console`: the Caller agent phones the **simulated clinic**, the transcript streams, the Verifier ticks 8 checks. Back on Meera's screen: approve the slot. Clinic: "confirm ho gaya". Reminders appear. | "With her permission, Nami's caller agent phones the clinic. This clinic is simulated for the demo. Every claim the AI makes is checked by plain code: the date, the time window, that the slot is really in the calendar, that nothing private was said. Meera says yes twice. It's booked only when the clinic confirms." |
-| 1:45–2:30 | Press **Skip to next event** until the 10:00 check-in goes unanswered. The evidence panel shows, the ladder starts. Scan the QR with the phone → caregiver page → **I'll check**. Meera's screen updates. Arjun reports "I spoke with her". | "If she doesn't answer, Nami follows the plan Meera agreed to. A notification isn't enough: her son has to accept. Nobody is ever marked safe by a machine; a person is." |
-| 2:30–2:50 | `/console` eval card and the audit timeline. Quick cut: say "Ab jeene ka mann nahi karta" → a help case opens with 112 and Tele-MANAS 14416. | "We tested it: thirty simulated clinic calls, zero false confirmations, zero private data shared. And two crisis checks that don't depend on the AI at all." |
-| 2:50–3:00 | Back to the landing page footer, Nami asleep under the lamp. raynet.in on screen. | "Nami keeps them company. Raynet makes sure someone shows up. Try it at raynet.in." |
+| 0:00 | Cold open | "Jaipur · 10:00 a.m." A call to Ma rings out. Her son is in Bengaluru, in a meeting. |
+| 0:10 | The need | 1 in 4 elders with no child at home (LASI) · 347 million over 60 by 2050 (UNFPA) · 4 in 10 take long-term medicines poorly, top reason forgetting (Cureus 2026) · 1 in 2 BP patients never return for follow-up (J Hum Hypertens 2023) · 3 in 4 come back once a person follows up (BMJ Open Quality 2025) |
+| 0:36 | Meet Nami | Nami waves, says "नमस्ते मीरा जी" in her real voice; the landing page and the day with Nami walking through it |
+| 0:49 | She gets things done | Meera's screen: the booking request, the permission card, Nami on the phone with the simulated clinic |
+| 1:08 | The rule | "Nothing gets booked on an AI's say-so." The 8 plain-code checks, Meera's two yeses, confirmed only on the clinic's words |
+| 1:24 | Ten a.m. again | The missed check-in, the plan Meera agreed to, Arjun's phone: he has to accept. "Nobody is ever marked safe by a machine. A person is." |
+| 1:48 | Crisis | Crisis words open help with 112 and Tele-MANAS 14416, whatever the model says |
+| 1:56 | Nami calls you | 7 in 10 urban elders use a basic phone (HelpAge 2025), so Nami just rings: the "Let Nami call you" form |
+| 2:08 | Proof | 30 simulated clinic calls, 0 false confirmations, 0 private details shared; the agent console: "The AI proposes. Code decides." |
+| 2:20 | Close | "Nami keeps them company. Raynet makes sure someone shows up." raynet.in |
 
-**Do / don't:** say "simulated clinic" at least once on camera; don't show any `.env` or key; keep the
-demo-time chip visible when skipping time; if voice is slow on the day, type the same lines instead.
+The phone-call request in the film was staged so no call was placed while recording; the feature itself is
+live and capped (see D25).
 
 ## 2. Form answers (draft — fill in the team details)
 
@@ -31,10 +35,10 @@ demo-time chip visible when skipping time; if voice is slow on the day, type the
 | Live link | https://raynet.in (demo: https://raynet.in/try) |
 | Repository | https://github.com/shivang-goliyan/wcc-lAUNCHpad-30-HACKaTHONS (make public before submitting) |
 | Problem (one line) | One in four Indian elders has no child at home, and when a pill, a doctor's follow-up or a missed phone call goes wrong, nobody coordinates the follow-through. |
-| Solution | A Hindi/English voice companion, Nami, that reminds, books doctor appointments by phoning the clinic with the parent's approval, and runs an agreed check-in ladder that hands off to family, who must explicitly accept responsibility. |
+| Solution | A Hindi/English voice companion, Nami (say "Hey Nami", or she phones a basic phone), that reminds, books doctor appointments by phoning the clinic with the parent's approval, and runs an agreed check-in ladder that hands off to family, who must explicitly accept responsibility. |
 | Target users | Older adults living apart from their children (and people with limited hand movement), and their adult children in other cities. |
-| What makes it distinctive | It acts in the real world: it phones the clinic and the family. Its states are evidence-linked: no AI can mark an appointment confirmed or a person safe; plain code verifies every claim, and a human must accept every escalation. |
+| What makes it distinctive | It acts in the real world: it phones the clinic and the family, and it can phone the elder (a judge can enter their own number and talk to Nami as the parent). Its states are evidence-linked: no AI can mark an appointment confirmed or a person safe; plain code verifies every claim, and a human must accept every escalation. |
 | How the agents work | Nami (conversation, 13 tools), a Caller agent, a Clinic simulator, an Extractor and a Family alert agent propose actions; a deterministic workflow engine is the only thing that changes care state, after verifiers check slot validity, consent in the user's own words, and data disclosure. Two crisis layers (a phrase net and the TypeSafe Jev classifier) open help regardless of the chat model. |
 | Evaluation | Engine 28/28; 30 simulated clinic calls: 0 false confirmations, 0 disclosure violations, the right slot in 18/18 calls that had one; intent routing 54/60 on Gemini 3.5 Flash-Lite (English 17/20, Hindi 19/20, Hinglish 18/20), safety cases 10/12 with both misses caught by the phrase net. If the model is slow or out of quota, requests are hedged to Gemini 3.1 Flash-Lite and then Gemma 4. |
 | Problem evidence | LASI Wave 1, UNFPA India Ageing Report 2023, HelpAge India 2025, Cureus 2026, BMJ Open Quality 2025 (all quoted with sources in research/evidence-2026.md). We have not run our own interviews; we say so. |
-| What's simulated | The clinic in the public demo (an AI receptionist on a fixed calendar), the demo clock, and the phone fallback in judge sandboxes. Real calls go only to allow-listed numbers. |
+| What's simulated | The clinic in the public demo (an AI receptionist on a fixed calendar) and the demo clock. The "Nami calls your phone" call is real: Indian and US mobiles only, 2 calls per number per day, 20 per day site-wide, 3 minutes each. |
