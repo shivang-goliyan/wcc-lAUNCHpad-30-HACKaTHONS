@@ -121,7 +121,7 @@ Team GOLIYANSHIVANG07, WCC Launchpad 30.
 - **Shivang Goliyan**: product and research, the agent system (Nami, the Caller, the Extractor, the clinic simulator), the workflow engine and verifiers, voice and phone calls, evals, deployment, and the demo film.
 - **Vansh Khewal**: design and front end.
 
-We worked side by side on one laptop, so every commit in this repository is under one git identity. The split above is the real one.
+We worked together in one repository under one git identity, so every commit here shows a single author. The split above is the real one.
 
 ## Docs
 
