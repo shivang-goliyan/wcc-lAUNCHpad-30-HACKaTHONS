@@ -1,37 +1,40 @@
-# Handoff · Mon 5 Oct 2026, ~05:35 IST
+# Handoff · Mon 5 Oct 2026, ~10:25 IST
 
-Read this first after a context reset. Deadline: **feature freeze 10:00, form submitted by 13:30 IST** (closes 14:00).
+Read this first after a context reset. **Submit the form by 13:30 IST** (closes 14:00). Feature work is done; what's left is the video and the form.
 
 ## Live
-- **https://raynet.in** is live (Let's Encrypt cert), served from the lead's shared VM `kgb-shadow-of-attire` (34.133.42.59, now e2-standard-2 / 8 GB, static IP). Raynet runs in `~/raynet` via `docker compose` (web on 127.0.0.1:3320, worker, own Postgres; memory-capped). Host Caddy has a `raynet.in, www.raynet.in` block (backup `/etc/caddy/Caddyfile.bak-raynet-*`).
-- Redeploy: `scripts/deploy-vm.sh ggtwo@34.133.42.59 raynet.in` (syncs source, builds ON the VM — the home uplink stalls on big uploads — writes `~/raynet/.env` from local `.env.local`, compose up, Caddy block only if missing).
-- Verified live: `/`, `/try` → `/app`, `/console`, clips, chat agent (Gemini), Fish TTS, Deepgram token, Jev crisis classifier.
-- VM rules (revenue box): own folder only, never restart other services, back up Caddyfile, `caddy validate`, reload never restart.
+- **https://raynet.in**, served from the lead's shared VM `kgb-shadow-of-attire` (34.133.42.59, e2-standard-2 / 8 GB). Raynet runs in `~/raynet` via docker compose (web on 127.0.0.1:3320, worker, own Postgres). Host Caddy has a `raynet.in, www.raynet.in` block.
+- Redeploy: `scripts/deploy-vm.sh ggtwo@34.133.42.59 raynet.in` (syncs source, builds on the VM, writes `~/raynet/.env` from local `.env.local` using the key list inside the script — add new env names there). A deploy causes ~30 s of 502s.
+- VM rules (revenue box): own folder only, never restart other services, back up the Caddyfile, `caddy validate`, reload never restart.
+- Scanner noise in web logs ("Server Reference ID … r2s") is React2Shell probes; harmless.
+
+## What's built (all committed, GPG-signed, author shivang-goliyan, no AI trailer)
+- **Landing**: scrapbook hero; one Nami who sits in each section's spot and walks between them (stands up first, walk cycle matched to speed, walks off toward off-screen spots); hero CTAs **Get started** (/start) + **Try the live demo** (/try); **"Let Nami call you"** section right after the hero (judge enters own number → real Twilio call); day scenes with ambient life; appointment replay on a phone; two homes; evidence notes; footer. Lenis smooth scroll.
+- **/try** reuses this browser's Meera demo unless `?fresh=1`; `?next=/console` supported.
+- **/app (Meera's screen)**: guide bar (① Book a doctor ② Miss a check-in ③ See it as Arjun · Nami calls your phone · How it works), skip labelled with the next event, proof (8 checks) at slot approval, green confirmed card, plain elder copy, "Behind the scenes (for judges)" log, judges panel (phone card first, booking, Arjun QR, clock, console, reset), Hey Nami switch, EN/हिं.
+- **/start** onboarding (D22): 5 steps + parent's consent; demo clock starts 5 min before the parent's check-in.
+- **/care/<token>** caregiver page; **/console** agent console with screen switcher; branded 404/error; Nami app icon.
+- **Agents**: Gemini via OpenAI-compatible API, hedged fallbacks: `LLM_MODEL=gemini-3.5-flash-lite`, `LLM_FALLBACK_MODELS=gemini-3.1-flash-lite,gemma-4-26b-a4b-it,gemini-2.5-flash-lite` (AI Studio quotas: 3.5/3.1 Flash-Lite 500 RPD, Gemma 4 14.4K RPD, 2.5 Flash-Lite only 20 RPD). Chat ~2–3 s.
+- **Voice**: Hindi + Hinglish = Gemini TTS (Vindemiatrix, `TTS_GEMINI_LANGS=hi,hing`, ~10 RPD per model per project, falls back to Fish); English = Fish (`4d7609…` "Girl hindi"), streamed via `GET /api/tts?t=` (first byte ~0.5 s, speech starts ~2 s). Deepgram Nova-3 STT.
+- **Hey Nami** wake word (D23): `public/wakeword/` (openWakeWord mel/embedding + our `hey_nami.onnx`), onnxruntime-web from jsDelivr; 73/78 detections across 14 unseen voices; "Tap anywhere to start listening" + chime on detection.
+- **Phone calls (D25)**: KGB Twilio account (API key in `.env.local`: `TWILIO_ACCOUNT_SID`, `TWILIO_API_KEY_SID/SECRET`, `TWILIO_FROM` = +1 614 … Rainmaker Columbus, `CALL_WEBHOOK_SECRET`). `realCallGate` in `lib/calls/runtime.ts`: `REAL_CALLS=off` kill switch, +91 mobiles and +1 only, 2/number/day, 2/demo home, 20/day site-wide (`CALLS_PER_DAY`), 4/IP/hour, 3-min `timeLimit`. Balance was $13.44 at 07:30 (~$0.05/min to Indian mobiles). The lead tested a real call: works. Companion call = same agent + tools + crisis checks, Polly.Aditi voice.
+- **Safety**: phrase net + Jev classifier (`lib/server/safetyCheck.ts`), used on screen and on calls.
+- **Evals** (published in /console from machine files): engine 28/28; 30 sim calls 0 false confirmations / 0 disclosure; intents 54/60 on 3.5 Flash-Lite (safety 10/12, misses caught by phrase net); 2.5 Flash-Lite 54/60 safety 12/12 (`eval/results/`).
+- Docs: `docs/DECISIONS.md` D1–D25, `README.md`, `docs/SUBMISSION.md` (video script + form answers), audits in `~/.cache/raynet-work/audit/` (ux-report.md, bug-report.md).
 
 ## Local dev
-- Postgres container `nami-pg` on 127.0.0.1:55432; `pnpm dev` on :3000 (log in the session scratchpad `dev.log`). After a reboot: `docker start nami-pg`, restart `pnpm dev`.
-- `.env.local` (git-ignored) holds: OpenRouter ×2, Fish, Deepgram, 6 Gemini keys (key 5 is denied — excluded), `LLM_PROVIDER=openai`, `LLM_BASE_URL` = Gemini OpenAI endpoint, `LLM_MODEL=gemini-3.5-flash-lite`, `LLM_API_KEYS` = the 5 good Gemini keys, `TYPESAFE_API_KEY` (Jev).
-- Working files outside the repo (survive reboots): `~/.cache/raynet-work/` (designs, assets, shots, deploy logs). `/tmp` is wiped on reboot — never keep anything there.
-- QA helpers in repo: `scripts/qa/shot.mjs` (screenshots; `FULL=1` full page), `scripts/qa/scrollrec.mjs` (scroll recording + Nami pose log).
+- Postgres container `nami-pg` (127.0.0.1:55432); `pnpm dev` on :3000. The **worker** isn't running locally (simulated clinic calls need `tsx worker/index.ts`; run it with `REAL_CALLS=off` locally). After a reboot: `docker start nami-pg`, restart `pnpm dev`.
+- `.env.local` is git-ignored and holds every key. Never print or commit it.
+- QA scripts in `~/.cache/raynet-work/`: `flow.mjs` (full judge flow via API, BASE env), `judge.mjs` (chat on phone size), `walk2.mjs` (Nami motion metrics), `spots.mjs` (Nami at every spot), `wwtest.mjs` (wake word with fake mic), `pages.mjs`, `playtest.mjs` (voice start time). Repo: `scripts/qa/shot.mjs`.
+- Voice samples for the lead: `~/Desktop/nami-voices/` (6 comparison clips + `fish-hindi/` 14 Fish voices).
 
-## Done (all committed, GPG-signed, author shivang-goliyan, no AI trailer)
-Painted Nami + 30 Wan 2.2 clips (stacked-alpha MP4 + WebGL player, clip graph: sit/stand/walk/wave/call/sleep, loops); landing redesign (scrapbook hero #2, "A day with Nami" D with Nami walking through 4 painted Jaipur scenes, appointment thread A, two homes B with red thread, evidence/promises notes); talking Nami (bubbles, "Let Nami talk", poke); voice loop (Deepgram → agent → Fish, browser fallbacks); provider-agnostic LLM (Gemini key rotation, timeout failover); crisis net + Jev classifier (D20); Raynet brand (D21); evals published (engine 28/28, 30 sim calls 0 false confirmations / 0 disclosure, intents 54/60); README, research/evidence-2026.md, docs/SUBMISSION.md (video script + form answers).
+## Remaining before 13:30
+1. Record the video (script in `docs/SUBMISSION.md`; update it to show: Get started, the "Let Nami call you" phone call, the guide bar steps). Say "simulated clinic" on camera.
+2. Form answers (`docs/SUBMISSION.md` §2) — need **team name (CAPS) and members/roles** from the lead; add the phone-call feature and wake word to the answers.
+3. Before submitting: make the GitHub repo public (it's private now; nothing pushed this session — ask the lead before pushing), scan for keys (`git log -p | grep -E "AIza|sk-|AC[0-9a-f]{32}|SK[0-9a-f]{32}"` should be empty), `.env*` never committed.
 
-## Done this morning (05:05 to 05:35)
-- Landing: one Nami only (the server-rendered hero copy is gone), she sits on the open page instead of over the photo prints; Meera's day note ticks itself off while Nami narrates; chai steam, drifting jasmine; day scenes have birds, light, steam, lamp flicker, fireflies and a slow camera drift; Lenis smooth scrolling; idle moves when the page is still; cheers on CTA hover; no swim flicker on fast scroll; never parked half-transparent between slots; the appointment conversation replays live with typing dots and ticking checks. Em dashes and "gentle" removed from visible copy.
-- Onboarding (D22) shipped: `/start`, `POST /api/onboard`, `createHousehold({ profile })`, `lib/onboarding.test.ts` (12 tests). Linked from the nav and under the hero CTA. The app now uses the household's own names everywhere (agent notes, greeting, captions, examples); a Hindi household opens in Hindi. Verified live on raynet.in.
-- Wake word (D23): `lib/client/wakeword.ts` + `components/app/useWakeWord.ts` + toggle under the Talk button. Mel/embedding models are in `public/wakeword/`; ORT wasm comes from jsDelivr. Tested end to end with a dummy classifier and a fake mic (detection starts the voice loop). **The toggle stays hidden until `public/wakeword/hey_nami.onnx` exists.**
-
-## Since 05:35
-- hey_nami.onnx shipped (v2, trained on Modal; natural voice 0.97 to 1.00, plain speech under 0.01; threshold 0.5, 2.5 s cool-down). Verified live on raynet.in with a fake mic: "Hey Nami" opens the conversation, 20 s of ordinary speech does not. Not yet tried by a real human voice: say it into a laptop mic before the video.
-- Gemini Flash-Lite went 503 / 9 s per reply this morning. `compatChat` now hedges to `LLM_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.5-flash` after 4 s or on any 5xx; empty tool-turn replies fall back to the tool's hint; replies follow the language of the last message. Live chat back to ~2 s. Fallback model eval: 54/60, safety 12/12.
-- raynet.in deployed at ~05:45 with everything except the restyled Hey Nami pill (5e693f3); include it in the final deploy.
-
-## Next after those
-Live judge-flow test on a phone (sandbox → booking → QR caregiver → console), final fixes, **freeze 10:00**, record the video 10:00–12:00 (script in docs/SUBMISSION.md), form answers + submit by 13:30 (make the GitHub repo public first; check no keys are committed).
-
-## Needed from the lead
-Team name (CAPS) + members/roles; Nami's voice pick (`preview/voices/`, placeholder `girl-hindi`); Twilio creds + 2 verified phones if real calls are wanted in the video.
+## Known, not fixed
+- /app preloads all mascot clips (~5.5 MB); some engine reply lines stay English in Hindi mode; demo-home creation isn't rate-limited; Gemini Hindi voice quota is small (falls back to Fish).
 
 ## Later (after the hackathon)
-Research-led onboarding v2, our own wake-word model improvements, real interviews/survey.
+Research-led onboarding v2 with accounts, real interviews/survey, daily check-in calls to the elder's phone, streaming audio player (MSE) for sub-second voice start.
