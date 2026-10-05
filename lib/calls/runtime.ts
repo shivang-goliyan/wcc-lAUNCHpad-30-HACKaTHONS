@@ -1,4 +1,5 @@
 // Executes outbox effects (calls) and feeds results back to the engine as commands.
+import { randomBytes } from 'node:crypto';
 import twilio from 'twilio';
 import { ensureSchema, sql } from '../db/client';
 import { loadHousehold, runCommand, virtualNow } from '../db/repo';
@@ -8,6 +9,10 @@ import { agentNextTurn, clinicSimTurn, extract, scriptedClinicCall } from '../ag
 import { llmAvailable } from '../agents/llm';
 import type { ClinicBrief, Speaker, Turn } from '../agents/types';
 import { checkDisclosure } from '../verify/disclosure';
+import { namiInstructions } from '../agents/namiPrompt';
+import { namiReply, replyLanguage } from '../agents/namiTurn';
+import { checkSafety } from '../server/safetyCheck';
+import { callKey } from '../server/twilioRequest';
 
 type CallRow = {
   id: string;
@@ -34,13 +39,47 @@ export function allowlisted(num: string | null) {
 
 export function twilioClient() {
   const sid = process.env.TWILIO_ACCOUNT_SID;
+  if (!sid) return null;
+  if (process.env.TWILIO_API_KEY_SID && process.env.TWILIO_API_KEY_SECRET) return twilio(process.env.TWILIO_API_KEY_SID, process.env.TWILIO_API_KEY_SECRET, { accountSid: sid });
   const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token) return null;
-  return twilio(sid, token);
+  return token ? twilio(sid, token) : null;
+}
+
+const cap = (name: string, def: number) => {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n >= 0 ? n : def;
+};
+const MAX_SECONDS = () => cap('CALL_MAX_SECONDS', 180);
+
+function hookUrl(route: 'voice' | 'gather' | 'status', callId: string) {
+  const base = (process.env.APP_URL ?? '').replace(/\/$/, '');
+  return `${base}/api/twilio/${route}?callId=${callId}&k=${callKey(callId)}`;
+}
+
+/**
+ * Every real (paid) call passes here first. Demo homes call only numbers on the allow-list,
+ * except the judge's own phone for a companion call: Indian mobiles or US numbers only,
+ * at most CALLS_PER_NUMBER_PER_DAY per number, CALLS_PER_HOUSEHOLD per demo home, and
+ * CALLS_PER_DAY across the whole site. REAL_CALLS=off stops everything. Returns why not, or null.
+ */
+export async function realCallGate(to: string | null, hh: string, companion: boolean): Promise<string | null> {
+  if (process.env.REAL_CALLS === 'off') return 'real calls are switched off';
+  if (!to) return 'no number';
+  if (!companion && !allowlisted(to)) return 'number not on the allow-list';
+  if (companion && !/^\+91[6-9]\d{9}$|^\+1[2-9]\d{9}$/.test(to)) return 'only Indian mobile and US numbers can be called';
+  const [c] = await sql()<{ day: number; num: number; house: number }[]>`SELECT
+      count(*) FILTER (WHERE created_at > now() - interval '24 hours')::int AS day,
+      count(*) FILTER (WHERE to_number = ${to} AND created_at > now() - interval '24 hours')::int AS num,
+      count(*) FILTER (WHERE household_id = ${hh})::int AS house
+    FROM call_sessions WHERE adapter = 'twilio'`;
+  if (c.day >= cap('CALLS_PER_DAY', 20)) return 'today’s limit of demo calls has been reached';
+  if (c.num >= cap('CALLS_PER_NUMBER_PER_DAY', 2)) return 'this number has had its demo calls for today';
+  if (companion && c.house >= cap('CALLS_PER_HOUSEHOLD', 2)) return 'this demo home has used its phone calls';
+  return null;
 }
 
 export function calleeSpeaker(purpose: CallPurpose): Speaker {
-  return purpose.startsWith('clinic') ? 'clinic' : purpose === 'recipient_checkin' ? 'recipient' : 'contact';
+  return purpose.startsWith('clinic') ? 'clinic' : purpose === 'recipient_checkin' || purpose === 'companion' ? 'recipient' : 'contact';
 }
 
 async function getCall(id: string) {
@@ -60,6 +99,11 @@ async function setState(id: string, state: string) {
 export async function finishCall(id: string, status: 'completed' | 'no_answer' | 'busy' | 'failed' | 'voicemail', preExtracted?: unknown, extractor?: string) {
   const call = await getCall(id);
   if (!call || call.result_sent) return;
+  if (call.purpose === 'companion') {
+    // a conversation, not an errand: nothing to extract or report to the engine
+    await sql()`UPDATE call_sessions SET result_sent = true, state = ${status}, ended_at = COALESCE(ended_at, now()), updated_at = now() WHERE id = ${id}`;
+    return;
+  }
   let extracted = preExtracted;
   let by = extractor ?? 'llm';
   if (status === 'completed' && extracted === undefined) {
@@ -168,6 +212,7 @@ export async function dispatchOutbox(limit = 10) {
 
 async function startCall(hh: string, p: StartCallEffect['payload']) {
   const db = sql();
+  const gate = p.adapter === 'twilio' ? await realCallGate(p.to, hh, false) : null;
   await db`INSERT INTO call_sessions (id, household_id, purpose, adapter, related_id, to_number, brief, started_at)
     VALUES (${p.callId}, ${hh}, ${p.purpose}, ${p.adapter}, ${p.relatedId}, ${p.to}, ${db.json(p.brief as never)}, now())
     ON CONFLICT (id) DO NOTHING`;
@@ -176,20 +221,20 @@ async function startCall(hh: string, p: StartCallEffect['payload']) {
     return;
   }
   const client = twilioClient();
-  if (!allowlisted(p.to) || !client || !process.env.TWILIO_FROM || !process.env.APP_URL) {
-    await appendTurn(p.callId, { speaker: 'system', text: `Real call not placed: ${!allowlisted(p.to) ? 'number not on the allow-list' : 'Twilio not configured'}.`, t: Date.now() });
+  if (gate || !client || !process.env.TWILIO_FROM || !process.env.APP_URL) {
+    await appendTurn(p.callId, { speaker: 'system', text: `Real call not placed: ${gate ?? 'Twilio not configured'}.`, t: Date.now() });
     await finishCall(p.callId, 'failed', {}, 'none');
     return;
   }
-  const base = process.env.APP_URL.replace(/\/$/, '');
   const call = await client.calls.create({
     to: p.to!,
     from: process.env.TWILIO_FROM,
-    url: `${base}/api/twilio/voice?callId=${p.callId}`,
-    statusCallback: `${base}/api/twilio/status?callId=${p.callId}`,
+    url: hookUrl('voice', p.callId),
+    statusCallback: hookUrl('status', p.callId),
     statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
     machineDetection: 'Enable',
     timeout: 25,
+    timeLimit: MAX_SECONDS(),
   });
   await db`UPDATE call_sessions SET provider_call_id = ${call.sid}, state = 'ringing', updated_at = now() WHERE id = ${p.callId}`;
 }
@@ -244,6 +289,7 @@ export async function twilioVoice(callId: string, answeredBy: string | null) {
     void finishCall(callId, 'voicemail', { voicemail: true, accepted: 'not_reached', outcome: 'not_reached' }, 'twilio');
     return vr.toString();
   }
+  if (call.purpose === 'companion') return companionGreeting(call, vr);
   return nextTwilioTurn(call, vr);
 }
 
@@ -257,6 +303,7 @@ export async function twilioGather(callId: string, speech: string | null) {
   const turn: Turn = { speaker: calleeSpeaker(call.purpose), text: speech?.trim() || '(silence)', t: Date.now() };
   await appendTurn(callId, turn);
   call.transcript.push(turn);
+  if (call.purpose === 'companion') return companionTurn(call, speech?.trim() ?? '', vr);
   return nextTwilioTurn(call, vr);
 }
 
@@ -277,10 +324,8 @@ async function nextTwilioTurn(call: CallRow, vr: ReturnType<typeof twiml>) {
   if (end) {
     vr.hangup();
   } else {
-    const base = (process.env.APP_URL ?? '').replace(/\/$/, '');
-    const g = vr.gather({ input: ['speech'], language: 'hi-IN', speechTimeout: 'auto', action: `${base}/api/twilio/gather?callId=${call.id}`, method: 'POST' });
-    void g;
-    vr.redirect({ method: 'POST' }, `${base}/api/twilio/gather?callId=${call.id}`);
+    vr.gather({ input: ['speech'], language: 'hi-IN', speechTimeout: 'auto', action: hookUrl('gather', call.id), method: 'POST' });
+    vr.redirect({ method: 'POST' }, hookUrl('gather', call.id));
   }
   return vr.toString();
 }
@@ -296,4 +341,108 @@ export async function twilioStatus(callId: string, status: string, answeredBy: s
   if (answeredBy?.startsWith('machine')) return finishCall(callId, 'voicemail', { voicemail: true, accepted: 'not_reached', outcome: 'not_reached' }, 'twilio');
   const spoke = call.transcript.some((t) => t.speaker !== 'nami' && t.speaker !== 'system' && t.text !== '(silence)');
   await finishCall(callId, final === 'completed' && !spoke ? 'no_answer' : final);
+}
+
+// ------------------------------------------------------------------ the judge's phone: talking to Nami as the elder
+
+const sayOpts = (lang: string) => ({ voice: VOICE(), language: (lang === 'en' ? 'en-IN' : 'hi-IN') as 'hi-IN' });
+
+function listen(call: CallRow, vr: ReturnType<typeof twiml>) {
+  const lang = String(call.brief.lang ?? 'hi');
+  vr.gather({ input: ['speech'], language: lang === 'en' ? 'en-IN' : 'hi-IN', speechTimeout: 'auto', timeout: 7, action: hookUrl('gather', call.id), method: 'POST' });
+  vr.redirect({ method: 'POST' }, hookUrl('gather', call.id));
+}
+
+async function companionGreeting(call: CallRow, vr: ReturnType<typeof twiml>) {
+  const lang = String(call.brief.lang ?? 'hi');
+  const hello =
+    lang === 'en'
+      ? 'Hello! This is Nami, an AI companion from Raynet, calling for your demo. Talk to me like you would every day: ask about your plan, tell me you took your tablet, or ask me to book Dr. Mehta.'
+      : 'Namaste! Main Nami hoon, Raynet ki AI saathi. Yeh aapki demo call hai. Mujhse roz ki tarah baat kijiye: aaj ka plan poochhiye, ya kahiye Dr. Mehta ka appointment book kar do.';
+  await appendTurn(call.id, { speaker: 'nami', text: hello, t: Date.now() });
+  vr.say(sayOpts(lang), hello);
+  listen(call, vr);
+  return vr.toString();
+}
+
+async function companionTurn(call: CallRow, speech: string, vr: ReturnType<typeof twiml>) {
+  const lang = String(call.brief.lang ?? 'hi');
+  const naminTurns = call.transcript.filter((t) => t.speaker === 'nami').length;
+  const silences = call.transcript.slice(-2).filter((t) => t.text === '(silence)').length;
+  const started = call.transcript[0]?.t ?? Date.now();
+  const bye = (text: string) => {
+    vr.say(sayOpts(lang), text);
+    vr.hangup();
+    void appendTurn(call.id, { speaker: 'nami', text, t: Date.now() });
+    return vr.toString();
+  };
+  if (!speech) {
+    if (silences >= 2) return bye(lang === 'en' ? 'I’ll let you go now. Talk to me any time on the Raynet screen. Bye!' : 'Theek hai, ab main rakhti hoon. Raynet screen par kabhi bhi baat kijiye. Namaste!');
+    vr.say(sayOpts(lang), lang === 'en' ? 'I’m listening.' : 'Main sun rahi hoon.');
+    listen(call, vr);
+    return vr.toString();
+  }
+  // the same two crisis checks as on the screen, before anything else
+  const safety = await checkSafety(call.household_id, speech).catch(() => null);
+  if (safety?.matched) {
+    return bye(
+      lang === 'en'
+        ? 'I’m opening a help request and telling your family now. If this is an emergency, please call 112. For someone to talk to, Tele-MANAS is 14416.'
+        : 'Main abhi madad maang rahi hoon aur aapke parivaar ko bata rahi hoon. Emergency ho to 112 par call kijiye. Baat karne ke liye Tele-MANAS 14416.',
+    );
+  }
+  let reply = lang === 'en' ? 'Sorry, I didn’t catch that. Could you say it again?' : 'Maaf kijiye, phir se boliye?';
+  try {
+    const system =
+      (await namiInstructions(call.household_id, 'voice')) +
+      replyLanguage(speech) +
+      '\n\nYou are on a phone call. Answer in one or two short spoken sentences. No lists, no emojis, no markdown.';
+    const history = call.transcript
+      .slice(0, -1)
+      .filter((t) => t.speaker === 'nami' || (t.speaker === 'recipient' && t.text !== '(silence)'))
+      .slice(-10)
+      .map((t) => ({ role: (t.speaker === 'nami' ? 'assistant' : 'user') as 'assistant' | 'user', text: t.text }));
+    const r = await namiReply(call.household_id, system, history, speech, 'voice');
+    if (r.text) reply = r.text.replace(/[*_#]/g, '');
+  } catch (e) {
+    console.error('companion turn failed', e);
+  }
+  const elapsed = (Date.now() - started) / 1000;
+  if (naminTurns >= 9 || elapsed > MAX_SECONDS() - 25) {
+    return bye(`${reply} ${lang === 'en' ? 'That’s our demo time. Thank you for talking to me!' : 'Demo ka samay poora hua. Baat karne ke liye shukriya!'}`);
+  }
+  await appendTurn(call.id, { speaker: 'nami', text: reply, t: Date.now() });
+  vr.say(sayOpts(lang), reply);
+  listen(call, vr);
+  return vr.toString();
+}
+
+/** A judge asked Nami to phone them as the elder. Guarded by realCallGate. */
+export async function startCompanionCall(hh: string, to: string, lang: 'en' | 'hi') {
+  const client = twilioClient();
+  if (!client || !process.env.TWILIO_FROM || !process.env.APP_URL) return { ok: false as const, reason: 'phone calls are not set up on this server' };
+  const why = await realCallGate(to, hh, true);
+  if (why) return { ok: false as const, reason: why };
+  const id = `call_ph_${randomBytes(8).toString('base64url')}`;
+  const db = sql();
+  await db`INSERT INTO call_sessions (id, household_id, purpose, adapter, related_id, to_number, brief, started_at)
+    VALUES (${id}, ${hh}, 'companion', 'twilio', null, ${to}, ${db.json({ lang } as never)}, now())`;
+  try {
+    const call = await client.calls.create({
+      to,
+      from: process.env.TWILIO_FROM,
+      url: hookUrl('voice', id),
+      statusCallback: hookUrl('status', id),
+      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+      machineDetection: 'Enable',
+      timeout: 25,
+      timeLimit: MAX_SECONDS(),
+    });
+    await db`UPDATE call_sessions SET provider_call_id = ${call.sid}, state = 'ringing', updated_at = now() WHERE id = ${id}`;
+    return { ok: true as const, callId: id };
+  } catch (e) {
+    console.error('companion call failed', e);
+    await finishCall(id, 'failed');
+    return { ok: false as const, reason: 'the call could not be placed' };
+  }
 }
