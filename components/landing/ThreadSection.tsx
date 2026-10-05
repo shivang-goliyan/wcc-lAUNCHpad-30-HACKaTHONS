@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Check, Phone, ShieldCheck } from 'lucide-react';
-import { NamiCue } from './NamiCue';
+import { NamiSlot } from './NamiSlot';
 
 type Who = 'meera' | 'nami' | 'clinic';
 type Msg =
@@ -135,7 +135,6 @@ export function ThreadSection() {
 
   return (
     <section id="thread" aria-labelledby="thread-title" className="sb-paper relative py-20 sm:py-24">
-      <NamiCue pose="listening" say="Listening to the clinic. Plain code checks what they say." side="left" />
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-16">
         <div>
           <p className="font-hand text-[20px] text-cocoa-500">the appointment, start to finish</p>
@@ -163,6 +162,7 @@ export function ThreadSection() {
             </ul>
           </div>
           <p className="mt-4 text-[13px] text-ink-600">A recorded run of the live demo. The clinic is simulated: its receptionist is an AI agent with a fixed calendar.</p>
+          <NamiSlot id="thread-lane" pose="listening" say="Listening to the clinic. Plain code checks what they say." className="mt-6 hidden h-[160px] w-[160px] lg:block" />
         </div>
 
         {/* the phone */}

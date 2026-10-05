@@ -1,6 +1,6 @@
 import { Check, Circle } from 'lucide-react';
 import { InView } from './InView';
-import { NamiCue } from './NamiCue';
+import { NamiSlot } from './NamiSlot';
 
 /**
  * Two homes, one thread: Meera in Jaipur, Arjun in Bengaluru. When her check-in goes
@@ -9,7 +9,6 @@ import { NamiCue } from './NamiCue';
 export function TwoHomes() {
   return (
     <section id="family" aria-labelledby="family-title" className="relative bg-[#fbf7ef] py-20 sm:py-24">
-      <NamiCue pose="heart" say="I hold the thread. Arjun says yes." side="right" />
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
         <p className="font-hand text-[20px] text-cocoa-500">when she doesn&rsquo;t answer</p>
         <h2 id="family-title" className="mt-2 max-w-[19em] font-display text-[clamp(2rem,4vw,3.3rem)] leading-[1.06] font-medium text-teal-900 text-balance">
@@ -65,6 +64,7 @@ export function TwoHomes() {
               strokeLinecap="round"
             />
           </svg>
+          <NamiSlot id="family-seam" pose="heart" say="I hold the thread. Arjun says yes." className="absolute top-[30%] left-1/2 hidden h-[190px] w-[190px] -translate-x-1/2 sm:block" />
         </div>
       </InView>
 

@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
-import { CheerLink, DayNote, HeroBubble, HeroNami } from './HeroLife';
+import { CheerLink, DayNote, HeroBubble } from './HeroLife';
 import { HeroAmbient } from './HeroAmbient';
+import { NamiSlot } from './NamiSlot';
 import { ScrollLink } from './ScrollLink';
 
 /**
@@ -104,7 +105,7 @@ export function ScrapHero() {
           </div>
           <div className="absolute right-0 bottom-[2%] w-[min(52%,280px)]">
             <HeroBubble />
-            <HeroNami />
+            <NamiSlot id="hero" pose="greeting" hero className="relative z-10 aspect-square w-full" />
           </div>
         </div>
       </div>
