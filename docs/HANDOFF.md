@@ -22,9 +22,10 @@ Painted Nami + 30 Wan 2.2 clips (stacked-alpha MP4 + WebGL player, clip graph: s
 - Onboarding (D22) shipped: `/start`, `POST /api/onboard`, `createHousehold({ profile })`, `lib/onboarding.test.ts` (12 tests). Linked from the nav and under the hero CTA. The app now uses the household's own names everywhere (agent notes, greeting, captions, examples); a Hindi household opens in Hindi. Verified live on raynet.in.
 - Wake word (D23): `lib/client/wakeword.ts` + `components/app/useWakeWord.ts` + toggle under the Talk button. Mel/embedding models are in `public/wakeword/`; ORT wasm comes from jsDelivr. Tested end to end with a dummy classifier and a fake mic (detection starts the voice loop). **The toggle stays hidden until `public/wakeword/hey_nami.onnx` exists.**
 
-## In progress
-1. **hey_nami.onnx training** on Modal (background agent; `~/.cache/raynet-work/wakeword/PROGRESS.md`, output `out/hey_nami.onnx`). When it lands: copy to `public/wakeword/hey_nami.onnx`, test with `node ~/.cache/raynet-work/wwtest.mjs ~/.cache/raynet-work/wakeword/heytest.wav` (espeak "hey nami" through a fake mic), check false triggers on plain speech, commit, redeploy.
-2. raynet.in is behind main by the last few landing commits; redeploy together with the wake-word model.
+## Since 05:35
+- hey_nami.onnx shipped (v2, trained on Modal; natural voice 0.97 to 1.00, plain speech under 0.01; threshold 0.5, 2.5 s cool-down). Verified live on raynet.in with a fake mic: "Hey Nami" opens the conversation, 20 s of ordinary speech does not. Not yet tried by a real human voice: say it into a laptop mic before the video.
+- Gemini Flash-Lite went 503 / 9 s per reply this morning. `compatChat` now hedges to `LLM_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-3.5-flash` after 4 s or on any 5xx; empty tool-turn replies fall back to the tool's hint; replies follow the language of the last message. Live chat back to ~2 s. Fallback model eval: 54/60, safety 12/12.
+- raynet.in deployed at ~05:45 with everything except the restyled Hey Nami pill (5e693f3); include it in the final deploy.
 
 ## Next after those
 Live judge-flow test on a phone (sandbox → booking → QR caregiver → console), final fixes, **freeze 10:00**, record the video 10:00–12:00 (script in docs/SUBMISSION.md), form answers + submit by 13:30 (make the GitHub repo public first; check no keys are committed).
