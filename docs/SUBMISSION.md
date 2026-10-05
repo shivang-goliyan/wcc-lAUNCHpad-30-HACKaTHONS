@@ -3,7 +3,7 @@
 Everything here uses only verified numbers (`research/evidence-2026.md`) and machine-written eval results
 (`public/eval-results.json`). Anything simulated is said to be simulated.
 
-## 1. The demo film (2:32)
+## 1. The demo film (2:56)
 
 A launch film cut from screen recordings of the live site (raynet.in, recorded on 5 Oct), with narration
 in one voice and every statistic sourced on screen. The clinic is labelled "Simulated clinic" whenever it
@@ -12,15 +12,16 @@ appears, and the narration says so.
 | Time | Beat | What is on screen |
 |---|---|---|
 | 0:00 | Cold open | "Jaipur · 10:00 a.m." A call to Ma rings out. Her son is in Bengaluru, in a meeting. |
-| 0:10 | The need | 1 in 4 elders with no child at home (LASI) · 347 million over 60 by 2050 (UNFPA) · 4 in 10 take long-term medicines poorly, top reason forgetting (Cureus 2026) · 1 in 2 BP patients never return for follow-up (J Hum Hypertens 2023) · 3 in 4 come back once a person follows up (BMJ Open Quality 2025) |
-| 0:36 | Meet Nami | Nami waves, says "नमस्ते मीरा जी" in her real voice; the landing page and the day with Nami walking through it |
-| 0:49 | She gets things done | Meera's screen: the booking request, the permission card, Nami on the phone with the simulated clinic |
-| 1:08 | The rule | "Nothing gets booked on an AI's say-so." The 8 plain-code checks, Meera's two yeses, confirmed only on the clinic's words |
-| 1:24 | Ten a.m. again | The missed check-in, the plan Meera agreed to, Arjun's phone: he has to accept. "Nobody is ever marked safe by a machine. A person is." |
-| 1:48 | Crisis | Crisis words open help with 112 and Tele-MANAS 14416, whatever the model says |
-| 1:56 | Nami calls you | 7 in 10 urban elders use a basic phone (HelpAge 2025), so Nami just rings: the "Let Nami call you" form |
-| 2:08 | Proof | 30 simulated clinic calls, 0 false confirmations, 0 private details shared; the agent console: "The AI proposes. Code decides." |
-| 2:20 | Close | "Nami keeps them company. Raynet makes sure someone shows up." raynet.in |
+| 0:10 | The need | 1 in 4 elders with no child at home (LASI) · 4 in 10 take long-term medicines poorly, top reason forgetting (Cureus 2026) · 1 in 2 BP patients never return for follow-up (J Hum Hypertens 2023) · 3 in 4 come back once a person follows up (BMJ Open Quality 2025) |
+| 0:30 | Meet Nami | Nami waves, says "नमस्ते मीरा जी" in her real voice; the landing page and the day with Nami walking through it |
+| 0:43 | She gets things done | Meera's screen: the booking request, the permission card, Nami on the phone with the simulated clinic |
+| 1:02 | The rule | "Nothing gets booked on an AI's say-so." The 8 plain-code checks, Meera's two yeses, confirmed only on the clinic's words |
+| 1:18 | Ten a.m. again | The missed check-in, the plan Meera agreed to, Arjun's phone: he has to accept. "Nobody is ever marked safe by a machine. A person is." |
+| 1:40 | Crisis | Crisis words open help with 112 and Tele-MANAS 14416, whatever the model says |
+| 1:49 | Nami calls Meera ji | 7 in 10 urban elders use a basic phone (HelpAge 2025). The daily check-in goes unanswered on screen, so Nami rings her phone; Meera ji picks up and answers in Hindi (example call, subtitled) |
+| 2:24 | Try it yourself | The "Let Nami call you" form: type your number, Nami calls |
+| 2:30 | Proof | 30 simulated clinic calls, 0 false confirmations, 0 private details shared; the agent console: "The AI proposes. Code decides." |
+| 2:42 | Close | "Nami keeps them company. Raynet makes sure someone shows up." Then: "Want Nami to talk to your parents?" raynet.in → Let Nami call you → type your number |
 
 The phone-call request in the film was staged so no call was placed while recording; the feature itself is
 live and capped (see D25).
